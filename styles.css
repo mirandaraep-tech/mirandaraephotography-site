@@ -176,11 +176,30 @@ img { max-width: 100%; display: block; }
   -webkit-backdrop-filter: blur(6px);
 }
 
+/* Plain white-text variant of the price tag — no white card, just white
+   text matching the rest of the hero copy. */
+.hero .price-tag.price-tag-plain {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  padding: 0;
+  color: var(--white);
+}
+.hero .price-tag.price-tag-plain .amount { color: var(--white); }
+.hero .price-tag.price-tag-plain .desc { color: rgba(255,255,255,0.9); }
+
 /* Used when the hero photo is a tightly-composed group shot (e.g. a full
    family) that needs a much taller hero section to show everyone's full
    faces below the text instead of just the tops of their heads. */
 .hero-tall {
   padding-bottom: 260px;
+}
+
+/* Base padding for the corner-pinned price tag so it has room below the
+   subheading at any screen width, not just on mobile. */
+.hero-corner-pad {
+  padding-bottom: 130px;
 }
 
 .cta-row {
