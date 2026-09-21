@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mexico Beach Sunrise Special | $119 | Miranda Rae Photography</title>
+<meta name="description" content="Sunrise mini photo sessions in Mexico Beach, FL. Now $119 for 15 edited photos, up to 6 people — limited weekly sunrise spots.">
+<meta name="robots" content="noindex, nofollow"> <!-- this is a dedicated ad-click page, not meant to rank in search -->
+<link rel="stylesheet" href="styles.css">
+
+<!--
+  ============================================================
+  GOOGLE ADS CONVERSION TRACKING — fill in once the Google Ads
+  account + conversion action are created. Two things needed:
+    1) Replace AW-CONVERSION_ID below with your actual Ads tag ID (e.g. AW-123456789)
+    2) Replace CONVERSION_LABEL in the sendConversion() function below
+       with the label Google Ads gives you for the "form submit" conversion action.
+  Same tag ID as your other pages is fine — Google Ads tags are account-wide;
+  only the conversion label differs per action if you track these as separate goals.
+  ============================================================
+-->
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-CONVERSION_ID"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-CONVERSION_ID');
+
+  function sendConversion(url) {
+    gtag('event', 'conversion', {
+      'send_to': 'AW-CONVERSION_ID/CONVERSION_LABEL',
+      'event_callback': function () {
+        if (typeof url !== 'undefined') { window.location = url; }
+      }
+    });
+    return false;
+  }
+</script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Miranda Rae Photography</div>
+  <div class="cta-group">
+    <a href="sms:+14482196539" class="call-btn" onclick="sendConversion();">Text Us</a>
+    <a href="#book" class="call-btn secondary">Book Now</a>
+  </div>
+</div>
+
+<section class="hero" style="background-image: linear-gradient(180deg, rgba(20,60,70,.55), rgba(20,60,70,.4)), url('images/mexico-sunrise/hero.jpg'); background-size: cover; background-position: center 30%;">
+  <div class="wrap">
+    <span class="badge">Sunrise Special &mdash; Limited Weekly Spots</span>
+    <h1>Before The World Wakes Up, Make This Memory</h1>
+    <p class="sub">Quiet shoreline, soft morning light, and 15 fully edited photos in Mexico Beach &mdash; now at our lowest rate of the year.</p>
+    <div class="price-tag">
+      <div>
+        <div class="amount-row">
+          <span class="old-amount">$130</span>
+          <span class="amount">$119</span>
+        </div>
+        <span class="desc">15 professionally<br>edited photos</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>Recent Sunrise Sessions</h2>
+    <div class="gallery">
+      <img src="images/mexico-sunrise/gallery1.jpg" alt="Family walking along the shore at sunrise" loading="lazy">
+      <img src="images/mexico-sunrise/gallery2.jpg" alt="Mom kissing her toddler on the cheek at sunrise" loading="lazy">
+      <img src="images/mexico-sunrise/gallery3.jpg" alt="Toddler portrait on the beach at sunrise" loading="lazy">
+      <img src="images/mexico-sunrise/gallery4.jpg" alt="Couple sitting on the dunes looking out at the beach" loading="lazy">
+      <img src="images/mexico-sunrise/gallery5.jpg" alt="Large family group portrait on the beach at dusk" loading="lazy">
+      <img src="images/mexico-sunrise/gallery6.jpg" alt="Extended family in matching pink outfits on the beach" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section class="section included">
+  <div class="wrap">
+    <h2>What's Included</h2>
+    <ul class="included-list">
+      <li>20&ndash;30 minute sunrise session</li>
+      <li>15 professionally edited photos</li>
+      <li>For up to 6 people</li>
+      <li>Private online gallery</li>
+      <li>Print &amp; sharing release</li>
+      <li>Delivered within 5&ndash;7 days</li>
+      <li>Sunrise sessions in Mexico Beach only</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section about-photographer">
+  <div class="wrap">
+    <div class="about-wrap">
+      <img src="images/miranda-portrait.jpg" alt="Miranda, owner and photographer" class="about-photo" loading="lazy">
+      <div class="about-text">
+        <div class="eyebrow">Meet Your Photographer</div>
+        <h2>Hi, I'm Miranda</h2>
+        <p>I love photographing families along the Gulf Coast &mdash; the small, real moments, not stiff poses. Every session is shot and edited by me personally, from start to finish, with no big studio and no assembly line.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="testimonial">
+      <p class="rating">94% Recommend on Facebook &middot; 14 Reviews</p>
+      <p class="quote">&ldquo;She did my family's pictures this summer at the beach! They were so good! And gave them back so quick!&rdquo;</p>
+      <p class="attribution">&mdash; Lilly Willoughby, Facebook review</p>
+    </div>
+  </div>
+</section>
+
+<section class="section form-section" id="book">
+  <div class="wrap">
+    <h2>Request Your Sunrise Session</h2>
+    <form name="booking-mexico-sunrise" method="POST" data-netlify="true" action="thank-you.html" class="lead-form">
+      <input type="hidden" name="form-name" value="booking-mexico-sunrise" />
+
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="phone">Phone</label>
+      <input type="tel" id="phone" name="phone" required>
+
+      <label for="people">Number of People</label>
+      <select id="people" name="people">
+        <option value="">Select one</option>
+        <option>1-2</option>
+        <option>3-4</option>
+        <option>5-6</option>
+        <option>More than 6</option>
+      </select>
+
+      <label for="date">Preferred Date</label>
+      <input type="date" id="date" name="date">
+
+      <label for="message">Anything we should know?</label>
+      <textarea id="message" name="message" rows="3"></textarea>
+
+      <button type="submit" class="btn btn-primary">Request My Sunrise Session — $119</button>
+      <p class="fineprint">We'll text or call within 24 hours with your exact sunrise time and to confirm your date.</p>
+    </form>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap faq">
+    <h2>Common Questions</h2>
+    <details>
+      <summary>Why is the sunrise session cheaper?</summary>
+      <p>Sunrise slots are requested less often than sunset, so we're passing the savings on to you &mdash; same 15 edited photos, same quality, just an earlier start.</p>
+    </details>
+    <details>
+      <summary>What time do we need to arrive?</summary>
+      <p>Sunrise time shifts a little through the year, so we'll text you the exact meeting time a few days before your session.</p>
+    </details>
+    <details>
+      <summary>What should we wear?</summary>
+      <p>Neutral or muted tones &mdash; soft blues, whites, tans, and sandy neutrals &mdash; photograph best against the beach. Busy patterns, logos, and bright white sneakers tend to distract from the shot.</p>
+    </details>
+    <details>
+      <summary>What happens if it's cloudy or rains?</summary>
+      <p>We'll work with you to reschedule for the next available sunrise session at no extra charge &mdash; you won't lose your spot to bad weather.</p>
+    </details>
+    <details>
+      <summary>Do you travel to a specific spot on the beach?</summary>
+      <p>Yes &mdash; we'll recommend a great public-access spot in Mexico Beach based on the tide and light that morning, or you're welcome to request a specific location.</p>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <p>Miranda Rae Photography &middot; Sunrise Sessions in Mexico Beach, FL &middot; <a href="sms:+14482196539">Text Us</a></p>
+</footer>
+
+</body>
+</html>
