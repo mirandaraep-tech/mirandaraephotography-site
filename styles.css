@@ -188,6 +188,7 @@ img { max-width: 100%; display: block; }
 }
 .hero .price-tag.price-tag-plain .amount { color: var(--white); }
 .hero .price-tag.price-tag-plain .desc { color: rgba(255,255,255,0.9); }
+.hero .price-tag.price-tag-plain .old-amount { color: rgba(255,255,255,0.75); }
 
 /* Used when the hero photo is a tightly-composed group shot (e.g. a full
    family) that needs a much taller hero section to show everyone's full
@@ -200,6 +201,14 @@ img { max-width: 100%; display: block; }
    subheading at any screen width, not just on mobile. */
 .hero-corner-pad {
   padding-bottom: 130px;
+}
+
+/* When a hero uses both classes (a tightly-composed group shot that also
+   has a corner-pinned price tag), the taller padding should win — this
+   combined selector has higher specificity than either class alone so
+   it isn't at the mercy of which rule happens to come later above. */
+.hero-corner-pad.hero-tall {
+  padding-bottom: 260px;
 }
 
 .cta-row {
