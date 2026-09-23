@@ -8,33 +8,27 @@
 <meta name="robots" content="noindex, nofollow"> <!-- this is a dedicated ad-click page, not meant to rank in search -->
 <link rel="stylesheet" href="styles.css">
 
-<!--
-  ============================================================
-  GOOGLE ADS CONVERSION TRACKING — fill in once the Google Ads
-  account + conversion action are created. Two things needed:
-    1) Replace AW-CONVERSION_ID below with your actual Ads tag ID (e.g. AW-123456789)
-    2) Replace CONVERSION_LABEL in the sendConversion() function below
-       with the label Google Ads gives you for the "form submit" conversion action.
-  Same tag ID as your other page is fine — Google Ads tags are account-wide;
-  only the conversion label differs per action if you track these as separate goals.
-  ============================================================
--->
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-CONVERSION_ID"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18391952045"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'AW-CONVERSION_ID');
+  gtag('config', 'AW-18391952045');
 
-  function sendConversion(url) {
-    gtag('event', 'conversion', {
-      'send_to': 'AW-CONVERSION_ID/CONVERSION_LABEL',
-      'event_callback': function () {
-        if (typeof url !== 'undefined') { window.location = url; }
-      }
-    });
-    return false;
+  var textTapSent = false;
+  function textTap(el) {
+    // 1) count it as a Google Ads conversion  2) send Randy a "someone tapped Text Us" alert email
+    gtag('event', 'conversion', {'send_to': 'AW-18391952045/n9uQCLm3vfEcEK3V-8FE'});
+    if (!textTapSent) {
+      textTapSent = true;
+      try {
+        fetch('/', {method:'POST', keepalive:true,
+          headers:{'Content-Type':'application/x-www-form-urlencoded'},
+          body:'form-name=text-tap&page=destin'});
+      } catch (e) {}
+    }
+    return true; // let the text message app open
   }
 </script>
 </head>
@@ -43,7 +37,7 @@
 <div class="topbar">
   <div class="logo">Miranda Rae Photography</div>
   <div class="cta-group">
-    <a href="sms:+14482196539" class="call-btn" onclick="sendConversion();">Text Us</a>
+    <a href="sms:+14482196539?&body=Hi%20Miranda!%20I'm%20interested%20in%20a%20Destin%2F30A%20photo%20session.%20My%20preferred%20date%20is%3A%20" class="call-btn" onclick="return textTap(this);">Text Us</a>
     <a href="#book" class="call-btn secondary">Book Now</a>
   </div>
 </div>
@@ -124,6 +118,16 @@
       <label for="phone">Phone</label>
       <input type="tel" id="phone" name="phone" required>
 
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email">
+
+      <label for="contact-pref">How should we reply?</label>
+      <select id="contact-pref" name="contact-pref">
+        <option>Text me</option>
+        <option>Call me</option>
+        <option>Email me</option>
+      </select>
+
       <label for="beach">Preferred Location</label>
       <select id="beach" name="beach">
         <option>Destin</option>
@@ -175,8 +179,9 @@
 </section>
 
 <footer>
-  <p>Miranda Rae Photography &middot; Serving Destin &amp; 30A, FL &middot; <a href="sms:+14482196539">Text Us</a></p>
+  <p>Miranda Rae Photography &middot; Serving Destin &amp; 30A, FL &middot; <a href="sms:+14482196539?&body=Hi%20Miranda!%20I'm%20interested%20in%20a%20Destin%2F30A%20photo%20session.%20My%20preferred%20date%20is%3A%20" onclick="return textTap(this);">Text Us</a></p>
 </footer>
 
+<form name="text-tap" data-netlify="true" hidden><input type="hidden" name="page"></form>
 </body>
 </html>
