@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beach Wedding Photographer | Miranda Rae Photography</title>
+<meta name="description" content="Beach wedding photography in Destin, 30A, Panama City Beach, Mexico Beach & Port St. Joe. $499 for 4 hours of coverage. Select September & October 2026 dates — free to ask.">
+<meta name="robots" content="noindex, nofollow"> <!-- this is a dedicated ad-click page, not meant to rank in search -->
+<link rel="stylesheet" href="styles.css">
+
+<script>
+
+  var textTapSent = false;
+  function textTap(el) {
+    // send Randy a "someone tapped Text Us" alert email
+    if (!textTapSent) {
+      textTapSent = true;
+      try {
+        fetch('/', {method:'POST', keepalive:true,
+          headers:{'Content-Type':'application/x-www-form-urlencoded'},
+          body:'form-name=text-tap&page=wedding-facebook'});
+      } catch (e) {}
+    }
+    return true; // let the text message app open
+  }
+</script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Miranda Rae Photography</div>
+  <div class="cta-group">
+    <a href="sms:+14482196539?&body=Hi%20Miranda!%20I'm%20interested%20in%20a%20beach%20wedding%20session%20and%20would%20like%20to%20check%20your%20availability.%20My%20wedding%20date%20is%3A%20" class="call-btn" onclick="return textTap(this);">Text Us</a>
+    <a href="#book" class="call-btn secondary">Check My Date</a>
+  </div>
+</div>
+
+<div class="promo-banner">Wedding Special &mdash; Select September &amp; October 2026 Dates</div>
+
+<section class="hero" style="background-image: linear-gradient(180deg, rgba(20,60,70,.55), rgba(20,60,70,.4)), url('images/mexico-sunrise/gallery4.jpg'); background-size: cover; background-position: center;">
+  <div class="wrap">
+    <h1>Planning a Beach Wedding? Let's Check Your Date</h1>
+    <p class="sub">Relaxed, heartfelt photography for select September &amp; October 2026 beach weddings in Destin, 30A, Panama City Beach, Mexico Beach &amp; Port St. Joe. No payment required to check your date.</p>
+    <div class="price-tag price-tag-plain">
+      <span class="amount">$499</span>
+      <span class="desc">4 hours of<br>coverage</span>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>A Sense of Miranda's Style</h2>
+    <div class="gallery">
+      <img src="images/destin/gallery1.jpg" alt="Couple nose to nose on the beach at golden hour" loading="lazy">
+      <img src="images/destin/hero.jpg" alt="Couple sharing a kiss on the beach at sunset" loading="lazy">
+      <img src="images/destin/gallery2.jpg" alt="Couple holding hands watching the sunset over the beach" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section class="section included">
+  <div class="wrap">
+    <h2>What's Included</h2>
+    <ul class="included-list">
+      <li>4 hours of wedding-day coverage</li>
+      <li>Ceremony photography</li>
+      <li>Newlywed &amp; family portraits</li>
+      <li>Professionally edited photos</li>
+      <li>Private online gallery</li>
+      <li>Print &amp; sharing release</li>
+      <li>Destin, 30A, Panama City Beach, Mexico Beach &amp; Port St. Joe</li>
+    </ul>
+    <p style="text-align:center; color:var(--muted); margin-top:22px;">Getting married on Cape San Blas instead? <a href="#book" style="color:var(--ocean-dark); font-weight:700;">Ask us</a> &mdash; we're happy to check availability and travel.</p>
+  </div>
+</section>
+
+<section class="section about-photographer">
+  <div class="wrap">
+    <div class="about-wrap">
+      <img src="images/miranda-portrait.jpg" alt="Miranda, owner and photographer" class="about-photo" loading="lazy">
+      <div class="about-text">
+        <div class="eyebrow">Meet Your Photographer</div>
+        <h2>Hi, I'm Miranda</h2>
+        <p>I love photographing couples and families along the Gulf Coast &mdash; real moments, not stiff poses. Now booking simple beach wedding ceremonies alongside my portrait sessions, shot and edited by me personally, from start to finish, with no big studio and no assembly line.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="testimonial">
+      <p class="rating">94% Recommend on Facebook &middot; 14 Reviews</p>
+    </div>
+  </div>
+</section>
+
+<section class="section form-section" id="book">
+  <div class="wrap">
+    <h2>Check Your Date &mdash; Free to Ask</h2>
+    <form name="booking-wedding-facebook" method="POST" data-netlify="true" action="thank-you-facebook.html" class="lead-form">
+      <input type="hidden" name="form-name" value="booking-wedding-facebook" />
+
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="phone">Phone</label>
+      <input type="tel" id="phone" name="phone" required>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email">
+
+      <label for="contact-pref">How should we reply?</label>
+      <select id="contact-pref" name="contact-pref">
+        <option>Text me</option>
+        <option>Call me</option>
+        <option>Email me</option>
+      </select>
+
+      <label for="date">Wedding Date</label>
+      <input type="date" id="date" name="date" required>
+
+      <label for="beach">Preferred Location</label>
+      <select id="beach" name="beach">
+        <option>Destin</option>
+        <option>30A</option>
+        <option>Panama City Beach</option>
+        <option>Mexico Beach</option>
+        <option>Port St. Joe</option>
+        <option>Cape San Blas</option>
+        <option>Not sure yet</option>
+      </select>
+
+      <label for="guests">Guest Count</label>
+      <input type="text" id="guests" name="guests">
+
+      <label for="message">Anything we should know?</label>
+      <textarea id="message" name="message" rows="3"></textarea>
+
+      <button type="submit" class="btn btn-primary">Check My Date &mdash; No Payment Required</button>
+      <p class="fineprint">No payment required to ask. We'll confirm availability and all details before you book, and only use your info to reply about your wedding date.</p>
+    </form>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap faq">
+    <h2>Common Questions</h2>
+    <details>
+      <summary>What's included in the $499 package?</summary>
+      <p>4 hours of wedding-day coverage &mdash; your ceremony, newlywed portraits, and family/group portraits &mdash; plus professionally edited photos delivered through a private online gallery.</p>
+    </details>
+    <details>
+      <summary>Do I need to pay anything to check my date?</summary>
+      <p>No &mdash; checking your date is free. Reach out first and we'll confirm availability and walk through every detail before anything is due.</p>
+    </details>
+    <details>
+      <summary>Which wedding dates qualify for the $499 price?</summary>
+      <p>Select September and October 2026 dates in Destin, 30A, Panama City Beach, Mexico Beach, and Port St. Joe. Getting married on Cape San Blas or outside that window? Ask anyway &mdash; we may still be able to work something out.</p>
+    </details>
+    <details>
+      <summary>What happens if it rains?</summary>
+      <p>We'll work with you to find the best backup plan for your date, whether that's a time shift or a nearby covered spot, at no extra charge.</p>
+    </details>
+    <details>
+      <summary>Do you travel to a specific spot on the beach?</summary>
+      <p>Yes &mdash; we'll recommend a great public-access spot in Destin, 30A, Panama City Beach, Mexico Beach, or Port St. Joe based on your date and the tide and light that day, or you're welcome to request a specific location.</p>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <p>Miranda Rae Photography &middot; Serving Destin, 30A, Panama City Beach, Mexico Beach &amp; Port St. Joe, FL &middot; <a href="sms:+14482196539?&body=Hi%20Miranda!%20I'm%20interested%20in%20a%20beach%20wedding%20session%20and%20would%20like%20to%20check%20your%20availability.%20My%20wedding%20date%20is%3A%20" onclick="return textTap(this);">Text Us</a></p>
+</footer>
+
+<form name="text-tap" data-netlify="true" hidden><input type="hidden" name="page"></form>
+</body>
+</html>
