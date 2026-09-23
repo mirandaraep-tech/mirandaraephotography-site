@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beach Photographer | Destin, 30A, Panama City Beach, Mexico Beach &amp; Port St. Joe | Miranda Rae Photography</title>
+<meta name="description" content="Relaxed beach photography for families, couples and weddings in Destin, 30A, Panama City Beach, Mexico Beach & Port St. Joe. Text or request your date today.">
+<meta name="robots" content="noindex, nofollow"> <!-- dedicated Facebook page, not meant to rank in search -->
+<link rel="stylesheet" href="styles.css">
+
+<script>
+  var textTapSent = false;
+  function textTap(el) {
+    // send Randy a "someone tapped Text Us" alert email
+    if (!textTapSent) {
+      textTapSent = true;
+      try {
+        fetch('/', {method:'POST', keepalive:true,
+          headers:{'Content-Type':'application/x-www-form-urlencoded'},
+          body:'form-name=text-tap&page=facebook-general'});
+      } catch (e) {}
+    }
+    return true; // let the text message app open
+  }
+</script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Miranda Rae Photography</div>
+  <div class="cta-group">
+    <a href="sms:+14482196539?&body=Hi%20Miranda!%20I%20found%20you%20on%20Facebook%20and%20I'd%20like%20to%20book%20a%20beach%20photo%20session.%20My%20preferred%20date%20and%20location%3A%20" class="call-btn" onclick="return textTap(this);">Text Us</a>
+    <a href="#book" class="call-btn secondary">Request My Date</a>
+  </div>
+</div>
+
+<section class="hero hero-tall" style="background-image: linear-gradient(180deg, rgba(20,60,70,.55), rgba(20,60,70,.4)), url('images/nearby/hero.jpg'); background-size: cover; background-position: center 40%;">
+  <div class="wrap">
+    <span class="badge">Florida's Gulf Coast &mdash; Destin to Port St. Joe</span>
+    <h1>Your Family. The Gulf. One Golden Hour You'll Never Forget.</h1>
+    <p class="sub">Relaxed, natural beach photography for families, couples and weddings in Destin, 30A, Panama City Beach, Mexico Beach &amp; Port St. Joe &mdash; shot and edited by Miranda herself.</p>
+    <a href="#book" class="btn btn-primary">Request My Date &mdash; Free to Ask</a>
+    <p class="sub" style="margin-top:14px;">Or text Miranda directly: <a href="sms:+14482196539?&body=Hi%20Miranda!%20I%20found%20you%20on%20Facebook%20and%20I'd%20like%20to%20book%20a%20beach%20photo%20session.%20My%20preferred%20date%20and%20location%3A%20" onclick="return textTap(this);" style="color:#fff; font-weight:700;">(448) 219-6539</a></p>
+  </div>
+</section>
+
+<section class="section included">
+  <div class="wrap">
+    <h2>Where We Shoot &amp; What It Costs</h2>
+    <ul class="included-list">
+      <li><strong>Destin &amp; 30A</strong> &mdash; golden-hour sessions, $199 (15 edited photos)</li>
+      <li><strong>Panama City Beach</strong> &mdash; mini sessions, $130 (15 edited photos)</li>
+      <li><strong>Mexico Beach &amp; Port St. Joe</strong> &mdash; mini sessions, $130 (15 edited photos)</li>
+      <li><strong>Mexico Beach Sunrise Special</strong> &mdash; $119</li>
+      <li><strong>Beach Weddings</strong> &mdash; $499 for 4 hours of coverage</li>
+      <li><strong>Cape San Blas</strong> &mdash; ask us, we're happy to check availability</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>Recent Sessions</h2>
+    <div class="gallery">
+      <img src="images/destin/hero.jpg" alt="Couple sharing a kiss on the beach at sunset" loading="lazy">
+      <img src="images/nearby/gallery1.jpg" alt="Dad tossing his daughter into the air on the beach at sunset" loading="lazy">
+      <img src="images/destin/gallery1.jpg" alt="Couple nose to nose on the beach at golden hour" loading="lazy">
+      <img src="images/nearby/gallery3.jpg" alt="Mom hugging her daughter on the beach" loading="lazy">
+      <img src="images/mexico-sunrise/gallery4.jpg" alt="Couple sitting by the sea oats watching the sunrise" loading="lazy">
+      <img src="images/nearby/gallery5.jpg" alt="Family portrait with kids sitting on the sand at sunset" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section class="section about-photographer">
+  <div class="wrap">
+    <div class="about-wrap">
+      <img src="images/miranda-portrait.jpg" alt="Miranda, owner and photographer" class="about-photo" loading="lazy">
+      <div class="about-text">
+        <div class="eyebrow">Meet Your Photographer</div>
+        <h2>Hi, I'm Miranda</h2>
+        <p>I love photographing families and couples along the Gulf Coast &mdash; the small, real moments, not stiff poses. Every session is shot and edited by me personally, from start to finish, with no big studio and no assembly line.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="testimonial">
+      <p class="rating">94% Recommend on Facebook &middot; 14 Reviews</p>
+      <p class="quote">&ldquo;She did my family's pictures this summer at the beach! They were so good! And gave them back so quick!&rdquo;</p>
+      <p class="attribution">&mdash; Lilly Willoughby, Facebook review</p>
+    </div>
+  </div>
+</section>
+
+<section class="section form-section" id="book">
+  <div class="wrap">
+    <h2>Request Your Date &mdash; Free to Ask</h2>
+    <form name="booking-facebook-general" method="POST" data-netlify="true" action="thank-you-facebook.html" class="lead-form">
+      <input type="hidden" name="form-name" value="booking-facebook-general" />
+
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="phone">Phone</label>
+      <input type="tel" id="phone" name="phone" required>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email">
+
+      <label for="contact-pref">How should we reply?</label>
+      <select id="contact-pref" name="contact-pref">
+        <option>Text me</option>
+        <option>Call me</option>
+        <option>Email me</option>
+      </select>
+
+      <label for="session-type">What are you looking for?</label>
+      <select id="session-type" name="session-type">
+        <option>Family session</option>
+        <option>Couples session</option>
+        <option>Sunrise session</option>
+        <option>Wedding</option>
+        <option>Not sure yet</option>
+      </select>
+
+      <label for="beach">Preferred Location</label>
+      <select id="beach" name="beach">
+        <option>Destin</option>
+        <option>30A</option>
+        <option>Panama City Beach</option>
+        <option>Mexico Beach</option>
+        <option>Port St. Joe</option>
+        <option>Cape San Blas</option>
+        <option>Not sure yet</option>
+      </select>
+
+      <label for="date">Preferred Date</label>
+      <input type="date" id="date" name="date">
+
+      <label for="message">Anything we should know?</label>
+      <textarea id="message" name="message" rows="3"></textarea>
+
+      <button type="submit" class="btn btn-primary">Request My Date &mdash; No Payment Required</button>
+      <p class="fineprint">No payment required to ask. We'll text or call within 24 hours to confirm your date and go over the details.</p>
+    </form>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap faq">
+    <h2>Common Questions</h2>
+    <details>
+      <summary>Do I need to pay anything to ask about a date?</summary>
+      <p>No &mdash; asking is free. We'll confirm availability and every detail before anything is due.</p>
+    </details>
+    <details>
+      <summary>Which beaches do you shoot at?</summary>
+      <p>Destin, 30A, Panama City Beach, Mexico Beach, and Port St. Joe. Want Cape San Blas or another spot nearby? Just ask.</p>
+    </details>
+    <details>
+      <summary>How quickly will I hear back?</summary>
+      <p>We'll text or call within 24 hours &mdash; however you choose in the form.</p>
+    </details>
+    <details>
+      <summary>Do you photograph weddings too?</summary>
+      <p>Yes &mdash; beach weddings are $499 for 4 hours of coverage. Pick &ldquo;Wedding&rdquo; in the form and send your date.</p>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <p>Miranda Rae Photography &middot; Serving Destin, 30A, Panama City Beach, Mexico Beach &amp; Port St. Joe, FL &middot; <a href="sms:+14482196539?&body=Hi%20Miranda!%20I%20found%20you%20on%20Facebook%20and%20I'd%20like%20to%20book%20a%20beach%20photo%20session.%20My%20preferred%20date%20and%20location%3A%20" onclick="return textTap(this);">Text Us</a></p>
+</footer>
+
+<form name="text-tap" data-netlify="true" hidden><input type="hidden" name="page"></form>
+</body>
+</html>
