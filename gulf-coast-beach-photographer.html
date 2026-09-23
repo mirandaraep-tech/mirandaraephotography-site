@@ -22,6 +22,20 @@
     }
     return true; // let the text message app open
   }
+
+  var reviewTapSent = false;
+  function reviewTap() {
+    // send Randy a "someone tapped the Facebook reviews link" alert email
+    if (!reviewTapSent) {
+      reviewTapSent = true;
+      try {
+        fetch('/', {method:'POST', keepalive:true,
+          headers:{'Content-Type':'application/x-www-form-urlencoded'},
+          body:'form-name=review-tap&page=facebook-general'});
+      } catch (e) {}
+    }
+    return true; // open the reviews in a new tab
+  }
 </script>
 </head>
 <body>
@@ -86,7 +100,7 @@
 <section class="section">
   <div class="wrap">
     <div class="testimonial">
-      <p class="rating">94% Recommend on Facebook &middot; 14 Reviews</p>
+      <p class="rating"><a href="https://www.facebook.com/profile.php?id=61591669718246&sk=reviews" target="_blank" rel="noopener" onclick="return reviewTap();" style="color:inherit; text-decoration:underline;">94% Recommend on Facebook &middot; 14 Reviews</a></p>
       <p class="quote">&ldquo;She did my family's pictures this summer at the beach! They were so good! And gave them back so quick!&rdquo;</p>
       <p class="attribution">&mdash; Lilly Willoughby, Facebook review</p>
     </div>
@@ -174,5 +188,6 @@
 </footer>
 
 <form name="text-tap" data-netlify="true" hidden><input type="hidden" name="page"></form>
+<form name="review-tap" data-netlify="true" hidden><input type="hidden" name="page"></form>
 </body>
 </html>
