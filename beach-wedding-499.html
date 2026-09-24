@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beach Wedding Photography — $499 for up to 4 Hours | Miranda Rae</title>
+<meta name="description" content="Beach wedding photography in Destin, 30A, Panama City Beach, Mexico Beach and Port St. Joe. $499 for up to 4 hours. Text Miranda to check your date.">
+<meta name="robots" content="noindex,nofollow">
+
+<!-- Google Ads tag (same account as the other mirandaraephotography.com pages) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18391952045"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-18391952045');
+
+  var PAGE = 'wedding-499-v3';
+
+  // Quiet background ping to Netlify Forms so every tap is logged (no page change)
+  function ping(formName, extra) {
+    try {
+      fetch('/', {method:'POST', keepalive:true,
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:'form-name=' + formName + '&page=' + PAGE + (extra ? '&' + extra : '')});
+    } catch (e) {}
+  }
+
+  // Text Miranda = Google Ads conversion + alert email
+  var textTapSent = false;
+  function textTap() {
+    gtag('event', 'conversion', {'send_to': 'AW-18391952045/n9uQCLm3vfEcEK3V-8FE'});
+    if (!textTapSent) { textTapSent = true; ping('text-tap'); }
+    return true;
+  }
+
+  // Call Miranda = Google Ads conversion
+  function callTap() {
+    gtag('event', 'conversion', {'send_to': 'AW-18391952045/BIeXCI7_3O0cEK3V-8FE'});
+    ping('call-tap');
+    return true;
+  }
+
+  // Facebook / Pixieset clicks = tracked, but NOT counted as a lead
+  function linkTap(which) {
+    gtag('event', 'outbound_click', {link_name: which, page: PAGE});
+    ping('link-click', 'link=' + which);
+    window.__leftFor = which;            // remember they stepped away
+    try { sessionStorage.setItem('mrp-left', which); } catch (e) {}
+    return true;
+  }
+
+  // ---- "Welcome back" bar: shows when they return from Facebook / Pixieset ----
+  function showWelcomeBack() {
+    var bar = document.getElementById('welcome-back');
+    if (bar && !bar.classList.contains('show')) {
+      bar.classList.add('show');
+      gtag('event', 'returned_from_link', {link_name: window.__leftFor || 'unknown', page: PAGE});
+    }
+  }
+  function hideWelcomeBack() { var b = document.getElementById('welcome-back'); if (b) b.classList.remove('show'); }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && window.__leftFor) showWelcomeBack();
+  });
+  window.addEventListener('pageshow', function () {       // came back with the Back button
+    var left = null; try { left = sessionStorage.getItem('mrp-left'); } catch (e) {}
+    if (left) { window.__leftFor = left; showWelcomeBack(); }
+  });
+
+  // ---- Remember what they typed, so nothing is lost if they leave and come back ----
+  document.addEventListener('DOMContentLoaded', function () {
+    var f = document.querySelector('form[name="booking-wedding-v3"]');
+    if (!f) return;
+    var KEY = 'mrp-wedding-draft';
+    try {
+      var saved = JSON.parse(localStorage.getItem(KEY) || '{}');
+      Object.keys(saved).forEach(function (k) { if (f.elements[k] && f.elements[k].type !== 'hidden') f.elements[k].value = saved[k]; });
+    } catch (e) {}
+    f.addEventListener('input', function () {
+      var d = {};
+      ['name','phone','date','beach','contact-pref','email','message'].forEach(function (k) { if (f.elements[k]) d[k] = f.elements[k].value; });
+      try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {}
+    });
+    f.addEventListener('submit', function () { try { localStorage.removeItem(KEY); sessionStorage.removeItem('mrp-left'); } catch (e) {} });
+  });
+</script>
+
+<style>
+:root{--ink:#15283a;--teal:#287c79;--teal2:#1f6967;--gold:#aa793b;--cream:#fffaf4;--mist:#eefafa;--line:#e7dfd6;--muted:#657079;--fb:#1877f2}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;color:var(--ink);font-family:Georgia,'Times New Roman',serif;background:#fff;line-height:1.45}
+img{display:block;max-width:100%}
+a{color:inherit}
+
+/* ---------- Sticky top bar ---------- */
+.bar{position:sticky;top:0;z-index:50;background:rgba(255,250,244,.97);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);box-shadow:0 2px 14px rgba(21,40,58,.06)}
+.bar-in{max-width:1240px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px clamp(16px,4vw,48px)}
+.brandwrap{display:flex;align-items:center;gap:14px;text-decoration:none}
+.brand{font:italic 34px/1 'Brush Script MT','Segoe Script',cursive;letter-spacing:.3px;white-space:nowrap}
+.brand small{display:block;font:700 9px/1.2 Arial,sans-serif;letter-spacing:4px;text-align:center;margin-top:6px}
+.headshot{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 0 0 2px var(--teal)}
+.bar-actions{display:flex;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;border:0;border-radius:30px;cursor:pointer;font:700 15px/1 Arial,sans-serif;letter-spacing:.6px;padding:14px 22px;white-space:nowrap}
+.btn-text{background:var(--teal);color:#fff;box-shadow:0 6px 16px rgba(21,84,82,.18)}
+.btn-text:hover{background:var(--teal2)}
+.btn-ghost{background:#fff;color:var(--teal);border:2px solid var(--teal)}
+.bubble{font-size:18px;line-height:1}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;min-height:600px;display:flex;align-items:center;overflow:hidden;background:#fff8ef}
+.hero-bg{position:absolute;top:0;bottom:0;right:0;left:42%;width:58%;height:100%;object-fit:cover;object-position:60% 55%}
+.hero:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#fff8ef 0%,#fff8ef 42%,rgba(255,248,239,0) 52%)}
+.hero-copy{position:relative;z-index:2;width:min(560px,52vw);margin-left:clamp(20px,6vw,86px);padding:48px 0}
+.locations{font:700 12px/1.5 Arial,sans-serif;letter-spacing:2px;margin:0 0 18px}
+h1{font-size:clamp(44px,5vw,74px);line-height:.95;font-weight:400;letter-spacing:-1.5px;margin:0 0 14px}
+.beautiful{font-style:italic;font-size:24px;margin:0}
+.price{font-size:clamp(76px,8vw,112px);line-height:.95;color:var(--gold);margin:0}
+.hours{font-size:26px;color:var(--gold);margin:2px 0 16px}
+.desc{font-size:19px;max-width:470px;margin:0 0 22px}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:12px}
+.hero-ctas .btn{padding:17px 28px;font-size:16px}
+.reassure{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:18px;font:14px/1.2 Arial,sans-serif;color:#34495a}
+
+/* ---------- Trust bar ---------- */
+.trustbar{background:#fff;border-bottom:1px solid var(--line);padding:22px clamp(16px,5vw,70px)}
+.trust-in{max-width:1100px;margin:auto;display:flex;justify-content:center}
+.fbcard{display:flex;align-items:center;gap:14px;text-decoration:none;border:1px solid var(--line);border-radius:16px;padding:14px 18px;background:var(--cream);transition:box-shadow .15s}
+.fbcard:hover{box-shadow:0 6px 18px rgba(24,61,77,.1)}
+.fblogo{width:40px;height:40px;border-radius:50%;background:var(--fb);color:#fff;display:flex;align-items:center;justify-content:center;font:700 24px/1 Arial,sans-serif}
+.fbnum{font:700 26px/1 Arial,sans-serif;color:var(--ink)}
+.fbtxt{font:13px/1.3 Arial,sans-serif;color:var(--muted)}
+.fbtxt b{color:var(--fb)}
+
+/* ---------- Included + gallery ---------- */
+.section{padding:60px clamp(16px,5.5vw,80px)}
+.wrap{max-width:1180px;margin:auto}
+.eyebrow{font:700 11px Arial,sans-serif;letter-spacing:2px;margin:0 0 10px;color:var(--teal)}
+h2{font-size:clamp(32px,3.6vw,48px);line-height:1.05;font-weight:400;margin:0 0 18px}
+.two{display:grid;grid-template-columns:1fr 1.1fr;gap:50px;align-items:center}
+.included{list-style:none;padding:0;margin:0 0 22px}
+.included li{display:flex;gap:12px;align-items:flex-start;font-size:18px;padding:9px 0;border-bottom:1px solid var(--line)}
+.included li:before{content:'✓';color:var(--teal);font:700 18px Arial,sans-serif}
+.gallery{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.8fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:8px;aspect-ratio:1.09;overflow:hidden}
+.gallery img{width:100%;height:100%;min-height:0;object-fit:cover;border-radius:4px}
+.gallery img:first-child{grid-row:1 / span 2;object-position:center 40%}
+.pixie{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:12px;padding:14px 18px;border-radius:14px;background:var(--ink);color:#fff;text-decoration:none}
+.pixie b{font:700 15px Arial,sans-serif;letter-spacing:.4px}
+.pixie span{font:13px Arial,sans-serif;opacity:.8}
+.pixie .arrow{font-size:24px}
+.imgnote{font:12px/1.4 Arial,sans-serif;color:var(--muted);margin:8px 2px 0}
+
+/* ---------- About ---------- */
+.about{background:var(--cream)}
+.about-in{max-width:900px;margin:auto;display:grid;grid-template-columns:170px 1fr;gap:36px;align-items:center}
+.about img{width:170px;height:170px;border-radius:50%;object-fit:cover}
+.about p{font-size:18px;margin:0 0 10px}
+.signature{font:italic 38px/1 'Brush Script MT','Segoe Script',cursive;margin-top:6px}
+
+/* ---------- Form ---------- */
+.formsec{background:var(--mist)}
+.formgrid{display:grid;grid-template-columns:.85fr 1.15fr;gap:50px;max-width:1120px;margin:auto;align-items:start}
+.formintro p{font-size:18px}
+.or-text{margin-top:20px;padding:18px;border-radius:14px;background:#fff;border:1px dashed #b9cfd0;font:15px/1.4 Arial,sans-serif}
+.or-text .btn{margin-top:10px}
+.formbox{background:#fff;border-radius:22px;padding:28px;box-shadow:0 20px 50px rgba(24,61,77,.08)}
+.formbox label{font:700 13px Arial,sans-serif;display:block;margin-top:14px}
+.formbox label .opt{font-weight:400;color:var(--muted)}
+.formbox input,.formbox select,.formbox textarea{width:100%;margin-top:6px;padding:13px 14px;border:1px solid #c9d5d8;border-radius:8px;background:#fff;font:16px Arial,sans-serif;color:#203a49;min-height:48px}
+.formbox textarea{min-height:84px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.formbox .btn{width:100%;margin-top:20px;padding:18px;font-size:16px}
+.fine{font:12px Arial,sans-serif;color:#62707a;text-align:center;margin:12px 0 0}
+.hp{display:none}
+
+/* ---------- FAQ + footer ---------- */
+details{border-bottom:1px solid var(--line);padding:16px 0}
+summary{cursor:pointer;font-size:20px;list-style:none;display:flex;justify-content:space-between;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary:after{content:'+';color:var(--teal);font:700 22px Arial,sans-serif}
+details[open] summary:after{content:'–'}
+details p{font:16px/1.55 Arial,sans-serif;color:#40525e;margin:10px 0 0}
+footer{background:var(--ink);color:#dfe8ec;text-align:center;padding:34px 16px;font:14px/1.6 Arial,sans-serif}
+footer a{color:#fff}
+
+/* ---------- Welcome-back bar ---------- */
+#welcome-back{position:fixed;left:50%;bottom:18px;transform:translate(-50%,160%);z-index:60;width:min(560px,calc(100% - 24px));background:var(--ink);color:#fff;border-radius:18px;padding:16px 18px;box-shadow:0 14px 40px rgba(0,0,0,.25);transition:transform .35s ease;font:15px/1.35 Arial,sans-serif}
+#welcome-back.show{transform:translate(-50%,0)}
+#welcome-back .wb-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+#welcome-back b{font:700 17px Georgia,serif}
+#welcome-back .x{background:none;border:0;color:#fff;font-size:22px;cursor:pointer;line-height:1;opacity:.7}
+#welcome-back .wb-btns{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+#welcome-back .btn{flex:1 1 auto;padding:13px 16px}
+#welcome-back .btn-ghost{background:transparent;color:#fff;border-color:#fff}
+
+/* ---------- Tablet ---------- */
+@media (max-width:900px){
+  .two,.formgrid{grid-template-columns:1fr;gap:28px}
+  .hero{display:block;min-height:0}
+  .hero-bg{position:relative;left:auto;width:100%;height:320px;display:block}
+  .hero:after{display:none}
+  .hero-copy{width:auto;margin:0 20px;padding:26px 0 36px}
+}
+/* ---------- Phone ---------- */
+@media (max-width:560px){
+  .brand{font-size:24px}
+  .brand small{font-size:7px;letter-spacing:3px;margin-top:4px}
+  .headshot{width:38px;height:38px}
+  .brandwrap{gap:9px}
+  .bar-in{padding:8px 12px}
+  .bar .btn-text{padding:11px 14px;font-size:14px}
+  .bar .btn-ghost{display:none}
+  .hero-bg{height:260px}
+  .desc{font-size:17px}
+  .hero-ctas .btn{flex:1 1 100%}
+  .section{padding:44px 16px}
+  .about-in{grid-template-columns:1fr;text-align:center;justify-items:center;gap:16px}
+  .about img{width:130px;height:130px}
+  .row2{grid-template-columns:1fr}
+  .formbox{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ STICKY TOP BAR ============ -->
+<header class="bar">
+  <div class="bar-in">
+    <a class="brandwrap" href="#top" aria-label="Miranda Rae Photography">
+      <div class="brand">Miranda Rae<small>PHOTOGRAPHY</small></div>
+      <img class="headshot" src="https://affordablebeachphotographer.com/destin-intake-assets/assets/miranda.webp" alt="Miranda Rae with her camera" width="52" height="52">
+    </a>
+    <div class="bar-actions">
+      <a class="btn btn-ghost" href="#date-request">Check My Date</a>
+      <a class="btn btn-text" href="sms:+14482196539?&body=Hi%20Miranda!%20I%20saw%20the%20%24499%20beach%20wedding%20special.%20Our%20wedding%20date%20is%3A%20" onclick="return textTap();"><span class="bubble">💬</span> Text Miranda</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <img class="hero-bg" src="https://images-pw.pixieset.com/site/B8woOD/pmAJRG/8080C0F9-0966-45CD-B883-50500849434E-674e7793-1500.jpeg" alt="Beach proposal with Marry Me lights at sunset, photographed by Miranda Rae">
+  <div class="hero-copy">
+    <p class="locations">DESTIN • 30A • PANAMA CITY BEACH • MEXICO BEACH • PORT ST. JOE</p>
+    <h1>Beach Wedding Photography</h1>
+    <p class="beautiful">Beautifully remembered for</p>
+    <p class="price">$499</p>
+    <p class="hours">Up to 4 Hours</p>
+    <p class="desc">Natural, relaxed wedding photography on the Gulf Coast — shot and edited by Miranda personally.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-text" href="sms:+14482196539?&body=Hi%20Miranda!%20I%20saw%20the%20%24499%20beach%20wedding%20special.%20Our%20wedding%20date%20is%3A%20" onclick="return textTap();"><span class="bubble">💬</span> Text Miranda</a>
+      <a class="btn btn-ghost" href="#date-request">Check My Date →</a>
+    </div>
+    <div class="reassure"><span>✓ No payment to ask</span><span>✓ No obligation</span><span>✓ Replies personally</span></div>
+  </div>
+</section>
+
+<!-- ============ TRUST BAR (Facebook) ============ -->
+<section class="trustbar">
+  <div class="trust-in">
+    <a class="fbcard" href="https://www.facebook.com/profile.php?id=61591669718246" target="_blank" rel="noopener" onclick="return linkTap('facebook');">
+      <div class="fblogo">f</div>
+      <div>
+        <div class="fbnum">94% Recommend</div>
+        <div class="fbtxt">14 reviews on <b>Facebook</b> · Read them →</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- ============ WHAT'S INCLUDED + GALLERY ============ -->
+<section class="section">
+  <div class="wrap two">
+    <div>
+      <p class="eyebrow">THE $499 WEDDING SPECIAL</p>
+      <h2>What's included</h2>
+      <ul class="included">
+        <li>Up to 4 hours of wedding-day coverage</li>
+        <li>Your ceremony, start to finish</li>
+        <li>Newlywed, family &amp; small-group portraits</li>
+        <li>Professionally edited photos in a private online gallery</li>
+        <li>Print &amp; sharing release</li>
+        <li>Beach, garden, chapel or backyard. Miranda comes to you</li>
+      </ul>
+      <a class="btn btn-text" href="sms:+14482196539?&body=Hi%20Miranda!%20I%20saw%20the%20%24499%20beach%20wedding%20special.%20Our%20wedding%20date%20is%3A%20" onclick="return textTap();"><span class="bubble">💬</span> Text Miranda About Your Date</a>
+    </div>
+    <div>
+      <div class="gallery">
+        <img src="https://images-pw.pixieset.com/site/B8woOD/LKkLok/3C37312A-B94C-40D0-A108-8682E532046B-6512bcaf-1500.jpeg" alt="Engaged couple at sunset showing the ring, photographed by Miranda Rae" loading="lazy">
+        <img src="https://images-pw.pixieset.com/site/B8woOD/AEOoPz/126C38F8-6695-4B48-B6A6-C90D78254D4A-7db264ed-1500.png" alt="Wedding rings in a wooden ring box, photographed by Miranda Rae" loading="lazy">
+        <img src="https://images-pw.pixieset.com/site/B8woOD/yxVWrr/DSC00206-d073ccc0-1500.jpg" alt="Engagement ring close-up at sunset, photographed by Miranda Rae" loading="lazy" style="object-position:center 60%">
+      </div>
+      <a class="pixie" href="https://mirandaraesphotography.mypixieset.com/gallery-1/" target="_blank" rel="noopener" onclick="return linkTap('pixieset');">
+        <div><b>See Miranda's real galleries</b><br><span>Full client sessions on Pixieset</span></div>
+        <div class="arrow">→</div>
+      </a>
+      <p class="imgnote">All photos by Miranda Rae.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT (short) ============ -->
+<section class="section about">
+  <div class="about-in">
+    <img src="https://affordablebeachphotographer.com/destin-intake-assets/assets/miranda.webp" alt="Miranda Rae with her camera" loading="lazy">
+    <div>
+      <p class="eyebrow">MEET YOUR PHOTOGRAPHER</p>
+      <p>Hi, I'm Miranda. I love capturing real moments, genuine emotions, and the natural beauty of a Gulf Coast beach wedding — no stiff poses, no big studio.</p>
+      <p>Small ceremony or a bigger celebration, my goal is to keep your day relaxed and give you photos you'll treasure.</p>
+      <div class="signature">Miranda Rae ♡</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FORM ============ -->
+<section class="section formsec" id="date-request">
+  <div class="formgrid">
+    <div class="formintro">
+      <p class="eyebrow">CHECK YOUR WEDDING DATE</p>
+      <h2>Is your date still open?</h2>
+      <p>Send your date and Miranda will personally confirm availability and answer your questions. No payment, no obligation.</p>
+      <div class="or-text">
+        <b>Faster on your phone?</b> Text Miranda directly and she'll reply personally.<br>
+        <a class="btn btn-text" href="sms:+14482196539?&body=Hi%20Miranda!%20I%20saw%20the%20%24499%20beach%20wedding%20special.%20Our%20wedding%20date%20is%3A%20" onclick="return textTap();"><span class="bubble">💬</span> Text Miranda</a>
+      </div>
+    </div>
+
+    <form class="formbox" name="booking-wedding-v3" method="POST" action="/thank-you" data-netlify="true" netlify-honeypot="bot-field">
+      <input type="hidden" name="form-name" value="booking-wedding-v3">
+      <p class="hp"><label>Leave blank <input name="bot-field"></label></p>
+
+      <label for="name">Your names</label>
+      <input id="name" name="name" type="text" autocomplete="name" required>
+
+      <div class="row2">
+        <div>
+          <label for="phone">Phone</label>
+          <input id="phone" name="phone" type="tel" autocomplete="tel" required>
+        </div>
+        <div>
+          <label for="date">Wedding date</label>
+          <input id="date" name="date" type="date" required>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div>
+          <label for="beach">Beach</label>
+          <select id="beach" name="beach">
+            <option>Destin</option><option>30A</option><option>Panama City Beach</option>
+            <option>Mexico Beach</option><option>Port St. Joe</option><option>Not sure yet</option>
+          </select>
+        </div>
+        <div>
+          <label for="contact-pref">Best way to reply</label>
+          <select id="contact-pref" name="contact-pref">
+            <option>Text</option><option>Phone call</option><option>Email</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="email">Email <span class="opt">(optional)</span></label>
+      <input id="email" name="email" type="email" autocomplete="email">
+
+      <label for="message">Anything else? <span class="opt">(optional — guest count, time of day…)</span></label>
+      <textarea id="message" name="message"></textarea>
+
+      <button class="btn btn-text" type="submit">Check My Date — Free to Ask</button>
+      <p class="fine">No payment required. Your date isn't reserved until Miranda confirms the details with you.</p>
+    </form>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="section">
+  <div class="wrap" style="max-width:820px">
+    <h2>Quick questions</h2>
+    <details><summary>Do I pay anything to check my date?</summary><p>No. Asking is free. Miranda confirms availability, location and details with you first, and nothing is booked until you agree.</p></details>
+    <details><summary>What if the weather turns?</summary><p>Gulf weather can change fast. Miranda will talk through a backup plan and timing with you before the day.</p></details>
+    <details><summary>Can I see Miranda's real work?</summary><p>Yes — her full client galleries are on <a href="https://mirandaraesphotography.mypixieset.com/gallery-1/" target="_blank" rel="noopener" onclick="return linkTap('pixieset-faq');">Pixieset</a>, and reviews are on her <a href="https://www.facebook.com/profile.php?id=61591669718246" target="_blank" rel="noopener" onclick="return linkTap('facebook-faq');">Facebook page</a>.</p></details>
+  </div>
+</section>
+
+<footer>
+  Miranda Rae Photography · Destin, 30A, Panama City Beach, Mexico Beach &amp; Port St. Joe, FL<br>
+  <a href="sms:+14482196539" onclick="return textTap();">Text</a> or <a href="tel:+14482196539" onclick="return callTap();">call (448) 219-6539</a>
+</footer>
+
+<!-- Welcome-back bar (appears when someone returns from Facebook / Pixieset) -->
+<div id="welcome-back" role="dialog" aria-live="polite">
+  <div class="wb-top">
+    <div><b>Welcome back! ♡</b><br>Like what you saw? Check if your wedding date is open. It's free to ask.</div>
+    <button class="x" type="button" aria-label="Close" onclick="hideWelcomeBack()">×</button>
+  </div>
+  <div class="wb-btns">
+    <a class="btn btn-text" href="sms:+14482196539?&body=Hi%20Miranda!%20I%20saw%20the%20%24499%20beach%20wedding%20special.%20Our%20wedding%20date%20is%3A%20" onclick="hideWelcomeBack(); return textTap();"><span class="bubble">💬</span> Text Miranda</a>
+    <a class="btn btn-ghost" href="#date-request" onclick="hideWelcomeBack()">Check My Date →</a>
+  </div>
+</div>
+
+<!-- Hidden forms so Netlify registers the tap/click logs -->
+<form name="text-tap" netlify hidden><input type="hidden" name="form-name" value="text-tap"><input name="page"></form>
+<form name="call-tap" netlify hidden><input type="hidden" name="form-name" value="call-tap"><input name="page"></form>
+<form name="link-click" netlify hidden><input type="hidden" name="form-name" value="link-click"><input name="page"><input name="link"></form>
+
+</body>
+</html>
