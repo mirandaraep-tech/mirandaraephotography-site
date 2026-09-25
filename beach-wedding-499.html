@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Beach Wedding Photography — $499 for up to 4 Hours | Miranda Rae</title>
+<title>Destin & 30A, FL Beach Wedding Photographer — $499 for up to 4 Hours | Miranda Rae</title>
 <meta name="description" content="Beach wedding photography in Destin, 30A, Panama City Beach, Mexico Beach and Port St. Joe. $499 for up to 4 hours. Text Miranda to check your date.">
 <meta name="robots" content="noindex,nofollow">
 
@@ -235,8 +235,8 @@ footer a{color:#fff}
 <header class="bar">
   <div class="bar-in">
     <a class="brandwrap" href="#top" aria-label="Miranda Rae Photography">
-      <div class="brand">Miranda Rae<small>PHOTOGRAPHY</small></div>
-      <img class="headshot" src="https://affordablebeachphotographer.com/destin-intake-assets/assets/miranda.webp" alt="Miranda Rae with her camera" width="52" height="52">
+      <div class="brand">Miranda Rae<small>PHOTOGRAPHER · <span class="aname">DESTIN &amp; 30A</span>, FL</small></div>
+      <img class="headshot" src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae with her camera" width="52" height="52">
     </a>
     <div class="bar-actions">
       <a class="btn btn-ghost" href="#date-request">Check My Date</a>
@@ -249,8 +249,8 @@ footer a{color:#fff}
 <section class="hero" id="top">
   <img class="hero-bg" src="https://images-pw.pixieset.com/site/B8woOD/pmAJRG/8080C0F9-0966-45CD-B883-50500849434E-674e7793-1500.jpeg" alt="Beach proposal with Marry Me lights at sunset, photographed by Miranda Rae">
   <div class="hero-copy">
-    <p class="locations">DESTIN • 30A • PANAMA CITY BEACH • MEXICO BEACH • PORT ST. JOE</p>
-    <h1>Beach Wedding Photography</h1>
+    <p class="locations">DESTIN • 30A • PANAMA CITY BEACH • MEXICO BEACH • PORT ST. JOE, FLORIDA</p>
+    <h1><span class="aname">Destin &amp; 30A</span> Wedding Photographer</h1>
     <p class="beautiful">Beautifully remembered for</p>
     <p class="price">$499</p>
     <p class="hours">Up to 4 Hours</p>
@@ -407,5 +407,16 @@ footer a{color:#fff}
 <form name="call-tap" netlify hidden><input type="hidden" name="form-name" value="call-tap"><input name="page"></form>
 <form name="link-click" netlify hidden><input type="hidden" name="form-name" value="link-click"><input name="page"><input name="link"></form>
 
+
+<script>
+  // Area name fills in from the ad link: ?area=destin | 30a
+  (function(){
+    var names={'destin':'Destin','30a':'30A'};
+    var a=(new URLSearchParams(location.search).get('area')||'').toLowerCase();
+    if(!names[a]) return;
+    document.querySelectorAll('.aname').forEach(function(el){ el.textContent = el.closest('.brand') ? names[a].toUpperCase() : names[a]; });
+    document.title = names[a] + ', FL Beach Wedding Photographer — $499 for up to 4 Hours | Miranda Rae';
+  })();
+</script>
 </body>
 </html>
