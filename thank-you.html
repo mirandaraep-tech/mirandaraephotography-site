@@ -14,6 +14,8 @@
   gtag('js', new Date());
   gtag('config', 'AW-18391952045');
   gtag('event', 'conversion', { 'send_to': 'AW-18391952045/iFCFCP2cl-wcEK3V-8FE' });
+  // Gallery / review taps: email alert only (not counted as a lead)
+  function linkTap(which){ try{ fetch('/', {method:'POST', keepalive:true, headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'form-name=link-click&page=thank-you&link='+which}); }catch(e){} return true; }
 </script>
 </head>
 <body>
@@ -35,20 +37,28 @@
 
 <section class="section">
   <div class="wrap" style="max-width:560px; text-align:center;">
-    <h2>What Happens Next</h2>
+    <h2>While You Wait…</h2>
+    <div style="display:grid; gap:12px; max-width:420px; margin:0 auto;">
+      <a href="https://mirandaraesphotography.mypixieset.com/gallery-1/" target="_blank" rel="noopener" class="btn btn-primary" onclick="return linkTap('pixieset-thankyou');">📸 See Miranda's Full Galleries</a>
+      <a href="https://www.facebook.com/profile.php?id=61591669718246" target="_blank" rel="noopener" class="btn btn-primary" onclick="return linkTap('facebook-thankyou');">⭐ Read All 16 Reviews — 96% Recommend</a>
+    </div>
+
+    <h2 style="margin-top:40px;">What Happens Next</h2>
     <ul class="included-list" style="grid-template-columns: 1fr; text-align:left; max-width: 440px; margin: 0 auto;">
       <li>Miranda reviews your request and checks available dates</li>
       <li>She'll text or call within 24 hours to confirm your date and location</li>
       <li>No payment is needed until your session is confirmed</li>
     </ul>
-    <p style="margin-top:30px; color: var(--muted);">Need to reach her sooner, or have a question before then?</p>
-    <a href="sms:+14482196539" class="btn btn-primary" style="margin-top:14px;">Text Miranda Now</a>
+    <p style="margin-top:30px; color: var(--muted);">Need a faster response? <a href="sms:+14482196539">Text Miranda at (448) 219-6539</a></p>
+    <p style="margin-top:18px;"><a href="javascript:history.back()">← Back to the page</a></p>
   </div>
 </section>
 
 <footer>
   <p>Miranda Rae Photography &middot; Serving Florida's Gulf Coast &middot; <a href="sms:+14482196539">Text Us</a></p>
 </footer>
+
+<form hidden method="post" name="link-click" data-netlify="true"><input type="hidden" name="form-name" value="link-click"><input name="page"><input name="link"></form>
 
 </body>
 </html>
