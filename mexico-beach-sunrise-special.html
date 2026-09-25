@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mexico Beach, Port St. Joe & Cape San Blas Sunrise Special | $119 | Miranda Rae Photography</title>
+<title>Mexico Beach, FL Photographer — $119 Sunrise Special | Port St. Joe & Cape San Blas | Miranda Rae Photography</title>
 <meta name="description" content="Sunrise mini photo sessions in Mexico Beach, Port St. Joe & Cape San Blas, FL. Now $119 for 15 edited photos, up to 6 people — limited weekly sunrise spots.">
 <meta name="robots" content="noindex, nofollow"> <!-- this is a dedicated ad-click page, not meant to rank in search -->
 <link rel="stylesheet" href="styles.css">
@@ -35,7 +35,7 @@
 <body>
 
 <div class="topbar">
-  <div class="logo">Miranda Rae Photography</div>
+  <div class="logo">Miranda Rae Photography<small style="display:block;font-size:10px;letter-spacing:2px;font-weight:bold;opacity:.8;margin-top:2px">PHOTOGRAPHER · <span class="bname">MEXICO BEACH</span>, FL</small></div>
   <div class="cta-group">
     <a href="sms:+14482196539?&body=Hi%20Miranda!%20I%20saw%20the%20%24119%20Mexico%20Beach%20Sunrise%20Special%20and%20I'd%20like%20to%20book%20a%20session.%20My%20preferred%20date%20is%3A%20" class="call-btn" onclick="return textTap(this);">Text Us</a>
     <a href="#book" class="call-btn secondary">Book Now</a>
@@ -44,9 +44,9 @@
 
 <section class="hero" style="background-image: linear-gradient(180deg, rgba(20,60,70,.55), rgba(20,60,70,.4)), url('images/mexico-sunrise/hero.jpg'); background-size: cover; background-position: center 30%;">
   <div class="wrap">
-    <span class="badge">Mexico Beach &middot; Port St. Joe &middot; Cape San Blas &mdash; Sunrise Special</span>
+    <span class="badge"><span class="bname">Mexico Beach</span>, Florida Photographer &middot; Sunrise Special</span>
     <h1>Before The World Wakes Up, Make This Memory</h1>
-    <p class="sub">Quiet shoreline, soft morning light, and 15 fully edited photos in Mexico Beach, Port St. Joe &amp; Cape San Blas &mdash; now at our lowest rate of the year.</p>
+    <p class="sub">Quiet shoreline, soft morning light, and 15 fully edited photos with your <span class="bname">Mexico Beach</span> family photographer &mdash; sessions in Mexico Beach, Port St. Joe &amp; Cape San Blas, Florida, now at our lowest rate of the year.</p>
     <div class="price-tag price-tag-plain">
       <div>
         <div class="amount-row">
@@ -194,5 +194,16 @@
 </footer>
 
 <form name="text-tap" data-netlify="true" hidden><input type="hidden" name="page"></form>
+
+<script>
+  // Beach name fills in from the ad link: ?beach=mexico-beach | port-st-joe | cape-san-blas
+  (function(){
+    var names={'mexico-beach':'Mexico Beach','port-st-joe':'Port St. Joe','cape-san-blas':'Cape San Blas'};
+    var b=(new URLSearchParams(location.search).get('beach')||'').toLowerCase();
+    if(!names[b]) return;
+    document.querySelectorAll('.bname').forEach(function(el){ el.textContent = el.closest('.logo') ? names[b].toUpperCase() : names[b]; });
+    document.title = names[b] + ', FL Photographer — $119 Sunrise Special | Miranda Rae Photography';
+  })();
+</script>
 </body>
 </html>
