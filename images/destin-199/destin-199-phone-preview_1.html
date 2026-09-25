@@ -1,0 +1,501 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Phone preview — Destin $199</title>
+<style>body{margin:0;background:#dfe6ea;font-family:Arial,sans-serif;display:flex;flex-direction:column;align-items:center;padding:24px 0}
+.phone{width:390px;height:844px;border:14px solid #111;border-radius:48px;overflow:hidden;box-shadow:0 20px 60px #0004;background:#111;position:relative}
+.phone iframe{width:390px;height:100%;border:0;background:#fff;border-radius:34px}
+p{color:#445;font-size:14px;margin:0 0 14px}</style></head><body>
+<p>iPhone-size preview — scroll inside the phone</p>
+<div class="phone"><iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;title&gt;Destin Beach Photographer — $199, 20 Edited Photos | Miranda Rae Photography&lt;/title&gt;
+&lt;meta name=&quot;description&quot; content=&quot;Relaxed Destin beach photos for families and couples. $199 includes 20 professionally edited photos. Text Miranda or check your date — no payment to ask.&quot;&gt;
+&lt;meta name=&quot;robots&quot; content=&quot;noindex&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
+&lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin&gt;
+&lt;link href=&quot;https://fonts.googleapis.com/css2?family=Great+Vibes&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;link rel=&quot;preload&quot; as=&quot;image&quot; href=&quot;https://affordablebeachphotographer.com/destin-intake-assets/assets/beach.webp&quot; fetchpriority=&quot;high&quot;&gt;
+
+&lt;!-- Google Ads --&gt;
+&lt;script async src=&quot;https://www.googletagmanager.com/gtag/js?id=AW-18391952045&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag(&#x27;js&#x27;, new Date());
+  gtag(&#x27;config&#x27;, &#x27;AW-18391952045&#x27;);
+
+  var PAGE = &#x27;destin-199&#x27;;
+
+  // Quiet background ping to Netlify Forms so every tap emails an alert
+  function ping(formName, extra) {
+    try {
+      fetch(&#x27;/&#x27;, {method:&#x27;POST&#x27;, keepalive:true,
+        headers:{&#x27;Content-Type&#x27;:&#x27;application/x-www-form-urlencoded&#x27;},
+        body:&#x27;form-name=&#x27; + formName + &#x27;&amp;page=&#x27; + PAGE + (extra ? &#x27;&amp;&#x27; + extra : &#x27;&#x27;)});
+    } catch (e) {}
+  }
+  // Text Miranda = Google Ads lead + alert email
+  var textTapSent = false;
+  function textTap() {
+    gtag(&#x27;event&#x27;, &#x27;conversion&#x27;, {&#x27;send_to&#x27;: &#x27;AW-18391952045/n9uQCLm3vfEcEK3V-8FE&#x27;});
+    if (!textTapSent) { textTapSent = true; ping(&#x27;text-tap&#x27;); }
+    return true;
+  }
+  // Facebook / Pixieset = tracked + alert email, NOT counted as a lead
+  function linkTap(which) {
+    gtag(&#x27;event&#x27;, &#x27;outbound_click&#x27;, {link_name: which, page: PAGE});
+    ping(&#x27;link-click&#x27;, &#x27;link=&#x27; + which);
+    try { sessionStorage.setItem(&#x27;mrp-left&#x27;, which); } catch (e) {}
+    return true;
+  }
+&lt;/script&gt;
+
+&lt;style&gt;
+:root{
+  --ink:#112b39; --teal:#16677a; --teal-dk:#0d5060; --sand:#f6e4d0; --cream:#fff9f1;
+  --pale:#edf7fa; --gold:#b67d39; --line:#e6ddd2; --muted:#556770;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{margin:0;color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;background:var(--cream)}
+img{max-width:100%;display:block}
+a{color:inherit}
+.shell{width:min(1140px,92%);margin:auto}
+.serif{font-family:Georgia,&#x27;Times New Roman&#x27;,serif}
+.hand{font-family:&#x27;Brush Script MT&#x27;,&#x27;Great Vibes&#x27;,Georgia,serif;font-style:italic}
+
+/* ---------- Top bar ---------- */
+.topbar{position:sticky;top:0;z-index:20;background:rgba(255,249,241,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.topbar .shell{display:flex;align-items:center;justify-content:space-between;padding:10px 0;gap:12px}
+.brand{text-decoration:none;line-height:1;white-space:nowrap}
+.brand b{display:block;font:italic 32px &#x27;Brush Script MT&#x27;,&#x27;Great Vibes&#x27;,Georgia,serif;font-weight:normal}
+.brand span{display:block;font-size:9px;letter-spacing:4px;text-align:center;margin-top:4px}
+.brand-wrap{display:flex;align-items:center;gap:10px}
+.top-btns{display:flex;gap:8px;flex:none}
+.brand-wrap img{width:42px;height:42px;border-radius:50%;object-fit:cover;object-position:50% 22%;border:2px solid var(--teal)}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;border-radius:40px;text-decoration:none;font-weight:bold;cursor:pointer;min-height:50px;padding:14px 26px;font-size:16px}
+.btn-text{background:var(--teal);color:#fff;box-shadow:0 6px 18px #16677a40}
+.btn-text:hover{background:var(--teal-dk)}
+.btn-ghost{background:#fff;color:var(--teal);border:2px solid var(--teal)}
+.btn-sm{min-height:42px;padding:10px 18px;font-size:14px}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;background:
+  linear-gradient(90deg,rgba(255,245,223,.88),rgba(255,246,231,.15) 58%),
+  url(&#x27;https://affordablebeachphotographer.com/destin-intake-assets/assets/beach.webp&#x27;) center 57%/cover}
+.hero-grid{display:block;padding:54px 0 60px}
+.hero-copy{max-width:520px}
+.form-section{padding:34px 0 10px;background:var(--cream)}
+.form-section .form-card{max-width:520px;margin:auto}
+.eyebrow{font-size:12px;letter-spacing:2.7px;font-weight:bold;margin:0 0 12px;text-transform:uppercase}
+h1{font:64px/.97 Georgia,serif;color:#111;margin:0;letter-spacing:-2px}
+h1 em{font-weight:normal}
+.natural{margin:18px 0}
+.price span{display:block;font-size:11px;letter-spacing:2px;font-weight:bold}
+.price strong{font:60px/1.1 Georgia,serif;color:#111;display:inline-block;border-bottom:4px solid #26888f;transform:rotate(-2deg)}
+.benefits{display:flex;gap:30px;margin-top:22px;flex-wrap:wrap}
+.benefits&gt;span{text-align:center;font-size:28px;line-height:1}
+.benefits small{display:block;font-size:10px;letter-spacing:.6px;line-height:1.5;margin-top:6px;font-weight:bold}
+.hero .hand{font-size:28px;line-height:1.3;transform:rotate(-6deg);margin:26px 0 0 8px}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.checks{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin-top:12px;font-weight:bold}
+
+/* ---------- Form card ---------- */
+.form-card{background:rgba(255,255,255,.97);padding:26px 24px;border-radius:16px;box-shadow:0 12px 40px #26394122}
+.form-card h2{font:28px Georgia,serif;text-align:center;margin:0}
+.form-intro{text-align:center;font-size:14px;margin:6px 0 16px;color:var(--muted)}
+label{display:block;font-size:13px;font-weight:bold;margin:10px 0 4px}
+label .opt{font-weight:normal;color:var(--muted)}
+input,select,textarea{font:inherit;border:1px solid #d5dce0;border-radius:8px;padding:12px;width:100%;min-height:48px;background:#fbfcfd;font-size:16px;color:#23394a}
+textarea{min-height:70px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pills{display:flex;gap:8px}
+.pills label{flex:1;margin:0;font-weight:normal}
+.pills input{position:absolute;opacity:0;width:1px;height:1px}
+.pills span{display:block;text-align:center;border:1px solid #d5dce0;border-radius:30px;padding:11px 6px;font-size:14px;cursor:pointer;background:#fbfcfd}
+.pills input:checked+span{background:var(--teal);color:#fff;border-color:var(--teal)}
+.pills input:focus-visible+span{outline:3px solid #e89d3e;outline-offset:2px}
+.form-card .btn{width:100%;margin-top:16px;border-radius:10px}
+.fine{font-size:12px;color:var(--muted);text-align:center;margin:10px 0 0}
+.hp{display:none}
+
+/* ---------- Proof ---------- */
+.proof{padding:34px 0 10px}
+.proof-grid{display:grid;grid-template-columns:320px 1fr;gap:28px;align-items:center}
+.fbcard{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;text-decoration:none;box-shadow:0 4px 16px #0000000d}
+.fblogo{width:46px;height:46px;border-radius:50%;background:#1877f2;color:#fff;font:bold 28px Arial;display:flex;align-items:center;justify-content:center;flex:none}
+.fbnum{font:bold 22px Georgia,serif}
+.fbtxt{font-size:13px;color:var(--muted)}
+blockquote{margin:0;font:italic 21px/1.45 Georgia,serif}
+blockquote cite{display:block;font:13px Arial;color:var(--muted);margin-top:8px;font-style:normal}
+
+/* ---------- Sections ---------- */
+section{padding:44px 0}
+h2{font:36px/1.15 Georgia,serif;margin:8px 0 16px}
+.center{text-align:center}
+.lead{font-size:17px;max-width:640px;margin:0 auto;color:#2b4150}
+
+.gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px}
+.gallery img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:10px}
+.gallery-note{font-size:12px;color:var(--muted);margin-top:12px}
+.pixie{display:inline-flex;margin-top:18px}
+
+.fits{background:#fff}
+.fit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:24px}
+.fit{border:1px solid var(--line);border-radius:14px;padding:22px;background:var(--cream)}
+.fit b{display:block;font:22px Georgia,serif;margin-bottom:6px}
+.fit p{margin:0;font-size:15px;color:#2b4150}
+
+.included{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.included ul{list-style:none;padding:0;margin:0}
+.included li{padding:11px 0 11px 34px;border-bottom:1px solid var(--line);position:relative;font-size:16px}
+.included li::before{content:&#x27;✓&#x27;;position:absolute;left:4px;color:var(--teal);font-weight:bold}
+.big-price{font:72px/1 Georgia,serif}
+.big-price small{font:bold 13px Arial;letter-spacing:2px;display:block;margin-bottom:6px}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:24px}
+.steps article+article{border-left:1px solid #ddd;padding-left:30px}
+.steps span{color:var(--gold);font:24px Georgia,serif}
+.steps h3{font:21px Georgia,serif;margin:6px 0}
+.steps p{font-size:15px;margin:0;color:#2b4150}
+
+.about{background:var(--pale)}
+.about-grid{display:grid;grid-template-columns:200px 1fr;gap:36px;align-items:center}
+.about img{width:200px;height:200px;border-radius:50%;object-fit:cover;object-position:50% 24%}
+.about .hand{font-size:30px;margin:6px 0 0}
+
+.faq details{border-bottom:1px solid var(--line);padding:14px 0}
+.faq summary{cursor:pointer;font-weight:bold;font-size:16px;list-style:none;position:relative;padding-right:28px}
+.faq summary::after{content:&#x27;+&#x27;;position:absolute;right:4px;top:-2px;font-size:22px;color:var(--teal)}
+.faq details[open] summary::after{content:&#x27;–&#x27;}
+.faq p{margin:10px 0 0;color:#2b4150}
+.faq-wrap{max-width:760px;margin:auto}
+
+.closing{background:linear-gradient(#fff2d0aa,#fff2d0aa),url(&#x27;https://affordablebeachphotographer.com/destin-intake-assets/assets/beach.webp&#x27;) center 44%/cover;text-align:center}
+.closing .hand{font-size:40px;margin:0 0 6px}
+.closing-card{display:inline-block;background:#fff9efe8;border-radius:14px;padding:26px 30px;max-width:520px}
+
+footer{background:#164d5a;color:#fff;padding:26px 0 26px;text-align:center;font-size:13px}
+footer a{color:#fff}
+
+/* ---------- Welcome back ---------- */
+#welcome-back{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);opacity:0;pointer-events:none;transition:.3s;z-index:30;background:#fff;border-radius:14px;box-shadow:0 10px 40px #0003;padding:16px 18px;width:min(380px,92%);text-align:center}
+#welcome-back.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#welcome-back b{font:20px Georgia,serif;display:block}
+#welcome-back p{font-size:14px;margin:4px 0 10px}
+#welcome-back .x{position:absolute;right:10px;top:6px;border:0;background:none;font-size:20px;cursor:pointer}
+
+:focus-visible{outline:3px solid #e89d3e;outline-offset:3px}
+
+@media(max-width:400px){
+  .topbar .ico{display:none}
+  .topbar .btn-sm{font-size:12.5px;padding:8px 11px}
+  .brand b{font-size:21px}
+}
+@media(max-width:860px){
+  .topbar .btn-sm{font-size:13px;padding:8px 12px;min-height:40px;white-space:nowrap}
+  .top-btns{gap:6px}
+  .brand b{font-size:24px}
+  .brand span{font-size:8px;letter-spacing:3px}
+  .brand-wrap img{display:none}
+  .topbar .shell{width:94%}
+  .hero{background-position:80% 100%;background-size:auto 100%;background-repeat:no-repeat;background-color:var(--sand)}
+  .hero-grid{padding:22px 0 26px}
+  .hero-copy{min-height:520px}
+  h1{font-size:47px;max-width:340px}
+  .price strong{font-size:54px}
+  .benefits{gap:22px}
+  .hero .hand{font-size:25px}
+  .hero .hero-ctas{display:none}
+  .hero .checks{margin-top:22px}
+  .hero-ctas{flex-direction:column}
+  .hero-ctas .btn{width:100%;white-space:nowrap}
+  .form-card{width:100%;max-width:460px;margin:auto}
+  .proof-grid,.included,.about-grid{grid-template-columns:1fr}
+  .about-grid{text-align:center}
+  .about img{margin:auto;width:170px;height:170px}
+  .gallery{grid-template-columns:1fr 1fr}
+  .fit-grid,.steps{grid-template-columns:1fr}
+  .steps article+article{border-left:0;padding-left:0;border-top:1px solid #ddd;padding-top:18px}
+  h2{font-size:30px}
+  section{padding:36px 0}
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;!-- Top bar --&gt;
+&lt;div class=&quot;topbar&quot;&gt;
+  &lt;div class=&quot;shell&quot;&gt;
+    &lt;div class=&quot;brand-wrap&quot;&gt;
+      &lt;img src=&quot;https://affordablebeachphotographer.com/destin-intake-assets/assets/miranda.webp&quot; alt=&quot;Miranda Rae&quot; loading=&quot;lazy&quot; width=&quot;42&quot; height=&quot;42&quot;&gt;
+      &lt;a class=&quot;brand&quot; href=&quot;#top&quot;&gt;&lt;b&gt;Miranda Rae&lt;/b&gt;&lt;span&gt;PHOTOGRAPHY&lt;/span&gt;&lt;/a&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;top-btns&quot;&gt;
+      &lt;a class=&quot;btn btn-ghost btn-sm&quot; href=&quot;#check-date&quot;&gt;Check Date&lt;/a&gt;
+      &lt;a class=&quot;btn btn-text btn-sm sms&quot; href=&quot;sms:+14482196539&quot; onclick=&quot;return textTap();&quot;&gt;&lt;span class=&quot;ico&quot;&gt;💬&lt;/span&gt; Text Miranda&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Hero --&gt;
+&lt;header class=&quot;hero&quot; id=&quot;top&quot;&gt;
+  &lt;div class=&quot;shell hero-grid&quot;&gt;
+    &lt;div class=&quot;hero-copy&quot;&gt;
+      &lt;p class=&quot;eyebrow&quot;&gt;Destin Beach Photographer · Families &amp;amp; Couples&lt;/p&gt;
+      &lt;h1 id=&quot;headline&quot;&gt;Destin Beach Days&lt;br&gt;Become&lt;br&gt;&lt;em&gt;Forever Memories.&lt;/em&gt;&lt;/h1&gt;
+      &lt;p class=&quot;eyebrow natural&quot;&gt;Natural. Relaxed. Real.&lt;/p&gt;
+      &lt;div class=&quot;price&quot;&gt;&lt;span&gt;BEACH PHOTO SESSION&lt;/span&gt;&lt;strong&gt;$199&lt;/strong&gt;&lt;/div&gt;
+      &lt;div class=&quot;benefits&quot;&gt;
+        &lt;span&gt;◎&lt;small&gt;20 EDITED&lt;br&gt;PHOTOS&lt;/small&gt;&lt;/span&gt;
+        &lt;span&gt;♡&lt;small&gt;FAMILIES &amp;amp;&lt;br&gt;COUPLES&lt;/small&gt;&lt;/span&gt;
+        &lt;span&gt;☼&lt;small&gt;SUNRISE OR&lt;br&gt;SUNSET&lt;/small&gt;&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;p class=&quot;hand&quot; id=&quot;handline&quot;&gt;Destin Beach.&lt;br&gt;Looks Better Together. ♡&lt;/p&gt;
+      &lt;div class=&quot;hero-ctas&quot;&gt;
+        &lt;a class=&quot;btn btn-text sms&quot; href=&quot;sms:+14482196539&quot; onclick=&quot;return textTap();&quot;&gt;💬 Text Miranda&lt;/a&gt;
+        &lt;a class=&quot;btn btn-ghost&quot; href=&quot;#check-date&quot;&gt;Check My Date →&lt;/a&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;checks&quot;&gt;&lt;span&gt;✓ No payment to ask&lt;/span&gt;&lt;span&gt;✓ No obligation&lt;/span&gt;&lt;span&gt;✓ Miranda replies personally&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+  &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;!-- Check date form (below the photo so the people stay visible) --&gt;
+&lt;section class=&quot;form-section&quot;&gt;
+  &lt;div class=&quot;shell&quot;&gt;
+    &lt;!-- Form --&gt;
+    &lt;form class=&quot;form-card&quot; id=&quot;check-date&quot; name=&quot;booking-destin-199&quot; method=&quot;POST&quot; action=&quot;/thank-you&quot; data-netlify=&quot;true&quot; netlify-honeypot=&quot;bot-field&quot;&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;form-name&quot; value=&quot;booking-destin-199&quot;&gt;
+      &lt;input type=&quot;hidden&quot; name=&quot;session-type&quot; id=&quot;session-type&quot; value=&quot;Family&quot;&gt;
+      &lt;p class=&quot;hp&quot;&gt;&lt;label&gt;Leave blank &lt;input name=&quot;bot-field&quot;&gt;&lt;/label&gt;&lt;/p&gt;
+      &lt;h2&gt;Check Your Date&lt;/h2&gt;
+      &lt;p class=&quot;form-intro&quot;&gt;Free to ask. Miranda will personally confirm availability.&lt;/p&gt;
+
+      &lt;label for=&quot;name&quot;&gt;Your name&lt;/label&gt;
+      &lt;input id=&quot;name&quot; name=&quot;name&quot; type=&quot;text&quot; autocomplete=&quot;name&quot; required&gt;
+
+      &lt;div class=&quot;row2&quot;&gt;
+        &lt;div&gt;
+          &lt;label for=&quot;phone&quot;&gt;Mobile phone&lt;/label&gt;
+          &lt;input id=&quot;phone&quot; name=&quot;phone&quot; type=&quot;tel&quot; autocomplete=&quot;tel&quot; required&gt;
+        &lt;/div&gt;
+        &lt;div&gt;
+          &lt;label for=&quot;date&quot;&gt;Date &lt;span class=&quot;opt&quot;&gt;(approx.)&lt;/span&gt;&lt;/label&gt;
+          &lt;input id=&quot;date&quot; name=&quot;date&quot; type=&quot;date&quot;&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;label&gt;Who&#x27;s in the photos?&lt;/label&gt;
+      &lt;div class=&quot;pills&quot; role=&quot;radiogroup&quot;&gt;
+        &lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;who&quot; value=&quot;Family&quot; checked&gt;&lt;span&gt;Family&lt;/span&gt;&lt;/label&gt;
+        &lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;who&quot; value=&quot;Couple&quot;&gt;&lt;span&gt;Couple&lt;/span&gt;&lt;/label&gt;
+        &lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;who&quot; value=&quot;Other&quot;&gt;&lt;span&gt;Other&lt;/span&gt;&lt;/label&gt;
+      &lt;/div&gt;
+
+      &lt;label&gt;Best way to reply&lt;/label&gt;
+      &lt;div class=&quot;pills&quot; role=&quot;radiogroup&quot;&gt;
+        &lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;reply&quot; value=&quot;Text&quot; checked&gt;&lt;span&gt;Text&lt;/span&gt;&lt;/label&gt;
+        &lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;reply&quot; value=&quot;Call&quot;&gt;&lt;span&gt;Call&lt;/span&gt;&lt;/label&gt;
+        &lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;reply&quot; value=&quot;Email&quot;&gt;&lt;span&gt;Email&lt;/span&gt;&lt;/label&gt;
+      &lt;/div&gt;
+
+      &lt;label for=&quot;email&quot;&gt;Email &lt;span class=&quot;opt&quot;&gt;(optional)&lt;/span&gt;&lt;/label&gt;
+      &lt;input id=&quot;email&quot; name=&quot;email&quot; type=&quot;email&quot; autocomplete=&quot;email&quot;&gt;
+
+      &lt;label for=&quot;message&quot;&gt;Anything else? &lt;span class=&quot;opt&quot;&gt;(optional — sunrise/sunset, where you&#x27;re staying…)&lt;/span&gt;&lt;/label&gt;
+      &lt;textarea id=&quot;message&quot; name=&quot;message&quot;&gt;&lt;/textarea&gt;
+
+      &lt;button class=&quot;btn btn-text&quot; type=&quot;submit&quot;&gt;Check My Date — Free to Ask&lt;/button&gt;
+      &lt;p class=&quot;fine&quot;&gt;No payment required. Your date isn&#x27;t reserved until Miranda confirms the details with you.&lt;/p&gt;
+    &lt;/form&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- Social proof --&gt;
+&lt;div class=&quot;proof&quot;&gt;
+  &lt;div class=&quot;shell proof-grid&quot;&gt;
+    &lt;a class=&quot;fbcard&quot; href=&quot;https://www.facebook.com/profile.php?id=61591669718246&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot; onclick=&quot;return linkTap(&#x27;facebook&#x27;);&quot;&gt;
+      &lt;div class=&quot;fblogo&quot;&gt;f&lt;/div&gt;
+      &lt;div&gt;
+        &lt;div class=&quot;fbnum&quot;&gt;94% Recommend&lt;/div&gt;
+        &lt;div class=&quot;fbtxt&quot;&gt;14 reviews on &lt;b&gt;Facebook&lt;/b&gt; · Read them →&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/a&gt;
+    &lt;blockquote&gt;“She did my family&#x27;s pictures this summer at the beach! They were so good! And gave them back so quick!”
+      &lt;cite&gt;— Lilly Willoughby, Facebook review&lt;/cite&gt;&lt;/blockquote&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Gallery --&gt;
+&lt;section&gt;
+  &lt;div class=&quot;shell center&quot;&gt;
+    &lt;p class=&quot;eyebrow&quot;&gt;Real sessions · Photographed by Miranda Rae&lt;/p&gt;
+    &lt;h2&gt;A little less posing.&lt;br&gt;A little more &lt;em&gt;you.&lt;/em&gt;&lt;/h2&gt;
+    &lt;div class=&quot;gallery&quot;&gt;
+      &lt;img src=&quot;https://affordablebeachphotographer.com/destin-intake-assets/assets/family-real.webp&quot; alt=&quot;Family holding hands on the beach, photographed by Miranda Rae&quot; loading=&quot;lazy&quot;&gt;
+      &lt;img src=&quot;https://affordablebeachphotographer.com/images/couple-smiling-shoreline-miranda-rae.jpeg&quot; alt=&quot;Couple smiling at each other by the ocean, photographed by Miranda Rae&quot; loading=&quot;lazy&quot;&gt;
+      &lt;img src=&quot;https://affordablebeachphotographer.com/destin-intake-assets/assets/moments-real.webp&quot; alt=&quot;Child sharing a joyful moment by the ocean, photographed by Miranda Rae&quot; loading=&quot;lazy&quot;&gt;
+      &lt;img src=&quot;https://affordablebeachphotographer.com/images/couple-laughing-beach-miranda-rae.jpeg&quot; alt=&quot;Couple laughing beside the waves, photographed by Miranda Rae&quot; loading=&quot;lazy&quot;&gt;
+    &lt;/div&gt;
+    &lt;a class=&quot;btn btn-ghost pixie&quot; href=&quot;https://mirandaraesphotography.mypixieset.com/gallery-1/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot; onclick=&quot;return linkTap(&#x27;pixieset&#x27;);&quot;&gt;See full client galleries on Pixieset →&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- Who it&#x27;s for --&gt;
+&lt;section class=&quot;fits&quot;&gt;
+  &lt;div class=&quot;shell center&quot;&gt;
+    &lt;p class=&quot;eyebrow&quot;&gt;For wherever you are in your story&lt;/p&gt;
+    &lt;h2&gt;Your vacation deserves more than selfies.&lt;/h2&gt;
+    &lt;p class=&quot;lead&quot;&gt;Put the phone away, walk along the water, and let Miranda capture how this trip really felt — with gentle direction and plenty of room for the real moments in between.&lt;/p&gt;
+    &lt;div class=&quot;fit-grid&quot;&gt;
+      &lt;div class=&quot;fit&quot;&gt;&lt;b&gt;Family vacations&lt;/b&gt;&lt;p&gt;Sandy feet, windblown hair, little laughs. Kids don&#x27;t need to know how to pose — Miranda keeps it easy.&lt;/p&gt;&lt;/div&gt;
+      &lt;div class=&quot;fit&quot;&gt;&lt;b&gt;Couples getaways&lt;/b&gt;&lt;p&gt;A walk by the water, just the two of you. Honeymoons, anniversaries, or no reason at all.&lt;/p&gt;&lt;/div&gt;
+      &lt;div class=&quot;fit&quot;&gt;&lt;b&gt;Something to celebrate&lt;/b&gt;&lt;p&gt;Birthdays, reunions, a new little one. Tell Miranda what you&#x27;re celebrating and she&#x27;ll plan around it.&lt;/p&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- What&#x27;s included --&gt;
+&lt;section&gt;
+  &lt;div class=&quot;shell included&quot;&gt;
+    &lt;div&gt;
+      &lt;p class=&quot;eyebrow&quot;&gt;Your Destin beach session&lt;/p&gt;
+      &lt;div class=&quot;big-price&quot;&gt;&lt;small&gt;ONE SIMPLE PRICE&lt;/small&gt;$199&lt;/div&gt;
+      &lt;p class=&quot;lead&quot; style=&quot;margin:14px 0 0&quot;&gt;Everything below is included. Miranda confirms the location, time and booking details with you before anything is reserved.&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;b&gt;20 professionally edited photos&lt;/b&gt;&lt;/li&gt;
+      &lt;li&gt;Families or couples&lt;/li&gt;
+      &lt;li&gt;Sunrise or sunset, based on availability&lt;/li&gt;
+      &lt;li&gt;Relaxed, lightly guided session — no posing experience needed&lt;/li&gt;
+      &lt;li&gt;Private online gallery to view and download&lt;/li&gt;
+      &lt;li&gt;Shot and edited by Miranda personally&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- Steps --&gt;
+&lt;section class=&quot;fits&quot;&gt;
+  &lt;div class=&quot;shell center&quot;&gt;
+    &lt;h2&gt;A little beach time.&lt;br&gt;A lifetime of memories.&lt;/h2&gt;
+    &lt;div class=&quot;steps&quot;&gt;
+      &lt;article&gt;&lt;span&gt;01&lt;/span&gt;&lt;h3&gt;Send your date&lt;/h3&gt;&lt;p&gt;Text Miranda or use the form. Tell her when you&#x27;ll be in Destin.&lt;/p&gt;&lt;/article&gt;
+      &lt;article&gt;&lt;span&gt;02&lt;/span&gt;&lt;h3&gt;Hear from Miranda&lt;/h3&gt;&lt;p&gt;She&#x27;ll confirm availability, the meeting spot and your exact time.&lt;/p&gt;&lt;/article&gt;
+      &lt;article&gt;&lt;span&gt;03&lt;/span&gt;&lt;h3&gt;Enjoy the beach&lt;/h3&gt;&lt;p&gt;Bring your people and your smiles. Miranda handles the rest.&lt;/p&gt;&lt;/article&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- About --&gt;
+&lt;section class=&quot;about&quot;&gt;
+  &lt;div class=&quot;shell about-grid&quot;&gt;
+    &lt;img src=&quot;https://affordablebeachphotographer.com/destin-intake-assets/assets/miranda.webp&quot; alt=&quot;Miranda Rae with her camera and tripod&quot; loading=&quot;lazy&quot;&gt;
+    &lt;div&gt;
+      &lt;p class=&quot;eyebrow&quot;&gt;Meet your photographer&lt;/p&gt;
+      &lt;h2&gt;Hi, I&#x27;m Miranda!&lt;/h2&gt;
+      &lt;p&gt;I love photographing families and couples along the Gulf Coast — the small, real moments, not stiff poses. Every session is shot and edited by me personally, start to finish. No big studio, no assembly line.&lt;/p&gt;
+      &lt;p class=&quot;hand&quot;&gt;Miranda Rae ♡&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- FAQ --&gt;
+&lt;section&gt;
+  &lt;div class=&quot;shell faq-wrap&quot;&gt;
+    &lt;h2 class=&quot;center&quot;&gt;Quick questions&lt;/h2&gt;
+    &lt;div class=&quot;faq&quot;&gt;
+      &lt;details&gt;&lt;summary&gt;Do I pay anything to check my date?&lt;/summary&gt;&lt;p&gt;No. Checking your date is free and doesn&#x27;t commit you to anything. Miranda replies with availability and next steps, and you decide whether to book.&lt;/p&gt;&lt;/details&gt;
+      &lt;details&gt;&lt;summary&gt;What if we don&#x27;t know how to pose?&lt;/summary&gt;&lt;p&gt;You don&#x27;t need to. Sessions are relaxed and lightly guided, with room to walk, talk and just enjoy being together.&lt;/p&gt;&lt;/details&gt;
+      &lt;details&gt;&lt;summary&gt;Where in Destin will we meet?&lt;/summary&gt;&lt;p&gt;Tell Miranda where you&#x27;re staying or which beach you have in mind. She&#x27;ll confirm a good meeting spot and any access details before booking.&lt;/p&gt;&lt;/details&gt;
+      &lt;details&gt;&lt;summary&gt;Can we choose sunrise or sunset?&lt;/summary&gt;&lt;p&gt;Yes. Tell Miranda your preference and any other dates that could work. Your exact time depends on availability and conditions.&lt;/p&gt;&lt;/details&gt;
+      &lt;details&gt;&lt;summary&gt;What if the weather turns?&lt;/summary&gt;&lt;p&gt;If Gulf weather is unsafe or unworkable, Miranda will contact you about rescheduling.&lt;/p&gt;&lt;/details&gt;
+      &lt;details&gt;&lt;summary&gt;Can I see more of Miranda&#x27;s work?&lt;/summary&gt;&lt;p&gt;Yes — tap “See full client galleries” under the photos above, or check out her Facebook reviews near the top of this page.&lt;/p&gt;&lt;/details&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- Closing --&gt;
+&lt;section class=&quot;closing&quot;&gt;
+  &lt;div class=&quot;shell&quot;&gt;
+    &lt;div class=&quot;closing-card&quot;&gt;
+      &lt;p class=&quot;hand&quot;&gt;Let&#x27;s make a memory.&lt;/p&gt;
+      &lt;p&gt;Send your Destin date. Miranda will personally let you know what&#x27;s open.&lt;/p&gt;
+      &lt;div class=&quot;hero-ctas&quot; style=&quot;justify-content:center&quot;&gt;
+        &lt;a class=&quot;btn btn-ghost&quot; href=&quot;#check-date&quot;&gt;Check My Date →&lt;/a&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;footer&gt;
+  &lt;p&gt;Miranda Rae Photography · Destin Beach, Florida&lt;/p&gt;
+  &lt;p&gt;Text or call &lt;a class=&quot;sms&quot; href=&quot;sms:+14482196539&quot; onclick=&quot;return textTap();&quot;&gt;(448) 219-6539&lt;/a&gt;&lt;/p&gt;
+  &lt;p&gt;© 2026 Miranda Rae Photography&lt;/p&gt;
+&lt;/footer&gt;
+
+
+&lt;!-- Welcome back (after Facebook / Pixieset) --&gt;
+&lt;div id=&quot;welcome-back&quot; role=&quot;dialog&quot; aria-live=&quot;polite&quot;&gt;
+  &lt;button class=&quot;x&quot; aria-label=&quot;Close&quot; onclick=&quot;this.parentNode.classList.remove(&#x27;show&#x27;)&quot;&gt;×&lt;/button&gt;
+  &lt;b&gt;Welcome back! ♡&lt;/b&gt;
+  &lt;p&gt;Like what you saw? Check if your date is open — it&#x27;s free to ask.&lt;/p&gt;
+  &lt;div class=&quot;hero-ctas&quot; style=&quot;margin:0;justify-content:center&quot;&gt;
+    &lt;a class=&quot;btn btn-text btn-sm sms&quot; href=&quot;sms:+14482196539&quot; onclick=&quot;return textTap();&quot;&gt;💬 Text Miranda&lt;/a&gt;
+    &lt;a class=&quot;btn btn-ghost btn-sm&quot; href=&quot;#check-date&quot; onclick=&quot;document.getElementById(&#x27;welcome-back&#x27;).classList.remove(&#x27;show&#x27;)&quot;&gt;Check My Date →&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Hidden Netlify forms for tap alerts --&gt;
+&lt;form hidden method=&quot;post&quot; name=&quot;text-tap&quot; data-netlify=&quot;true&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;form-name&quot; value=&quot;text-tap&quot;&gt;&lt;input name=&quot;page&quot;&gt;&lt;/form&gt;
+&lt;form hidden method=&quot;post&quot; name=&quot;link-click&quot; data-netlify=&quot;true&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;form-name&quot; value=&quot;link-click&quot;&gt;&lt;input name=&quot;page&quot;&gt;&lt;input name=&quot;link&quot;&gt;&lt;/form&gt;
+
+&lt;script&gt;
+  // Pre-filled text message
+  (function(){
+    var body = encodeURIComponent(&quot;Hi Miranda! I&#x27;m interested in the $199 Destin beach session. My dates are: &quot;);
+    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    document.querySelectorAll(&#x27;a.sms&#x27;).forEach(function(a){ a.href = &#x27;sms:+14482196539&#x27; + (ios ? &#x27;&amp;&#x27; : &#x27;?&#x27;) + &#x27;body=&#x27; + body; });
+  })();
+
+  // Couples version: ads for couples searches link to ?for=couples
+  (function(){
+    var p = new URLSearchParams(location.search);
+    if ((p.get(&#x27;for&#x27;) || &#x27;&#x27;).toLowerCase() === &#x27;couples&#x27;) {
+      document.getElementById(&#x27;headline&#x27;).innerHTML = &#x27;Destin Beach.&lt;br&gt;Just the&lt;br&gt;&lt;em&gt;Two of You.&lt;/em&gt;&#x27;;
+      document.getElementById(&#x27;handline&#x27;).innerHTML = &#x27;Someday, this will be&lt;br&gt;your favorite “remember when.” ♡&#x27;;
+      var c = document.querySelector(&#x27;input[name=&quot;who&quot;][value=&quot;Couple&quot;]&#x27;); if (c) c.checked = true;
+    }
+  })();
+
+  // Welcome-back bar when they return from Facebook / Pixieset
+  function showWB(){ var b=document.getElementById(&#x27;welcome-back&#x27;); if(b &amp;&amp; !b.classList.contains(&#x27;show&#x27;)){ b.classList.add(&#x27;show&#x27;); gtag(&#x27;event&#x27;,&#x27;returned_from_link&#x27;,{page:PAGE}); } }
+  document.addEventListener(&#x27;visibilitychange&#x27;, function(){
+    var left=null; try{ left=sessionStorage.getItem(&#x27;mrp-left&#x27;); }catch(e){}
+    if (document.visibilityState===&#x27;visible&#x27; &amp;&amp; left) showWB();
+  });
+  window.addEventListener(&#x27;pageshow&#x27;, function(){ var left=null; try{ left=sessionStorage.getItem(&#x27;mrp-left&#x27;); }catch(e){} if(left) showWB(); });
+
+  // Keep what they typed if they leave and come back; copy &quot;who&quot; into hidden field
+  (function(){
+    var f = document.getElementById(&#x27;check-date&#x27;), KEY=&#x27;mrp-destin199-draft&#x27;;
+    try { var s = JSON.parse(localStorage.getItem(KEY)||&#x27;{}&#x27;);
+      [&#x27;name&#x27;,&#x27;phone&#x27;,&#x27;date&#x27;,&#x27;email&#x27;,&#x27;message&#x27;].forEach(function(k){ if(s[k] &amp;&amp; f.elements[k]) f.elements[k].value = s[k]; }); } catch(e){}
+    f.addEventListener(&#x27;input&#x27;, function(){
+      var d={}; [&#x27;name&#x27;,&#x27;phone&#x27;,&#x27;date&#x27;,&#x27;email&#x27;,&#x27;message&#x27;].forEach(function(k){ d[k]=f.elements[k].value; });
+      try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){}
+    });
+    f.addEventListener(&#x27;submit&#x27;, function(){
+      var w = f.querySelector(&#x27;input[name=&quot;who&quot;]:checked&#x27;); if (w) document.getElementById(&#x27;session-type&#x27;).value = w.value;
+      try{ localStorage.removeItem(KEY); sessionStorage.removeItem(&#x27;mrp-left&#x27;); }catch(e){}
+    });
+  })();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div>
+</body></html>

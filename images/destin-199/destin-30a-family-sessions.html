@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Beach Photo Sessions in Destin & 30A | $199</title>
+<meta name="description" content="Professional family beach photo sessions in Destin & 30A. $199 for 15 edited photos, up to 6 people. Limited weekly spots — book today.">
+<meta name="robots" content="noindex, nofollow"> <!-- this is a dedicated ad-click page, not meant to rank in search -->
+<link rel="stylesheet" href="styles.css">
+
+<!--
+  ============================================================
+  GOOGLE ADS CONVERSION TRACKING — fill in once the Google Ads
+  account + conversion action are created. Two things needed:
+    1) Replace AW-CONVERSION_ID below with your actual Ads tag ID (e.g. AW-123456789)
+    2) Replace CONVERSION_LABEL in the sendConversion() function below
+       with the label Google Ads gives you for the "form submit" conversion action.
+  Same tag ID as your other page is fine — Google Ads tags are account-wide;
+  only the conversion label differs per action if you track these as separate goals.
+  ============================================================
+-->
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-CONVERSION_ID"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-CONVERSION_ID');
+
+  function sendConversion(url) {
+    gtag('event', 'conversion', {
+      'send_to': 'AW-CONVERSION_ID/CONVERSION_LABEL',
+      'event_callback': function () {
+        if (typeof url !== 'undefined') { window.location = url; }
+      }
+    });
+    return false;
+  }
+</script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Miranda Rae Photography</div>
+  <div class="cta-group">
+    <a href="sms:+14482196539" class="call-btn" onclick="sendConversion();">Text Us</a>
+    <a href="#book" class="call-btn secondary">Book Now</a>
+  </div>
+</div>
+
+<div class="promo-banner">Family Special &mdash; Limited Weekly Spots</div>
+
+<section class="hero hero-corner-pad hero-tall" style="background-image: linear-gradient(180deg, rgba(20,60,70,.55), rgba(20,60,70,.4)), url('images/destin/gallery6.jpg'); background-size: cover; background-position: top;">
+  <div class="wrap">
+    <h1>The Beach Memories Your Whole Family Will Treasure</h1>
+    <p class="sub">Golden-hour beach sessions for the whole family along Destin &amp; 30A — fully edited photos delivered fast, no guesswork on price.</p>
+    <div class="price-tag price-tag-corner">
+      <span class="amount">$199</span>
+      <span class="desc">15 professionally<br>edited photos</span>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>Recent Sessions</h2>
+    <div class="gallery">
+      <img src="images/destin/gallery5.jpg" alt="Mom laughing with her daughter on the beach" loading="lazy">
+      <img src="images/nearby/gallery1.jpg" alt="Dad tossing his daughter into the air on the beach at sunset" loading="lazy">
+      <img src="images/nearby/gallery4.jpg" alt="Mom smiling with her two daughters on the beach" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section class="section included">
+  <div class="wrap">
+    <h2>What's Included</h2>
+    <ul class="included-list">
+      <li>30–40 minute beach session</li>
+      <li>15 professionally edited photos</li>
+      <li>For up to 6 people</li>
+      <li>Private online gallery</li>
+      <li>Print &amp; sharing release</li>
+      <li>Delivered within 5–7 days</li>
+      <li>Sessions anywhere in Destin &amp; 30A</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section about-photographer">
+  <div class="wrap">
+    <div class="about-wrap">
+      <img src="images/miranda-portrait.jpg" alt="Miranda, owner and photographer" class="about-photo" loading="lazy">
+      <div class="about-text">
+        <div class="eyebrow">Meet Your Photographer</div>
+        <h2>Hi, I'm Miranda</h2>
+        <p>I love photographing couples and families along the Gulf Coast — real Gulf sunsets, real moments, not stiff poses. Every session is shot and edited by me personally, from start to finish, with no big studio and no assembly line.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="testimonial">
+      <p class="rating">94% Recommend on Facebook &middot; 14 Reviews</p>
+      <p class="quote">&ldquo;We had such a great experience with Miranda! She was so sweet, worked so well with our kids, and made everything feel so easy. She got our photos back to us so quickly and they turned out BEAUTIFUL! I'm so grateful we found her and that she was able to capture our first family beach trip. These are memories we'll cherish forever!&rdquo;</p>
+      <p class="attribution">&mdash; Angelica Mata, Facebook review</p>
+    </div>
+  </div>
+</section>
+
+<section class="section form-section" id="book">
+  <div class="wrap">
+    <h2>Request Your Session</h2>
+    <form name="booking-destin-family" method="POST" data-netlify="true" action="thank-you.html" class="lead-form">
+      <input type="hidden" name="form-name" value="booking-destin-family" />
+
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="phone">Phone</label>
+      <input type="tel" id="phone" name="phone" required>
+
+      <label for="beach">Preferred Location</label>
+      <select id="beach" name="beach">
+        <option>Destin</option>
+        <option>30A</option>
+        <option>Not sure yet</option>
+      </select>
+
+      <label for="people">Number of People</label>
+      <select id="people" name="people">
+        <option value="">Select one</option>
+        <option>1-2</option>
+        <option>3-4</option>
+        <option>5-6</option>
+        <option>More than 6</option>
+      </select>
+
+      <label for="date">Preferred Date</label>
+      <input type="date" id="date" name="date">
+
+      <label for="message">Anything we should know?</label>
+      <textarea id="message" name="message" rows="3"></textarea>
+
+      <button type="submit" class="btn btn-primary">Request My Session — $199</button>
+      <p class="fineprint">We'll text or call within 24 hours to confirm your date.</p>
+    </form>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap faq">
+    <h2>Common Questions</h2>
+    <details>
+      <summary>What should we wear?</summary>
+      <p>Neutral or muted tones — soft blues, whites, tans, and sandy neutrals — photograph best against the beach. Busy patterns, logos, and bright white sneakers tend to distract from the shot.</p>
+    </details>
+    <details>
+      <summary>What happens if it rains?</summary>
+      <p>We'll work with you to reschedule for the next available sunset session at no extra charge — you won't lose your spot to bad weather.</p>
+    </details>
+    <details>
+      <summary>How long until we get our photos?</summary>
+      <p>Your 15 edited photos are delivered within 5–7 days via a private online gallery.</p>
+    </details>
+    <details>
+      <summary>Do you travel to a specific spot on the beach?</summary>
+      <p>Yes — we'll recommend a great public-access spot along Destin or 30A based on the crowds and lighting that day, or you're welcome to request a specific location.</p>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <p>Miranda Rae Photography &middot; Serving Destin &amp; 30A, FL &middot; <a href="sms:+14482196539">Text Us</a></p>
+</footer>
+
+</body>
+</html>
