@@ -1,0 +1,3 @@
+# Let Netlify resize photos straight from Miranda's Pixieset portfolio
+[images]
+  remote_images = ['https://images-pw\.pixieset\.com/.*']
