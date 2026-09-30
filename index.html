@@ -267,6 +267,7 @@ footer a{color:#fff}
   .area-grid{grid-template-columns:1fr}
 }
 </style>
+<script src="/source.js"></script>
 </head>
 <body>
 
@@ -441,14 +442,26 @@ footer a{color:#fff}
         <label><input type="radio" name="reply" value="Email"><span>Email</span></label>
       </div>
 
-      <label for="email">Email <span class="opt">(optional)</span></label>
+      <label for="email">Email</label>
       <input id="email" name="email" type="email" autocomplete="email">
 
-      <label for="message">Anything else? <span class="opt">(optional — sunrise/sunset, where you're staying…)</span></label>
+      <label for="message">Anything else? <span class="opt">(sunrise/sunset, where you're staying…)</span></label>
       <textarea id="message" name="message"></textarea>
 
-      <button class="btn btn-text" type="submit">Check My Date — Free to Ask</button>
-      <p class="fine">No payment required. Your date isn't reserved until Miranda confirms the details with you.</p>
+      <label for="heard-from">How did you hear about Miranda?</label>
+      <select id="heard-from" name="heard-from">
+        <option value="">Choose one…</option>
+        <option>Google search</option>
+        <option>ChatGPT or another AI app</option>
+        <option>Facebook</option>
+        <option>Instagram</option>
+        <option>A friend or family member</option>
+        <option>Saw her photographing on the beach</option>
+        <option>Other</option>
+      </select>
+
+      <button class="btn btn-text" type="submit">Send My Request</button>
+      <p class="fine">No payment, no obligation — you're just asking. Miranda will personally confirm your date.</p>
     </form>
   </div>
 </section>

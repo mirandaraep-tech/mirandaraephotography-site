@@ -14,10 +14,12 @@
   gtag('js', new Date());
   gtag('config', 'AW-18391952045');
   gtag('config', 'G-DXQ60XNC8Y');
-  gtag('event', 'conversion', { 'send_to': 'AW-18391952045/iFCFCP2cl-wcEK3V-8FE' });
+  // Forms from Miranda's text link (/book) are not ad leads, so don't count them in Google Ads
+  if (!/[?&]src=text/.test(location.search)) gtag('event', 'conversion', { 'send_to': 'AW-18391952045/iFCFCP2cl-wcEK3V-8FE' });
   // Gallery / review taps: email alert only (not counted as a lead)
   function linkTap(which){ try{ fetch('/', {method:'POST', keepalive:true, headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'form-name=link-click&page=thank-you&link='+which}); }catch(e){} return true; }
 </script>
+<script src="/source.js"></script>
 </head>
 <body>
 
@@ -32,7 +34,7 @@
   <div class="wrap">
     <span class="badge">Request Received</span>
     <h1>You're All Set — Thank You!</h1>
-    <p class="sub">Your session request just landed in Miranda's inbox. She personally replies to every request — expect a text or call within 24 hours to confirm your date and go over the details.</p>
+    <p class="sub">Your session request just landed in Miranda's inbox. She personally replies to every request and will text or call you to confirm your date and go over the details.</p>
   </div>
 </section>
 
@@ -47,7 +49,7 @@
     <h2 style="margin-top:40px;">What Happens Next</h2>
     <ul class="included-list" style="grid-template-columns: 1fr; text-align:left; max-width: 440px; margin: 0 auto;">
       <li>Miranda reviews your request and checks available dates</li>
-      <li>She'll text or call within 24 hours to confirm your date and location</li>
+      <li>She'll text or call to confirm your date and location</li>
       <li>No payment is needed until your session is confirmed</li>
     </ul>
     <p style="margin-top:30px; color: var(--muted);">Need a faster response? <a href="sms:+14482196539">Text Miranda</a></p>

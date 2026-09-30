@@ -233,6 +233,7 @@ footer a{color:#fff}
 <style>@media(max-width:420px){.bar .brand{font-size:18px}}</style>
 
 <style>@media (max-width:900px){.bar .headshot{display:none}.bar .brand{font-size:26px}.bar .brand small{font-size:8px;letter-spacing:2.5px}.bar-actions{gap:8px}.bar .btn{padding:11px 16px;font-size:14px}}@media (max-width:560px){.bar .brand{font-size:24px}}@media(max-width:420px){.bar .brand{font-size:18px}}</style>
+<script src="/source.js"></script>
 </head>
 <body>
 
@@ -364,14 +365,26 @@ footer a{color:#fff}
         </div>
       </div>
 
-      <label for="email">Email <span class="opt">(optional)</span></label>
+      <label for="email">Email</label>
       <input id="email" name="email" type="email" autocomplete="email">
 
-      <label for="message">Anything else? <span class="opt">(optional — guest count, time of day…)</span></label>
+      <label for="message">Anything else? <span class="opt">(guest count, time of day…)</span></label>
       <textarea id="message" name="message"></textarea>
 
-      <button class="btn btn-text" type="submit">Check My Date — Free to Ask</button>
-      <p class="fine">No payment required. Your date isn't reserved until Miranda confirms the details with you.</p>
+      <label for="heard-from">How did you hear about Miranda?</label>
+      <select id="heard-from" name="heard-from">
+        <option value="">Choose one…</option>
+        <option>Google search</option>
+        <option>ChatGPT or another AI app</option>
+        <option>Facebook</option>
+        <option>Instagram</option>
+        <option>A friend or family member</option>
+        <option>Saw her photographing on the beach</option>
+        <option>Other</option>
+      </select>
+
+      <button class="btn btn-text" type="submit">Send My Request</button>
+      <p class="fine">No payment, no obligation — you're just asking. Miranda will personally confirm your date.</p>
       <p class="after-send" style="margin:14px 0 0;padding:12px 14px;background:#e8f4f6;border:1px solid #bcdde3;border-radius:10px;color:#0d4f5e;font:bold 15px/1.4 Arial,sans-serif;text-align:center">📸 Right after you send, you'll get Miranda's full photo galleries and all 16 reviews.</p>
     </form>
   </div>
