@@ -64,3 +64,41 @@
     }
   }, true);
 })();
+
+// 3) Google Analytics lead tracking (added Oct 4 2026).
+//    Sends finished forms and Text/Call taps to Google Analytics so leads can be
+//    compared across all three websites. Does not change the forms, alert emails or Google Ads tracking.
+(function () {
+  var GA = 'G-DXQ60XNC8Y', PEND = 'mrp-lead-pending', TAPS = /^(text-tap|call-tap|link-click)$/;
+  function ga(name, params) {
+    try {
+      if (typeof window.gtag !== 'function') return;
+      var p = { send_to: GA };
+      for (var k in (params || {})) p[k] = params[k];
+      window.gtag('event', name, p);
+    } catch (e) {}
+  }
+  // Booking form sent: remember it so the thank-you page can record one lead
+  document.addEventListener('submit', function (e) {
+    var f = e.target;
+    if (!f || !f.getAttribute) return;
+    var n = f.getAttribute('name') || (f.elements && f.elements['form-name'] && f.elements['form-name'].value) || 'form';
+    if (TAPS.test(n)) return;
+    try { sessionStorage.setItem(PEND, JSON.stringify({ form: n, page: location.pathname })); } catch (err) {}
+    ga('inquiry_form_submit', { form_name: n, inquiry_page: location.pathname });
+  }, true);
+  // Thank-you page after a real form send = a lead
+  if (/thank/i.test(location.pathname)) {
+    var p = null;
+    try { p = JSON.parse(sessionStorage.getItem(PEND) || 'null'); sessionStorage.removeItem(PEND); } catch (e) {}
+    if (p) ga('generate_lead', { lead_type: p.form, inquiry_landing_page: p.page, lead_source: (window.mrpSource ? window.mrpSource().slice(0, 100) : '') });
+  }
+  // Text Miranda / Call taps
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (/^sms:/i.test(h)) ga('text_message_click', { link_page: location.pathname });
+    else if (/^tel:/i.test(h)) ga('phone_call_click', { link_page: location.pathname });
+  }, true);
+})();
