@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confirm Your Session | Miranda Rae Photography</title>
+<!-- Private page: Miranda texts this link to clients after she agrees on a date. Not linked anywhere else, not for search. -->
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Confirm Your Session · Miranda Rae Photography">
+<meta property="og:description" content="Tap to confirm your beach session and hold your date.">
+<meta property="og:image" content="https://mirandaraephotography.com/images/site/family-walking-beach-sunset.jpg">
+<link rel="icon" href="/favicon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DXQ60XNC8Y"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-DXQ60XNC8Y');
+</script>
+<style>
+:root{--ink:#112b39;--teal:#16677a;--teal-dk:#0d5060;--cream:#fff9f1;--line:#e6ddd2;--muted:#556770;--ok:#2f8a4e}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;background:var(--cream)}
+.topbar{background:#fff;border-bottom:1px solid var(--line)}
+.topbar .in{width:min(560px,92%);margin:auto;display:flex;align-items:center;gap:10px;padding:10px 0}
+.topbar img{width:42px;height:42px;border-radius:50%;object-fit:cover;object-position:50% 22%;border:2px solid var(--teal)}
+.brand b{display:block;font:normal 28px/1 'Great Vibes','Brush Script MT',Georgia,serif}
+.brand span{display:block;font-size:9px;letter-spacing:3px;margin-top:3px}
+main{width:min(560px,92%);margin:22px auto 40px}
+.card{background:#fff;padding:24px 22px;border-radius:16px;box-shadow:0 12px 40px #26394122}
+h1{font:30px/1.15 Georgia,serif;text-align:center;margin:0}
+.intro{text-align:center;font-size:15px;margin:8px 0 14px;color:var(--muted)}
+label{display:block;font-size:13px;font-weight:bold;margin:12px 0 4px}
+input,select{font:inherit;border:1px solid #d5dce0;border-radius:8px;padding:12px;width:100%;min-height:48px;background:#fbfcfd;font-size:16px;color:#23394a}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{display:block;width:100%;border:0;border-radius:10px;background:var(--teal);color:#fff;font-weight:bold;font-size:17px;min-height:54px;margin-top:18px;cursor:pointer;box-shadow:0 6px 18px #16677a40;text-align:center;text-decoration:none;line-height:54px}
+.btn:hover{background:var(--teal-dk)}
+.btn[disabled]{opacity:.6;cursor:wait}
+.btn.ghost{background:#fff;color:var(--teal);border:2px solid var(--teal);box-shadow:none;line-height:50px}
+.fine{font-size:12px;color:var(--muted);text-align:center;margin:10px 0 0}
+.err{color:#a33;font-size:14px;text-align:center;margin:10px 0 0}
+.check{width:68px;height:68px;border-radius:50%;background:var(--ok);color:#fff;font-size:36px;display:grid;place-items:center;margin:6px auto 10px}
+.sum{border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.8;margin:16px 0 4px}
+.sum b{display:inline-block;width:78px;color:var(--muted);font-weight:normal}
+.deposit{background:#fff4e3;border:1px solid #f0d9b5;border-radius:12px;padding:14px;text-align:center;margin-top:14px;font-size:15px}
+.hp{display:none}
+[hidden]{display:none!important}
+footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
+@media(max-width:380px){.row2{grid-template-columns:1fr}}
+</style>
+<script src="/source.js"></script>
+</head>
+<body>
+
+<!-- Hidden copy so Netlify registers the form and its fields -->
+<form name="session-confirmed" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input name="name"><input name="date"><input name="beach"><input name="session"><input name="heard-from"><input name="page"><input name="bot-field">
+</form>
+
+<div class="topbar">
+  <div class="in">
+    <img src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae" width="42" height="42">
+    <div class="brand"><b>Miranda Rae Photography</b><span>FLORIDA BEACH PHOTOGRAPHER</span></div>
+  </div>
+</div>
+
+<main>
+  <!-- Step 1: confirm -->
+  <div class="card" id="step1">
+    <h1>Confirm Your Session</h1>
+    <p class="intro">So excited to photograph you! Double-check your details and tap Confirm. — Miranda</p>
+    <div id="cf">
+      <p class="hp"><label>Leave blank <input id="bot" name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+
+      <label for="name">Your name</label>
+      <input id="name" name="name" type="text" autocomplete="name" required>
+
+      <div class="row2">
+        <div>
+          <label for="date">Session date</label>
+          <input id="date" name="date" type="date" required>
+        </div>
+        <div>
+          <label for="beach">Beach</label>
+          <select id="beach" name="beach" required>
+            <option value="">Choose one…</option>
+            <option>Mexico Beach</option>
+            <option>Port St. Joe</option>
+            <option>Cape San Blas</option>
+            <option>St. George Island</option>
+            <option>Panama City Beach</option>
+            <option>Destin</option>
+            <option>30A</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="session">Session</label>
+      <select id="session" name="session" required>
+        <option value="">Choose one…</option>
+        <option>$130 Beach Mini</option>
+        <option>$199 Session (Destin, 30A, St. George Island)</option>
+        <option>Family Session</option>
+        <option>Engagement or Proposal</option>
+        <option>Beach Wedding</option>
+        <option>Other</option>
+      </select>
+
+      <label for="heard-from">How did you hear about Miranda?</label>
+      <select id="heard-from" name="heard-from">
+        <option value="">Choose one…</option>
+        <option>Google search</option>
+        <option>Facebook</option>
+        <option>A friend or family member</option>
+        <option>I've booked with Miranda before</option>
+        <option>ChatGPT or another AI app</option>
+        <option>Other</option>
+      </select>
+
+      <button class="btn" type="button" id="go">✓ Confirm My Session</button>
+      <p class="err" id="err" hidden>Something went wrong. Please try again, or text Miranda to confirm.</p>
+    </div>
+  </div>
+
+  <!-- Step 2: confirmed -->
+  <div class="card" id="step2" hidden>
+    <div class="check">✓</div>
+    <h1>You're Confirmed! 🎉</h1>
+    <p class="intro">Miranda can't wait to see you on the beach.</p>
+    <div class="sum" id="sum"></div>
+    <!-- DEPOSIT: swap this box for Pay buttons once Miranda's payment links are known -->
+    <div class="deposit">To hold your date, Miranda will send you how to pay your <b>$50 deposit</b>.</div>
+    <a class="btn ghost" href="sms:+14482196539?&body=Hi%20Miranda!%20I%20just%20confirmed%20my%20session.%20" onclick="try{gtag('event','text_message_click',{link_page:'/confirm'})}catch(e){}">💬 Text Miranda</a>
+  </div>
+</main>
+
+<footer>Miranda Rae Photography · Florida Gulf Coast</footer>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var F = ['name','date','beach','session','heard-from'];
+
+  // Pre-fill from Miranda's link, e.g. /confirm?name=Jessica&date=2026-10-18&beach=Mexico%20Beach&session=$130%20Beach%20Mini
+  var q = new URLSearchParams(location.search);
+  function setVal(id, v){
+    var el = $(id); if (!el || !v) return;
+    if (el.tagName === 'SELECT') {
+      for (var i = 0; i < el.options.length; i++) {
+        if (el.options[i].text.toLowerCase().indexOf(v.toLowerCase()) === 0) { el.selectedIndex = i; return; }
+      }
+    } else el.value = v;
+  }
+  F.forEach(function(k){ setVal(k, q.get(k)); });
+
+  // Pre-fill name/date from a "Check My Date" form they filled on this phone earlier, if still saved
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (!/^mrp-.*draft$/.test(key)) continue;
+      var d = JSON.parse(localStorage.getItem(key) || '{}');
+      if (d.name && !$('name').value) $('name').value = d.name;
+      if (d.date && !$('date').value) $('date').value = d.date;
+    }
+  } catch (e) {}
+
+  $('go').addEventListener('click', function(){
+    var inputs = document.querySelectorAll('#cf [required]');
+    for (var i = 0; i < inputs.length; i++) { if (!inputs[i].checkValidity()) { inputs[i].reportValidity(); return; } }
+    if ($('bot').value) return; // spam trap
+    var btn = this; btn.disabled = true; $('err').hidden = true;
+    var body = 'form-name=session-confirmed';
+    F.forEach(function(k){ body += '&' + k + '=' + encodeURIComponent($(k).value); });
+    body += '&page=' + encodeURIComponent('Confirm page');
+    fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
+      .then(function(r){ if (!r.ok) throw new Error(r.status); done(); })
+      .catch(function(){ btn.disabled = false; $('err').hidden = false; });
+  });
+
+  function done(){
+    var dt = $('date').value, nice = dt;
+    try { nice = new Date(dt + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); } catch (e) {}
+    var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); };
+    $('sum').innerHTML = '<b>Name</b> ' + esc($('name').value) + '<br><b>Date</b> ' + esc(nice) +
+      '<br><b>Beach</b> ' + esc($('beach').value) + '<br><b>Session</b> ' + esc($('session').value);
+    $('step1').hidden = true; $('step2').hidden = false; window.scrollTo(0, 0);
+    try { gtag('event', 'booking_confirmed', { send_to: 'G-DXQ60XNC8Y', session_type: $('session').value, beach: $('beach').value, heard_from: $('heard-from').value }); } catch (e) {}
+  }
+})();
+</script>
+</body>
+</html>
