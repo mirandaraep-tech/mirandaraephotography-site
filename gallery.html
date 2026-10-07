@@ -394,9 +394,7 @@ footer a{color:#fff}
 <section class="form-section">
   <div class="shell">
     <form class="form-card" id="check-date" name="booking-gallery" method="POST" action="/thank-you" data-netlify="true" netlify-honeypot="bot-field">
-<input type="hidden" name="subject" data-remove-prefix value="📩 NEW REQUEST">
       <input type="hidden" name="form-name" value="booking-gallery">
-      <input type="hidden" name="session-type" id="session-type" value="Family">
       <p class="hp"><label>Leave blank <input name="bot-field"></label></p>
       <h2>Check Your Date</h2>
       <p class="form-intro">Free to ask. Miranda will personally confirm availability.</p>
@@ -461,6 +459,14 @@ footer a{color:#fff}
 
       <button class="btn btn-text" type="submit">Send My Request</button>
       <p class="fine">No payment, no obligation — you're just asking. Miranda will personally confirm your date.</p>
+      <input type="hidden" name="subject" data-remove-prefix value="📩 NEW REQUEST">
+      <input type="hidden" name="session-type" id="session-type" value="Family">
+      <input type="hidden" name="came-from" value="">
+      <input type="hidden" name="campaign" value="">
+      <input type="hidden" name="search-phrase" value="">
+      <input type="hidden" name="google-ads-click-id" value="">
+      <input type="hidden" name="referring-site" value="">
+      <input type="hidden" name="first-page" value="">
     </form>
   </div>
 </section>

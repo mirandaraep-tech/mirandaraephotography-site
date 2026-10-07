@@ -185,8 +185,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var cb = $('beach').value, cs = $('session').value, cp = '';
     if (/wedding/i.test(cs)) cp = '$499';
     else if (/^(Sunrise|Midday|Sunset)$/i.test(cs) && window.mrpPrice) cp = window.mrpPrice(cb, false);
-    var cparts = [$('name').value.trim(), window.mrpDate ? window.mrpDate($('date').value, true) : $('date').value, cb, cp || 'price set by Miranda'].filter(Boolean);
-    body += '&subject=' + encodeURIComponent('✅ CONFIRMED: ' + cparts.join(' — '));
+    if (window.mrpPriceLabel) cp = window.mrpPriceLabel(cp);
+    var cparts = [$('name').value.trim() || 'No name', $('date').value ? (window.mrpDate ? window.mrpDate($('date').value, true) : $('date').value) : 'no date yet', cb, cp || 'price set by Miranda'].filter(Boolean);
+    body += '&subject=' + encodeURIComponent('✅ CONFIRMED: ' + cparts.join(' · '));
     fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
       .then(function(r){ if (!r.ok) throw new Error(r.status); done(); })
       .catch(function(){ btn.disabled = false; $('err').hidden = false; });

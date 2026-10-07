@@ -15,19 +15,23 @@
       if (camp) extra.push('campaign: ' + camp);
       if (term) extra.push('search: ' + term);
     } else if (src) {
-      label = src + (med ? ' (' + med + ')' : '');
+      label = /chatgpt|openai/i.test(src) ? 'ChatGPT' : /gemini/i.test(src) ? 'Gemini' : /perplexity/i.test(src) ? 'Perplexity' : /copilot/i.test(src) ? 'Copilot' : src + (med ? ' (' + med + ')' : '');
       if (camp) extra.push('campaign: ' + camp);
     } else if (ref && ref !== me) {
-      if (/(^|\.)google\./.test(ref)) label = 'Google search (free)';
+      if (/^gemini\.google\./.test(ref)) label = 'Gemini';
+      else if (/(^|\.)google\./.test(ref)) label = 'Google search (free)';
       else if (/bing\.com$/.test(ref)) label = 'Bing search (free)';
       else if (/(chatgpt\.com|openai\.com)$/.test(ref)) label = 'ChatGPT';
+      else if (/copilot\.microsoft\.com$/.test(ref)) label = 'Copilot';
+      else if (/claude\.ai$/.test(ref)) label = 'Claude';
       else if (/perplexity\.ai$/.test(ref)) label = 'Perplexity';
       else if (/(facebook\.com|fb\.com|fb\.me)$/.test(ref)) label = 'Facebook';
       else if (/instagram\.com$/.test(ref)) label = 'Instagram';
       else label = 'Link from ' + ref;
     }
     if (!label) return null; // direct visit or moving around the site: keep what we already know
-    return { label: label, extra: extra.join(', '), landed: location.pathname, t: Date.now() };
+    return { label: label, extra: extra.join(', '), landed: location.pathname, t: Date.now(),
+      camp: camp, term: term, click: clickId, ref: ref };
   }
   var saved = null;
   try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
@@ -59,6 +63,14 @@
   // 2) Booking forms: add the source to the bottom of the message
   document.addEventListener('submit', function (e) {
     var f = e.target, m = f && f.elements && f.elements['message'];
+    var el = f && f.elements;
+    if (el && el['came-from']) {
+      var NP = 'not provided', d0 = new Date(saved.t), set = function (k, val) { if (el[k]) el[k].value = val || NP; };
+      set('came-from', saved.label + ' (first visit ' + (d0.getMonth() + 1) + '/' + d0.getDate() + ')');
+      set('campaign', saved.camp); set('search-phrase', saved.term); set('google-ads-click-id', saved.click);
+      set('referring-site', saved.ref); set('first-page', saved.landed);
+      return;
+    }
     if (m && m.value.indexOf('Came from:') === -1) {
       m.value = (m.value ? m.value + '\n\n' : '') + 'Came from: ' + summary();
     }
@@ -116,6 +128,7 @@
     if (P199.test(beach)) return '$199';
     return '';
   };
+  window.mrpPriceLabel = function (p) { return p === '$130' ? '$130 Mini' : p === '$199' ? '$199 Session' : p === '$499' ? '$499 Wedding' : p; };
   window.mrpDate = function (v, long) {
     if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
       try { return new Date(v + 'T12:00:00').toLocaleDateString('en-US', long ? { weekday: 'short', month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric' }); } catch (e) {}
@@ -131,8 +144,8 @@
       var wedding = /wedding/i.test(path) || /wedding/i.test(beach) || /wedding/i.test(v('session'));
       if (/^(wedding|not sure yet|other)$/i.test(beach)) beach = '';
       if (!beach) { for (var k in BEACH) { if (path.indexOf('/' + k) === 0) { beach = BEACH[k]; break; } } }
-      var parts = [v('name'), window.mrpDate(v('date')), beach, window.mrpPrice(beach, wedding)].filter(Boolean);
-      el['subject'].value = '📩 NEW REQUEST' + (parts.length ? ': ' + parts.join(' — ') : '');
+      var parts = [v('name') || 'No name', v('date') ? window.mrpDate(v('date'), true) : 'no date yet', beach, window.mrpPriceLabel(window.mrpPrice(beach, wedding))].filter(Boolean);
+      el['subject'].value = '📩 NEW REQUEST: ' + parts.join(' · ');
     } catch (err) {}
   }, true);
 })();
