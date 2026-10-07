@@ -57,7 +57,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
 <!-- Hidden copy so Netlify registers the form and its fields -->
 <form name="session-confirmed" data-netlify="true" netlify-honeypot="bot-field" hidden>
-  <input name="name"><input name="date"><input name="beach"><input name="session"><input name="heard-from"><input name="page"><input name="bot-field">
+  <input name="name"><input name="date"><input name="beach"><input name="session"><input name="heard-from"><input name="subject" data-remove-prefix><input name="page"><input name="bot-field">
 </form>
 
 <div class="topbar">
@@ -102,8 +102,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       <label for="session">Session</label>
       <select id="session" name="session" required>
         <option value="">Choose one…</option>
-        <option>$130 Beach Mini</option>
-        <option>$199 Session (Destin, 30A, St. George Island)</option>
+        <option>30-Minute Beach Session</option>
         <option>Family Session</option>
         <option>Engagement or Proposal</option>
         <option>Beach Wedding</option>
@@ -132,8 +131,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <h1>You're Confirmed! 🎉</h1>
     <p class="intro">Miranda can't wait to see you on the beach.</p>
     <div class="sum" id="sum"></div>
-    <!-- DEPOSIT: swap this box for Pay buttons once Miranda's payment links are known -->
-    <div class="deposit">To hold your date, Miranda will send you how to pay your <b>$50 deposit</b>.</div>
+    <!-- DEPOSIT (added Oct 7 2026): Venmo @miranda-hughes-69899, $50, comes off session price -->
+    <div class="deposit">
+      <b>Pay your $50 deposit to hold your date.</b><br>
+      It comes off your session price, so you'll pay the rest on session day.
+      <a class="btn" id="venmo" href="https://venmo.com/miranda-hughes-69899?txn=pay&amp;amount=50&amp;note=Photo%20session%20deposit" target="_blank" rel="noopener" onclick="try{gtag('event','deposit_click',{send_to:'G-DXQ60XNC8Y',method:'venmo'})}catch(e){}">Pay $50 with Venmo</a>
+      <p style="margin:8px 0 0;font-size:13px;opacity:.75;text-align:center">Opens Venmo to Miranda Hughes (@miranda-hughes-69899)</p>
+      <p style="margin:14px 0 0;font-size:13px;opacity:.8">If Miranda cancels for bad weather, your deposit moves to a new date, or is refunded if you'd prefer. If you cancel, the deposit is non-refundable.</p>
+    </div>
     <a class="btn ghost" href="sms:+14482196539?&body=Hi%20Miranda!%20I%20just%20confirmed%20my%20session.%20" onclick="try{gtag('event','text_message_click',{link_page:'/confirm'})}catch(e){}">💬 Text Miranda</a>
   </div>
 </main>
@@ -176,6 +181,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var body = 'form-name=session-confirmed';
     F.forEach(function(k){ body += '&' + k + '=' + encodeURIComponent($(k).value); });
     body += '&page=' + encodeURIComponent('Confirm page');
+    var cb = $('beach').value, cs = $('session').value, cp = '';
+    if (/wedding/i.test(cs)) cp = '$499';
+    else if (/30-Minute/i.test(cs) && window.mrpPrice) cp = window.mrpPrice(cb, false);
+    var cparts = [$('name').value.trim(), window.mrpDate ? window.mrpDate($('date').value, true) : $('date').value, cb, cp || 'price set by Miranda'].filter(Boolean);
+    body += '&subject=' + encodeURIComponent('✅ CONFIRMED: ' + cparts.join(' — '));
     fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
       .then(function(r){ if (!r.ok) throw new Error(r.status); done(); })
       .catch(function(){ btn.disabled = false; $('err').hidden = false; });
