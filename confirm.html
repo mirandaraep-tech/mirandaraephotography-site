@@ -102,10 +102,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       <label for="session">Session</label>
       <select id="session" name="session" required>
         <option value="">Choose one…</option>
-        <option>30-Minute Beach Session</option>
-        <option>Family Session</option>
-        <option>Engagement or Proposal</option>
-        <option>Beach Wedding</option>
+        <option>Sunrise</option>
+        <option>Midday</option>
+        <option>Sunset</option>
+        <option>Wedding</option>
+        <option>Engagement</option>
         <option>Other</option>
       </select>
 
@@ -183,7 +184,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     body += '&page=' + encodeURIComponent('Confirm page');
     var cb = $('beach').value, cs = $('session').value, cp = '';
     if (/wedding/i.test(cs)) cp = '$499';
-    else if (/30-Minute/i.test(cs) && window.mrpPrice) cp = window.mrpPrice(cb, false);
+    else if (/^(Sunrise|Midday|Sunset)$/i.test(cs) && window.mrpPrice) cp = window.mrpPrice(cb, false);
     var cparts = [$('name').value.trim(), window.mrpDate ? window.mrpDate($('date').value, true) : $('date').value, cb, cp || 'price set by Miranda'].filter(Boolean);
     body += '&subject=' + encodeURIComponent('✅ CONFIRMED: ' + cparts.join(' — '));
     fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
