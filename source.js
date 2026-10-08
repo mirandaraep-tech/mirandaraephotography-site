@@ -128,7 +128,7 @@
     if (P199.test(beach)) return '$199';
     return '';
   };
-  window.mrpPriceLabel = function (p) { return p === '$130' ? '$130 Mini' : p === '$199' ? '$199 Session' : p === '$499' ? '$499 Wedding' : p; };
+  window.mrpPriceLabel = function (p) { return p === '$130' ? '$130 Mini' : p === '$199' ? '$199 Beach Special' : p === '$499' ? '$499 Wedding' : p; };
   window.mrpDate = function (v, long) {
     if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
       try { return new Date(v + 'T12:00:00').toLocaleDateString('en-US', long ? { weekday: 'short', month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric' }); } catch (e) {}

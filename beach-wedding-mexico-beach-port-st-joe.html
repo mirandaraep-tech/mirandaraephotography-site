@@ -234,13 +234,15 @@ footer a{color:#fff}
 
 <style>@media (max-width:900px){.bar .headshot{display:none}.bar .brand{font-size:26px}.bar .brand small{font-size:8px;letter-spacing:2.5px}.bar-actions{gap:8px}.bar .btn{padding:11px 16px;font-size:14px}}@media (max-width:560px){.bar .brand{font-size:24px}}@media(max-width:420px){.bar .brand{font-size:18px}}</style>
 <script src="/source.js"></script>
+
+<style>.mini-nav{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:14px;padding:4px 12px 8px}.mini-nav a{color:inherit;text-decoration:underline;text-underline-offset:3px}.mini-nav a:focus-visible,.see-photos:focus-visible{outline:2px solid currentColor;outline-offset:2px}.see-photos{font-weight:600;text-decoration:underline}</style>
 </head>
 <body>
 
 <!-- ============ STICKY TOP BAR ============ -->
 <header class="bar">
   <div class="bar-in">
-    <a class="brandwrap" href="#top" aria-label="Miranda Rae Photography">
+    <a class="brandwrap" href="/" aria-label="Miranda Rae Photography">
       <div class="brand">Miranda Rae Photography<small>MEXICO BEACH &amp; PORT ST. JOE, FL</small></div>
       <img class="headshot" src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae with her camera" width="52" height="52">
     </a>
@@ -249,6 +251,7 @@ footer a{color:#fff}
       <a class="btn btn-text" href="sms:+14482196539?&body=Hi%20Miranda!%20I%20saw%20the%20%24499%20beach%20wedding%20special%20in%20Mexico%20Beach%20%2F%20Port%20St.%20Joe.%20Our%20wedding%20date%20is%3A%20" onclick="return textTap();"><span class="bubble">💬</span> Text Miranda</a>
     </div>
   </div>
+  <nav class="mini-nav" aria-label="Site"><a href="/">Home</a><a href="/gallery">Gallery</a><a href="#date-request">Check My Date</a></nav>
 </header>
 
 <!-- ============ HERO ============ -->
@@ -385,7 +388,7 @@ footer a{color:#fff}
 
       <button class="btn btn-text" type="submit">Send My Request</button>
       <p class="fine">No payment, no obligation — you're just asking. Miranda will personally confirm your date.</p>
-      <p class="after-send" style="margin:14px 0 0;padding:12px 14px;background:#e8f4f6;border:1px solid #bcdde3;border-radius:10px;color:#0d4f5e;font:bold 15px/1.4 Arial,sans-serif;text-align:center">📸 Right after you send, you'll get Miranda's full photo galleries and all 16 reviews.</p>
+      <p class="after-send" style="margin:14px 0 0;padding:12px 14px;background:#e8f4f6;border:1px solid #bcdde3;border-radius:10px;color:#0d4f5e;font:bold 15px/1.4 Arial,sans-serif;text-align:center">📸 Want to see her work first? <a href="/gallery" class="see-photos">See Miranda's Photos &rarr;</a></p>
       <input type="hidden" name="subject" data-remove-prefix value="📩 NEW REQUEST">
       <input type="hidden" name="came-from" value="">
       <input type="hidden" name="campaign" value="">
@@ -403,7 +406,7 @@ footer a{color:#fff}
     <h2>Quick questions</h2>
     <details><summary>Do I pay anything to check my date?</summary><p>No. Asking is free. Miranda confirms availability, location and details with you first, and nothing is booked until you agree.</p></details>
     <details><summary>What if the weather turns?</summary><p>Gulf weather can change fast. Miranda will talk through a backup plan and timing with you before the day.</p></details>
-    <details><summary>Can I see more of Miranda's work?</summary><p>Yes — right after you send the form, you'll get links to her full client galleries and all 16 Facebook reviews.</p></details>
+    <details><summary>Can I see more of Miranda's work?</summary><p>Yes — you can browse Miranda's photos anytime on her <a href="/gallery">gallery page</a>. No form needed.</p></details>
   </div>
 </section>
 
