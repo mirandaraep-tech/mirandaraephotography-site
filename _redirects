@@ -17,3 +17,7 @@
 /thank-you-facebook                  /thank-you                           301
 /home-preview.html                   /                                    301
 /home-preview                        /                                    301
+
+# Retired $119 sunrise special -> Mexico Beach page (Oct 8 2026)
+/mexico-beach-sunrise-special.html /mexico-beach-photographer 301!
+/mexico-beach-sunrise-special /mexico-beach-photographer 301!
