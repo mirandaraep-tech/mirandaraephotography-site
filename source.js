@@ -149,3 +149,63 @@
     } catch (err) {}
   }, true);
 })();
+
+// 5) Contact preference (added Oct 8 2026): require email when the visitor picks Email,
+//    and phone when they pick Text or Call.
+(function () {
+  function pickOf(f) {
+    var r = f.querySelector('input[name="reply"]:checked');
+    if (r) return r.value;
+    var s = f.elements && f.elements['contact-pref'];
+    return s ? s.value : '';
+  }
+  function sync(f) {
+    var el = f.elements, ph = el && el['phone'], em = el && el['email'];
+    if (!ph || !em) return;
+    var byEmail = /email/i.test(pickOf(f));
+    em.required = byEmail;
+    ph.required = !byEmail;
+  }
+  function isBooking(f) { return f && /^booking-/.test(f.getAttribute('name') || ''); }
+  function all() { [].forEach.call(document.querySelectorAll('form[name^="booking-"]'), sync); }
+  document.addEventListener('change', function (e) { var f = e.target && e.target.form; if (isBooking(f)) sync(f); }, true);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', all); else all();
+})();
+
+// 6) Keep what visitors typed if a send fails (added Oct 8 2026). Saved only in this browser tab,
+//    cleared once the thank-you page loads.
+(function () {
+  var KEYS = ['name', 'phone', 'email', 'date', 'beach', 'who', 'people', 'message', 'contact-pref', 'heard-from'];
+  function key(f) { return 'mrp-draft-' + (f.getAttribute('name') || ''); }
+  function isBooking(f) { return f && /^booking-/.test(f.getAttribute('name') || ''); }
+  function save(f) {
+    try {
+      var el = f.elements, o = {};
+      KEYS.forEach(function (k) { var x = el[k]; if (x && typeof x.value === 'string' && x.type !== 'radio') o[k] = x.value; });
+      var r = f.querySelector('input[name="reply"]:checked'); if (r) o.reply = r.value;
+      sessionStorage.setItem(key(f), JSON.stringify(o));
+      var pick = o.reply || o['contact-pref'] || '';
+      if (pick) sessionStorage.setItem('mrp-reply', pick);
+    } catch (e) {}
+  }
+  function restore(f) {
+    try {
+      var o = JSON.parse(sessionStorage.getItem(key(f)) || 'null'); if (!o) return;
+      var el = f.elements;
+      KEYS.forEach(function (k) { var x = el[k]; if (o[k] && x && !x.value && x.type !== 'radio') x.value = o[k]; });
+      var r = o.reply ? f.querySelector('input[name="reply"][value="' + o.reply + '"]') : null;
+      if (r) r.checked = true;
+      var t = r || el['contact-pref']; if (t) t.dispatchEvent(new Event('change', { bubbles: true }));
+    } catch (e) {}
+  }
+  function start() {
+    if (/\/thank-you/.test(location.pathname)) {
+      try { for (var i = sessionStorage.length - 1; i >= 0; i--) { var k = sessionStorage.key(i); if (k && k.indexOf('mrp-draft-') === 0) sessionStorage.removeItem(k); } } catch (e) {}
+      return;
+    }
+    [].forEach.call(document.querySelectorAll('form[name^="booking-"]'), restore);
+  }
+  document.addEventListener('input', function (e) { var f = e.target && e.target.form; if (isBooking(f)) save(f); }, true);
+  document.addEventListener('change', function (e) { var f = e.target && e.target.form; if (isBooking(f)) save(f); }, true);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();

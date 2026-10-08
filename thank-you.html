@@ -15,7 +15,9 @@
   gtag('config', 'AW-18391952045');
   gtag('config', 'G-DXQ60XNC8Y');
   // Forms from Miranda's text link (/book) are not ad leads, so don't count them in Google Ads
-  if (!/[?&]src=text/.test(location.search)) gtag('event', 'conversion', { 'send_to': 'AW-18391952045/iFCFCP2cl-wcEK3V-8FE' });
+  var mrpPending = null; try { mrpPending = sessionStorage.getItem('mrp-lead-pending'); } catch (e) {}
+  // Count the Google Ads lead only right after a real form send (not on refresh or a direct visit)
+  if (mrpPending && !/[?&]src=text/.test(location.search)) gtag('event', 'conversion', { 'send_to': 'AW-18391952045/iFCFCP2cl-wcEK3V-8FE' });
   // Gallery / review taps: email alert only (not counted as a lead)
   function linkTap(which){ try{ fetch('/', {method:'POST', keepalive:true, headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'form-name=link-click&page=thank-you&link='+which}); }catch(e){} return true; }
 </script>
@@ -34,7 +36,8 @@
   <div class="wrap">
     <span class="badge">Request Received</span>
     <h1>You're All Set — Thank You!</h1>
-    <p class="sub">Your session request just landed in Miranda's inbox. She personally replies to every request and will text or call you to confirm your date and go over the details.</p>
+    <p class="sub">Your session request just landed in Miranda's inbox. She personally replies to every request and will <span id="reply-how">reach out the way you asked</span> to go over the details.</p>
+      <p class="not-reserved"><strong>Please note:</strong> sending a request doesn't reserve your date yet. Your date is held once Miranda confirms it with you and your $50 deposit is paid.</p>
   </div>
 </section>
 
@@ -49,7 +52,7 @@
     <h2 style="margin-top:40px;">What Happens Next</h2>
     <ul class="included-list" style="grid-template-columns: 1fr; text-align:left; max-width: 440px; margin: 0 auto;">
       <li>Miranda reviews your request and checks available dates</li>
-      <li>She'll text or call to confirm your date and location</li>
+      <li>She'll reach out by text, call or email (whichever you picked) to confirm your date and location</li>
       <li>No payment is needed until your session is confirmed</li>
     </ul>
     <p style="margin-top:30px; color: var(--muted);">Need a faster response? <a href="sms:+14482196539">Text Miranda</a></p>
@@ -63,5 +66,14 @@
 
 <form hidden method="post" name="link-click" data-netlify="true"><input type="hidden" name="form-name" value="link-click"><input name="page"><input name="link"></form>
 
+<script>
+(function () {
+  try {
+    var p = sessionStorage.getItem('mrp-reply') || '', el = document.getElementById('reply-how');
+    if (!el || !p) return;
+    el.textContent = /email/i.test(p) ? 'email you' : /call/i.test(p) ? 'call you' : 'text you';
+  } catch (e) {}
+})();
+</script>
 </body>
 </html>
