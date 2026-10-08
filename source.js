@@ -138,14 +138,15 @@
   document.addEventListener('submit', function (e) {
     try {
       var f = e.target, el = f && f.elements;
-      if (!el || !el['subject']) return;
+      var subj = el && (el['subject'] || el['_subject']);
+      if (!subj) return;
       var v = function (k) { var x = el[k]; return x && x.value ? String(x.value).trim() : ''; };
       var path = location.pathname, beach = v('beach');
       var wedding = /wedding/i.test(path) || /wedding/i.test(beach) || /wedding/i.test(v('session'));
       if (/^(wedding|not sure yet|other)$/i.test(beach)) beach = '';
       if (!beach) { for (var k in BEACH) { if (path.indexOf('/' + k) === 0) { beach = BEACH[k]; break; } } }
       var parts = [v('name') || 'No name', v('date') ? window.mrpDate(v('date'), true) : 'no date yet', beach, window.mrpPriceLabel(window.mrpPrice(beach, wedding))].filter(Boolean);
-      el['subject'].value = '📩 NEW REQUEST: ' + parts.join(' · ');
+      subj.value = '📩 NEW REQUEST: ' + parts.join(' · ');
     } catch (err) {}
   }, true);
 })();
