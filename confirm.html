@@ -183,6 +183,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var body = '_captcha=false&_template=table&_cc=' + encodeURIComponent('bookmirandarae@gmail.com');
     F.forEach(function(k){ body += '&' + k + '=' + encodeURIComponent($(k).value); });
     body += '&page=' + encodeURIComponent('Confirm page');
+      try { body += '&came-from=' + encodeURIComponent(window.mrpSource ? window.mrpSource() : 'not available'); } catch (e) {}
     var cb = $('beach').value, cs = $('session').value, cp = '';
     if (/wedding/i.test(cs)) cp = '$499';
     else if (/^(Sunrise|Midday|Sunset)$/i.test(cs) && window.mrpPrice) cp = window.mrpPrice(cb, false);
