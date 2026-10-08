@@ -150,8 +150,8 @@
   }, true);
 })();
 
-// 5) Contact preference (added Oct 8 2026): require email when the visitor picks Email,
-//    and phone when they pick Text or Call.
+// 5) Contact preference (added Oct 8 2026): phone is always required; email is also
+//    required when the visitor picks Email.
 (function () {
   function pickOf(f) {
     var r = f.querySelector('input[name="reply"]:checked');
@@ -164,7 +164,7 @@
     if (!ph || !em) return;
     var byEmail = /email/i.test(pickOf(f));
     em.required = byEmail;
-    ph.required = !byEmail;
+    ph.required = true; // phone always required so Miranda can always text (Oct 8 2026)
   }
   function isBooking(f) { return f && /^booking-/.test(f.getAttribute('name') || ''); }
   function all() { [].forEach.call(document.querySelectorAll('form[name^="booking-"]'), sync); }
@@ -186,6 +186,7 @@
       sessionStorage.setItem(key(f), JSON.stringify(o));
       var pick = o.reply || o['contact-pref'] || '';
       if (pick) sessionStorage.setItem('mrp-reply', pick);
+      sessionStorage.setItem('mrp-contact', JSON.stringify({ phone: o.phone || '', email: o.email || '' }));
     } catch (e) {}
   }
   function restore(f) {
@@ -208,4 +209,23 @@
   document.addEventListener('input', function (e) { var f = e.target && e.target.form; if (isBooking(f)) save(f); }, true);
   document.addEventListener('change', function (e) { var f = e.target && e.target.form; if (isBooking(f)) save(f); }, true);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+
+
+// 7) Typo checks (added Oct 8 2026): phone must have 10 digits, email must look like an address.
+(function () {
+  function digits(v) { var d = String(v || '').replace(/\D/g, ''); if (d.length === 11 && d.charAt(0) === '1') d = d.slice(1); return d; }
+  function check(f) {
+    var el = f.elements, ph = el && el['phone'], em = el && el['email'];
+    if (ph && ph.setCustomValidity) {
+      ph.setCustomValidity(ph.value && digits(ph.value).length !== 10 ? 'Please enter a 10-digit phone number, like 850-555-0142.' : '');
+    }
+    if (em && em.setCustomValidity) {
+      em.setCustomValidity(em.value && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em.value.trim()) ? 'Please check your email address, like name@gmail.com.' : '');
+    }
+  }
+  function isBooking(f) { return f && /^booking-/.test(f.getAttribute('name') || ''); }
+  document.addEventListener('input', function (e) { var f = e.target && e.target.form; if (isBooking(f)) check(f); }, true);
+  document.addEventListener('submit', function (e) { if (isBooking(e.target)) check(e.target); }, true);
+  document.addEventListener('click', function (e) { var b = e.target && e.target.closest && e.target.closest('button, input[type="submit"]'); var f = b && b.form; if (isBooking(f)) check(f); }, true);
 })();
