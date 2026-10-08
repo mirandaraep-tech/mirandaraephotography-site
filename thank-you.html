@@ -37,6 +37,7 @@
     <span class="badge">Request Received</span>
     <h1>You're All Set — Thank You!</h1>
     <p class="sub">Your session request just landed in Miranda's inbox. She personally replies to every request and will <span id="reply-how">reach out the way you asked</span> to go over the details.</p>
+      <p class="check-number" id="check-number" hidden>Miranda will reach you at <strong id="your-number"></strong>. Wrong number? <a href="sms:+14482196539">Text Miranda</a> so she can reach you.</p>
       <p class="not-reserved"><strong>Please note:</strong> sending a request doesn't reserve your date yet. Your date is held once Miranda confirms it with you and your $50 deposit is paid.</p>
   </div>
 </section>
@@ -72,6 +73,14 @@
     var p = sessionStorage.getItem('mrp-reply') || '', el = document.getElementById('reply-how');
     if (!el || !p) return;
     el.textContent = /email/i.test(p) ? 'email you' : /call/i.test(p) ? 'call you' : 'text you';
+  } catch (e) {}
+  try {
+    var c = JSON.parse(sessionStorage.getItem('mrp-contact') || 'null'), d = c && String(c.phone || '').replace(/\D/g, '');
+    if (d && d.length === 11 && d.charAt(0) === '1') d = d.slice(1);
+    if (d && d.length === 10) {
+      document.getElementById('your-number').textContent = '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
+      document.getElementById('check-number').hidden = false;
+    }
   } catch (e) {}
 })();
 </script>
