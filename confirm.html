@@ -179,7 +179,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     for (var i = 0; i < inputs.length; i++) { if (!inputs[i].checkValidity()) { inputs[i].reportValidity(); return; } }
     if ($('bot').value) return; // spam trap
     var btn = this; btn.disabled = true; $('err').hidden = true;
-    var body = 'form-name=session-confirmed';
+    var body = '_captcha=false&_template=table&_cc=' + encodeURIComponent('bookmirandarae@gmail.com');
     F.forEach(function(k){ body += '&' + k + '=' + encodeURIComponent($(k).value); });
     body += '&page=' + encodeURIComponent('Confirm page');
     var cb = $('beach').value, cs = $('session').value, cp = '';
@@ -187,8 +187,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     else if (/^(Sunrise|Midday|Sunset)$/i.test(cs) && window.mrpPrice) cp = window.mrpPrice(cb, false);
     if (window.mrpPriceLabel) cp = window.mrpPriceLabel(cp);
     var cparts = [$('name').value.trim() || 'No name', $('date').value ? (window.mrpDate ? window.mrpDate($('date').value, true) : $('date').value) : 'no date yet', cb, cp || 'price set by Miranda'].filter(Boolean);
-    body += '&subject=' + encodeURIComponent('✅ CONFIRMED: ' + cparts.join(' · '));
-    fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
+    body += '&_subject=' + encodeURIComponent('✅ CONFIRMED: ' + cparts.join(' · '));
+    fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(Object.fromEntries(new URLSearchParams(body))) })
       .then(function(r){ if (!r.ok) throw new Error(r.status); done(); })
       .catch(function(){ btn.disabled = false; $('err').hidden = false; });
   });
