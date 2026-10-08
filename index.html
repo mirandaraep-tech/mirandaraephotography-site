@@ -270,6 +270,8 @@ footer a{color:#fff}
 }
 </style>
 <script src="/source.js"></script>
+
+<style>.mini-nav{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;font-size:14px;padding:4px 12px 8px}.mini-nav a{color:inherit;text-decoration:underline;text-underline-offset:3px}.mini-nav a:focus-visible{outline:2px solid currentColor;outline-offset:2px}.proof-grid{flex-wrap:wrap}</style>
 </head>
 <body>
 
@@ -284,6 +286,7 @@ footer a{color:#fff}
       <a class="btn btn-text btn-sm sms" href="sms:+14482196539" onclick="return textTap();"><span class="ico">💬</span> Text Miranda</a>
     </div>
   </div>
+    <nav class="mini-nav" aria-label="Site"><a href="#beaches">Beaches</a><a href="/beach-wedding-499">Weddings</a><a href="/gallery">Gallery</a><a href="#about">About</a><a href="#reviews">Reviews</a><a href="#check-date">Check My Date</a></nav>
 </div>
 
 <header class="hero" id="top">
@@ -303,7 +306,7 @@ footer a{color:#fff}
   </div>
 </header>
 
-<div class="proof">
+<div class="proof" id="reviews">
   <div class="shell proof-grid">
     <div class="fbcard">
       <div class="fblogo">f</div>
@@ -314,6 +317,7 @@ footer a{color:#fff}
     </div>
     <blockquote>“She did my family's pictures this summer at the beach! They were so good! And gave them back so quick!”
       <cite>— Lilly Willoughby, Facebook review</cite></blockquote>
+      <blockquote>“Miranda is the best photographer in The Forgotten Coast. She has captured our family so beautifully every time she takes our photos. She has such a quick turn around time, great prices, and truly makes you feel comfortable in your own skin. 10/10 recommend!” <cite>— Hayley H., Facebook review</cite></blockquote>
   </div>
 </div>
 
@@ -327,13 +331,29 @@ footer a{color:#fff}
       <a class="area" href="/port-st-joe-photographer.html"><b>Port St. Joe</b><span class="cost">$130 beach mini</span><small>30 min · 15 edited photos · up to 6 people</small><span class="go">See details →</span></a>
       <a class="area" href="/cape-san-blas-photographer.html"><b>Cape San Blas</b><span class="cost">$130 beach mini</span><small>30 min · 15 edited photos · up to 6 people</small><span class="go">See details →</span></a>
       <a class="area" href="/panama-city-beach-photographer.html"><b>Panama City Beach</b><span class="cost">$130 beach mini</span><small>30 min · 15 edited photos · up to 6 people</small><span class="go">See details →</span></a>
-      <a class="area" href="/destin-199.html"><b>Destin</b><span class="cost">$199 beach session</span><small>30 min · 25 edited photos · up to 11 people</small><span class="go">See details →</span></a>
-      <a class="area" href="/30a-photographer.html"><b>30A</b><span class="cost">$199 beach session</span><small>Seaside, Santa Rosa Beach, Rosemary Beach, WaterColor</small><span class="go">See details →</span></a>
+      <a class="area" href="/destin-199.html"><b>Destin</b><span class="cost">$199 Beach Special</span><small>30 min · 25 edited photos · up to 11 people</small><span class="go">See details →</span></a>
+      <a class="area" href="/30a-photographer.html"><b>30A</b><span class="cost">$199 Beach Special</span><small>Seaside, Santa Rosa Beach, Rosemary Beach, WaterColor</small><span class="go">See details →</span></a>
+      <a class="area" href="/st-george-island-photographer.html"><b>St. George Island</b><span class="cost">$199 Beach Special</span><small>30 min · 25 edited photos · up to 11 people</small><span class="go">See details →</span></a>
       <a class="area" href="/beach-wedding-499.html"><b>Beach Weddings</b><span class="cost">$499 · up to 4 hours</span><small>Ceremony, family photos &amp; shoreline portraits</small><span class="go">See details →</span></a>
       <a class="area" href="#check-date"><b>Something else?</b><span class="cost">Just ask</span><small>Maternity, engagements, proposals, reunions and more</small><span class="go">Check your date →</span></a>
     </div>
   </div>
 </section>
+<section class="areas more-sessions" id="sessions">
+  <div class="shell center">
+    <p class="eyebrow">More ways to book Miranda</p>
+    <h2>More sessions</h2>
+    <p>Longer sessions, bigger families and once-in-a-lifetime moments.</p>
+    <div class="area-grid">
+      <a class="area" href="#check-date"><b>Classic Session</b><span class="cost">$225</span><small>45–60 min · 30–35 edited photos</small><span class="go">Ask about dates →</span></a>
+      <a class="area" href="#check-date"><b>Family Session</b><span class="cost">$250</span><small>45–60 min · 35+ edited photos · up to 15 people</small><span class="go">Ask about dates →</span></a>
+      <a class="area" href="#check-date"><b>Deluxe Session</b><span class="cost">$325</span><small>75+ min · 50+ edited photos</small><span class="go">Ask about dates →</span></a>
+      <a class="area" href="#check-date"><b>Engagement Session</b><span class="cost">$199</span><small>Up to 1 hour · 35+ edited photos</small><span class="go">Ask about dates →</span></a>
+      <a class="area" href="#check-date"><b>Surprise Proposal</b><span class="cost">$199</span><small>30 edited photos</small><span class="go">Ask about dates →</span></a>
+    </div>
+  </div>
+</section>
+
 
 <section>
   <div class="shell center">
@@ -383,7 +403,7 @@ footer a{color:#fff}
   </div>
 </section>
 
-<section class="about">
+<section class="about" id="about">
   <div class="shell about-grid">
     <img src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae, Florida Gulf Coast beach photographer" loading="lazy">
     <div>
@@ -492,6 +512,15 @@ footer a{color:#fff}
   </div>
 </section>
 
+
+<section class="realestate" id="real-estate" style="padding:48px 0;text-align:center">
+  <div class="shell">
+    <p class="eyebrow">Real estate photography</p>
+    <h2>Selling a home or listing a rental?</h2>
+    <p style="max-width:620px;margin:10px auto 18px">Miranda also photographs homes and vacation rentals along Florida's Gulf Coast. Bright, clean photos that help your listing stand out.</p>
+    <a class="btn btn-ghost" href="https://mirandaraephotos.com/real-estate" target="_blank" rel="noopener">See her real estate work →</a>
+  </div>
+</section>
 <section class="closing">
   <div class="shell">
     <div class="closing-card">
