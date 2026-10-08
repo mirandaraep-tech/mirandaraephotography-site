@@ -77,7 +77,13 @@
   try {
     var c = JSON.parse(sessionStorage.getItem('mrp-contact') || 'null'), d = c && String(c.phone || '').replace(/\D/g, '');
     if (d && d.length === 11 && d.charAt(0) === '1') d = d.slice(1);
-    if (d && d.length === 10) {
+    var pk = sessionStorage.getItem('mrp-reply') || '';
+    if (/email/i.test(pk) && c && c.email && /@/.test(c.email)) {
+      var box = document.getElementById('check-number');
+      box.innerHTML = 'Miranda will email you at <strong></strong>. Wrong email? <a href="sms:+14482196539" style="color:inherit;text-decoration:underline;font-weight:600">Text Miranda</a> so she can reach you.';
+      box.querySelector('strong').textContent = c.email.trim();
+      box.hidden = false;
+    } else if (d && d.length === 10) {
       document.getElementById('your-number').textContent = '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
       document.getElementById('check-number').hidden = false;
     }
