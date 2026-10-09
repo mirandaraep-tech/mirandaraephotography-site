@@ -374,7 +374,7 @@ footer a{color:#fff}
 /* Oct 9 2026 mobile header + hero */
 .nav-toggle{display:none;background:none;border:1px solid var(--line);border-radius:999px;padding:7px 12px;font:600 13px/1 inherit;color:inherit;cursor:pointer}
 @media (max-width:899px){
-  .topbar .shell{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;padding:8px 0}
+  .topbar .shell{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0}
   .brand-wrap img{display:block;width:34px;height:34px}
   .brand b{font-size:17px}
   .brand span{display:none}
@@ -382,7 +382,7 @@ footer a{color:#fff}
   .topbar .top-btns{order:3;flex:0 0 auto;gap:6px}
   .topbar .top-btns .sms{display:none}
   .topbar .btn-sm{font-size:13px;padding:8px 14px}
-  .topbar .shell .mini-nav{order:4;width:100%;display:none;max-height:50vh;overflow-y:auto;padding:6px 0 8px;gap:14px}
+  .topbar .shell .mini-nav{order:4;width:100%;flex:0 0 100%;display:none;flex-wrap:wrap;justify-content:center;max-height:50vh;overflow-y:auto;padding:8px 0 10px;gap:14px}
   .topbar .shell .mini-nav.open{display:flex}
 }
 @media (min-width:900px){.mini-nav .sms-link{display:none}}
