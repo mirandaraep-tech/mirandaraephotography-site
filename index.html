@@ -369,6 +369,32 @@ footer a{color:#fff}
 @media (max-width:900px){#beaches .area-grid>.area,#sessions .area-grid>.area{flex-basis:calc((100% - 16px)/2)}}
 @media (max-width:560px){#beaches .area-grid>.area,#sessions .area-grid>.area{flex-basis:100%}}
 </style>
+
+<style>
+/* Oct 9 2026 mobile header + hero */
+.nav-toggle{display:none;background:none;border:1px solid var(--line);border-radius:999px;padding:7px 12px;font:600 13px/1 inherit;color:inherit;cursor:pointer}
+@media (max-width:899px){
+  .topbar .shell{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;padding:8px 0}
+  .brand-wrap img{display:block;width:34px;height:34px}
+  .brand b{font-size:17px}
+  .brand span{display:none}
+  .nav-toggle{display:inline-block;order:2;margin-left:auto;flex:0 0 auto}
+  .topbar .top-btns{order:3;flex:0 0 auto;gap:6px}
+  .topbar .top-btns .sms{display:none}
+  .topbar .btn-sm{font-size:13px;padding:8px 14px}
+  .topbar .shell .mini-nav{order:4;width:100%;display:none;max-height:50vh;overflow-y:auto;padding:6px 0 8px;gap:14px}
+  .topbar .shell .mini-nav.open{display:flex}
+}
+@media (min-width:900px){.mini-nav .sms-link{display:none}}
+@media (max-width:640px){
+  .hero h1{font-size:34px;letter-spacing:-1px;max-width:330px}
+  .hero-copy{padding-top:14px;padding-bottom:18px}
+  .hero-ctas{margin-top:14px}
+  .price2{margin-top:18px;gap:18px}
+  .pp strong{font-size:38px}
+  .checks{margin-top:12px}
+}
+</style>
 </head>
 <body>
 
@@ -378,7 +404,8 @@ footer a{color:#fff}
       <img src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae" width="42" height="42">
       <a class="brand" href="#top"><b>Miranda Rae Photography</b><span>FLORIDA GULF COAST</span></a>
     </div>
-    <nav class="mini-nav" aria-label="Site"><a href="#beaches">Beaches</a><a href="/beach-wedding-499">Weddings</a><a href="/gallery">Gallery</a><a href="#about">About</a><a href="#reviews">Reviews</a></nav>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">☰ Menu</button>
+      <nav class="mini-nav" id="site-nav" aria-label="Site"><a href="#beaches">Beaches</a><a href="/beach-wedding-499">Weddings</a><a href="/gallery">Gallery</a><a href="#about">About</a><a href="#reviews">Reviews</a><a class="sms-link" href="sms:+14482196539" onclick="return textTap();">Text Miranda</a></nav>
       <div class="top-btns">
       <a class="btn btn-text btn-sm" href="#check-date">Check My Date</a>
       <a class="btn btn-ghost btn-sm sms" href="sms:+14482196539" onclick="return textTap();"><span class="ico">💬</span> Text Miranda</a>
@@ -392,12 +419,11 @@ footer a{color:#fff}
       <p class="eyebrow">Affordable Family &amp; Wedding Photos · Florida Gulf Coast</p>
       <h1>Gulf Coast<br>Beach Photographer.<br><em>Before the Kids Grow Up.</em></h1>
       
-      <div class="price2"><div class="pp"><em class="ptag">Beach Mini Session</em><strong>$130</strong><span>Mexico Beach · Port St. Joe<br>Cape San Blas · Panama City Beach</span></div><div class="pp"><em class="ptag">Beach Special</em><strong>$199</strong><span>Destin · 30A<br>St. George Island</span></div></div>
-      
       <div class="hero-ctas">
         <a class="btn btn-text" href="#check-date">Check My Date →</a>
         <a class="btn btn-ghost" href="#beaches">See Beaches &amp; Prices</a>
       </div>
+          <div class="price2"><div class="pp"><em class="ptag">Beach Mini Session</em><strong>$130</strong><span>Mexico Beach · Port St. Joe<br>Cape San Blas · Panama City Beach</span></div><div class="pp"><em class="ptag">Beach Special</em><strong>$199</strong><span>Destin · 30A<br>St. George Island</span></div></div>
       <div class="checks"><span>✓ No payment to ask</span><span>✓ Miranda replies personally</span></div>
     </div>
   </div>
@@ -697,5 +723,6 @@ footer a{color:#fff}
     });
   })();
 </script>
+<script>(function(){var b=document.querySelector(".nav-toggle"),n=document.getElementById("site-nav");if(!b||!n)return;b.addEventListener("click",function(){var o=n.classList.toggle("open");b.setAttribute("aria-expanded",o?"true":"false")});n.addEventListener("click",function(e){if(e.target.tagName==="A"){n.classList.remove("open");b.setAttribute("aria-expanded","false")}})})();</script>
 </body>
 </html>
