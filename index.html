@@ -347,6 +347,28 @@ footer a{color:#fff}
 <script src="/source.js"></script>
 
 <style>.mini-nav{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;font-size:14px;padding:4px 12px 8px}.mini-nav a{color:inherit;text-decoration:underline;text-underline-offset:3px}.mini-nav a:focus-visible{outline:2px solid currentColor;outline-offset:2px}.proof-grid{flex-wrap:wrap}</style>
+
+<style>
+/* Oct 9 2026 polish */
+@media (min-width:900px){.topbar .shell{display:flex;align-items:center;gap:18px}.topbar .shell .mini-nav{padding:0;margin-left:auto;margin-right:6px}}
+@media (max-width:899px){.topbar .shell{flex-wrap:wrap}.topbar .shell .mini-nav{order:3;width:100%;justify-content:center}}
+.photo-strip{padding:34px 0 6px}
+.strip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.strip-grid a{display:block;border-radius:14px;overflow:hidden}
+.strip-grid img{width:100%;height:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.strip-more{text-align:center;margin:16px 0 0}
+.see-photos{font-weight:600;text-decoration:underline}
+@media (max-width:640px){.strip-grid{grid-template-columns:repeat(2,1fr);gap:8px}}
+@media (max-width:640px){.strip-grid a:nth-child(n+5){display:none}}
+#reviews .proof-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+#reviews .fbcard{grid-column:1/-1;justify-self:center}
+#reviews blockquote{margin:0;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:16px;padding:20px 22px;font-size:17px;line-height:1.55}
+@media (max-width:760px){#reviews .proof-grid{grid-template-columns:1fr}}
+#beaches .area-grid,#sessions .area-grid{display:flex;flex-wrap:wrap;justify-content:center}
+#beaches .area-grid>.area,#sessions .area-grid>.area{flex:0 1 calc((100% - 32px)/3);box-sizing:border-box}
+@media (max-width:900px){#beaches .area-grid>.area,#sessions .area-grid>.area{flex-basis:calc((100% - 16px)/2)}}
+@media (max-width:560px){#beaches .area-grid>.area,#sessions .area-grid>.area{flex-basis:100%}}
+</style>
 </head>
 <body>
 
@@ -356,22 +378,22 @@ footer a{color:#fff}
       <img src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae" width="42" height="42">
       <a class="brand" href="#top"><b>Miranda Rae Photography</b><span>FLORIDA GULF COAST</span></a>
     </div>
-    <div class="top-btns">
-      <a class="btn btn-ghost btn-sm" href="#check-date">Check Date</a>
-      <a class="btn btn-text btn-sm sms" href="sms:+14482196539" onclick="return textTap();"><span class="ico">💬</span> Text Miranda</a>
+    <nav class="mini-nav" aria-label="Site"><a href="#beaches">Beaches</a><a href="/beach-wedding-499">Weddings</a><a href="/gallery">Gallery</a><a href="#about">About</a><a href="#reviews">Reviews</a></nav>
+      <div class="top-btns">
+      <a class="btn btn-text btn-sm" href="#check-date">Check My Date</a>
+      <a class="btn btn-ghost btn-sm sms" href="sms:+14482196539" onclick="return textTap();"><span class="ico">💬</span> Text Miranda</a>
     </div>
   </div>
-    <nav class="mini-nav" aria-label="Site"><a href="#beaches">Beaches</a><a href="/beach-wedding-499">Weddings</a><a href="/gallery">Gallery</a><a href="#about">About</a><a href="#reviews">Reviews</a><a href="#check-date">Check My Date</a></nav>
 </div>
 
 <header class="hero" id="top">
   <div class="shell hero-grid">
     <div class="hero-copy">
-      <p class="eyebrow">Miranda Rae Photography · Affordable Florida Beach Photos</p>
+      <p class="eyebrow">Affordable Family &amp; Wedding Photos · Florida Gulf Coast</p>
       <h1>Gulf Coast<br>Beach Photographer.<br><em>Before the Kids Grow Up.</em></h1>
-      <p class="eyebrow natural">Families · Couples · Weddings</p>
+      
       <div class="price2"><div class="pp"><em class="ptag">Beach Mini Session</em><strong>$130</strong><span>Mexico Beach · Port St. Joe<br>Cape San Blas · Panama City Beach</span></div><div class="pp"><em class="ptag">Beach Special</em><strong>$199</strong><span>Destin · 30A<br>St. George Island</span></div></div>
-      <p class="hand">Barefoot. Laughing.<br>Together. ♡</p>
+      
       <div class="hero-ctas">
         <a class="btn btn-text" href="#check-date">Check My Date →</a>
         <a class="btn btn-ghost" href="#beaches">See Beaches &amp; Prices</a>
@@ -380,6 +402,20 @@ footer a{color:#fff}
     </div>
   </div>
 </header>
+<section class="photo-strip" aria-label="Recent sessions by Miranda">
+  <div class="shell">
+    <div class="strip-grid">
+      <a href="/gallery"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FPYMQp3%2FDSC00381-f16e4e98-1000.jpeg&amp;w=600&amp;fm=webp&amp;q=78" alt="Mom holding her smiling baby boy on a boardwalk by the beach" loading="lazy" width="600" height="750"></a>
+      <a href="/gallery"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F8rb54b%2FCB1C051B-2149-4C76-92A4-64EE314FA4B3-a6d25ce1-1000.jpeg&amp;w=600&amp;fm=webp&amp;q=78" alt="Little girl walking a beach boardwalk toward her siblings" loading="lazy" width="600" height="750"></a>
+      <a href="/gallery"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F7GoKmG%2FDSC09603-02c6a3de-1000.jpg&amp;w=600&amp;fm=webp&amp;q=78" alt="Mom lifting her baby into the air by the Gulf" loading="lazy" width="600" height="750"></a>
+      <a href="/gallery"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F9M8AEx%2F73125A39-413C-4C37-BAAC-706E18ED19AC-769c5f67-1000.png&amp;w=600&amp;fm=webp&amp;q=78" alt="Couple embracing in the dunes at sunset" loading="lazy" width="600" height="750"></a>
+      <a href="/gallery"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FvPZjK3%2FDSC00274-03d9cc6b-1000.jpeg&amp;w=600&amp;fm=webp&amp;q=78" alt="Baby taking steps on a boardwalk holding hands" loading="lazy" width="600" height="750"></a>
+      <a href="/gallery"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FKvqOJq%2FDSC00304-99c533c4-1000.jpeg&amp;w=600&amp;fm=webp&amp;q=78" alt="Beach photo session by Miranda Rae Photography on Florida's Gulf Coast" loading="lazy" width="600" height="750"></a>
+    </div>
+    <p class="strip-more"><a class="see-photos" href="/gallery">See more of Miranda's photos &rarr;</a></p>
+  </div>
+</section>
+
 
 <div class="proof" id="reviews">
   <div class="shell proof-grid">
