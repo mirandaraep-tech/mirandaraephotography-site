@@ -2,6 +2,7 @@
 User-agent: *
 Allow: /
 Disallow: /thank-you
+Disallow: /add-on
 
 User-agent: Googlebot
 Allow: /
