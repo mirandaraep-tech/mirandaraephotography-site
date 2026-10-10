@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "Miranda Rae Photography site. Only dependency is for the private booking counter (netlify/functions/booking-counter.mjs).",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

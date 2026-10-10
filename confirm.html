@@ -132,6 +132,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <div class="check">✓</div>
     <h1>You're Confirmed! 🎉</h1>
     <p class="intro">Miranda can't wait to see you on the beach.</p>
+    <p class="intro" id="booknum" hidden style="font-weight:bold;color:#16677a"></p>
     <div class="sum" id="sum"></div>
     <!-- DEPOSIT (added Oct 7 2026): Venmo @miranda-hughes-69889, $50, comes off session price -->
     <div class="deposit">
@@ -151,8 +152,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 (function(){
   var $ = function(id){ return document.getElementById(id); };
   var F = ['name','date','beach','session','heard-from'];
+  var LIVE = /(^|\.)mirandaraephotography\.com$/.test(location.hostname);
 
-  // Pre-fill from Miranda's link, e.g. /confirm?name=Jessica&date=2026-10-18&beach=Mexico%20Beach&session=$130%20Beach%20Mini
+  // Pre-fill from Miranda's link, e.g. /confirm?name=Jessica&date=2026-10-18&beach=Mexico%20Beach&session=Sunset&price=150
   var q = new URLSearchParams(location.search);
   function setVal(id, v){
     var el = $(id); if (!el || !v) return;
@@ -163,6 +165,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     } else el.value = v;
   }
   F.forEach(function(k){ setVal(k, q.get(k)); });
+  // Agreed price from Miranda's "cnf" link (added Oct 10 2026), e.g. price=150 or price=$599
+  var agreed = Number(String(q.get('price') || '').replace(/[^0-9.]/g, '')) || 0;
 
   // Pre-fill name/date from a "Check My Date" form they filled on this phone earlier, if still saved
   try {
@@ -175,32 +179,64 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     }
   } catch (e) {}
 
+  function money(n){ return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }); }
+
+  // Booking number + running total (added Oct 10 2026). If the counter can't be reached,
+  // the confirmation still goes through, just without a number.
+  var got = null; // count each confirmation only once, even if the email has to be retried
+  function counter(amount){
+    if (got) return Promise.resolve(got);
+    var ctl = window.AbortController ? new AbortController() : null;
+    var t = setTimeout(function(){ if (ctl) ctl.abort(); }, 6000);
+    return fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'confirm', amount: amount }), signal: ctl ? ctl.signal : undefined })
+      .then(function(r){ clearTimeout(t); return r.ok ? r.json() : null; })
+      .then(function(c){ if (c) got = c; return c; })
+      .catch(function(){ clearTimeout(t); return null; });
+  }
+
   $('go').addEventListener('click', function(){
     var inputs = document.querySelectorAll('#cf [required]');
     for (var i = 0; i < inputs.length; i++) { if (!inputs[i].checkValidity()) { inputs[i].reportValidity(); return; } }
     if ($('bot').value) return; // spam trap
     var btn = this; btn.disabled = true; $('err').hidden = true;
-    var body = '_captcha=false&_template=table&_cc=' + encodeURIComponent('bookmirandarae@gmail.com');
-    F.forEach(function(k){ body += '&' + k + '=' + encodeURIComponent($(k).value); });
-    body += '&page=' + encodeURIComponent('Confirm page');
-      try { body += '&came-from=' + encodeURIComponent(window.mrpSource ? window.mrpSource() : 'not available'); } catch (e) {}
+
     var cb = $('beach').value, cs = $('session').value, cp = '';
     if (/wedding/i.test(cs)) cp = '$499';
     else if (/^(Sunrise|Midday|Sunset)$/i.test(cs) && window.mrpPrice) cp = window.mrpPrice(cb, false);
-    if (window.mrpPriceLabel) cp = window.mrpPriceLabel(cp);
-    var cparts = [$('name').value.trim() || 'No name', $('date').value ? (window.mrpDate ? window.mrpDate($('date').value, true) : $('date').value) : 'no date yet', cb, cp || 'price set by Miranda'].filter(Boolean);
-    body += '&_subject=' + encodeURIComponent('✅ CONFIRMED: ' + cparts.join(' · '));
-    fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(Object.fromEntries(new URLSearchParams(body))) })
-      .then(function(r){ if (!r.ok) throw new Error(r.status); done(); })
-      .catch(function(){ btn.disabled = false; $('err').hidden = false; });
+    var amount = agreed || Number(String(cp).replace(/[^0-9.]/g, '')) || 0;
+    var priceText = agreed ? money(agreed) : (window.mrpPriceLabel ? window.mrpPriceLabel(cp) : cp);
+
+    counter(amount).then(function(c){
+      var num = c && c.num ? '#' + c.num : '';
+      var o = {};
+      o._captcha = 'false'; o._template = 'table';
+      if (LIVE) o._cc = 'bookmirandarae@gmail.com';
+      o['booking-number'] = num || 'not available';
+      F.forEach(function(k){ o[k] = $(k).value; });
+      o['session-price'] = priceText || 'price set by Miranda';
+      o['running-total'] = c ? money(c.total) + ' from ' + c.count + ' confirmed sessions' + (c.addons ? ' + ' + c.addons + ' add-ons' : '') + ' (private, not shown to clients)' : 'not available';
+      o.page = 'Confirm page';
+      try { o['came-from'] = window.mrpSource ? window.mrpSource() : 'not available'; } catch (e) {}
+      try { if (window.mrpVisits) o.visits = window.mrpVisits(); } catch (e) {}
+      var cparts = [$('name').value.trim() || 'No name', $('date').value ? (window.mrpDate ? window.mrpDate($('date').value, true) : $('date').value) : 'no date yet', cb, priceText || 'price set by Miranda'].filter(Boolean);
+      o._subject = '✅ CONFIRMED' + (num ? ' ' + num : '') + ': ' + cparts.join(' · ');
+      return fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) })
+        .then(function(r){ if (!r.ok) throw new Error(r.status); done(c && c.num); });
+    }).catch(function(){ btn.disabled = false; $('err').hidden = false; });
   });
 
-  function done(){
+  function done(num){
     var dt = $('date').value, nice = dt;
     try { nice = new Date(dt + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); } catch (e) {}
     var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); };
-    $('sum').innerHTML = '<b>Name</b> ' + esc($('name').value) + '<br><b>Date</b> ' + esc(nice) +
+    $('sum').innerHTML = (num ? '<b>Booking</b> #' + num + '<br>' : '') + '<b>Name</b> ' + esc($('name').value) + '<br><b>Date</b> ' + esc(nice) +
       '<br><b>Beach</b> ' + esc($('beach').value) + '<br><b>Session</b> ' + esc($('session').value);
+    if (num) {
+      var last = $('name').value.trim().split(/\s+/).pop() || '';
+      $('venmo').href = 'https://venmo.com/miranda-hughes-69889?txn=pay&amount=50&note=' + encodeURIComponent('Deposit #' + num + (last ? ' – ' + last : ''));
+      $('booknum').textContent = 'Your booking number is #' + num + '. Keep it handy if you need to reach Miranda.';
+      $('booknum').hidden = false;
+    }
     $('step1').hidden = true; $('step2').hidden = false; window.scrollTo(0, 0);
     try { gtag('event', 'booking_confirmed', { send_to: 'G-DXQ60XNC8Y', session_type: $('session').value, beach: $('beach').value, heard_from: $('heard-from').value }); } catch (e) {}
   }

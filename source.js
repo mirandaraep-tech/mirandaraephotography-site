@@ -230,3 +230,32 @@
   document.addEventListener('submit', function (e) { if (isBooking(e.target)) check(e.target); }, true);
   document.addEventListener('click', function (e) { var b = e.target && e.target.closest && e.target.closest('button, input[type="submit"]'); var f = b && b.form; if (isBooking(f)) check(f); }, true);
 })();
+
+
+// 8) Visit count (added Oct 10 2026). Counts how many separate times this person has
+//    come to the site (in this browser) and adds e.g. "3 visits · first 10/10 · latest 10/12"
+//    to the bottom of every lead email, with the other tracking details.
+(function () {
+  var KEY = 'mrp-visits', v = null;
+  function md(t) { var d = new Date(t); return (d.getMonth() + 1) + '/' + d.getDate(); }
+  try { v = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+  if (!v || !v.n) v = { n: 0, first: Date.now(), last: Date.now() };
+  var counted = false;
+  try { counted = !!sessionStorage.getItem('mrp-visit-counted'); } catch (e) {}
+  if (!counted) {
+    v.n += 1; v.last = Date.now();
+    try { localStorage.setItem(KEY, JSON.stringify(v)); sessionStorage.setItem('mrp-visit-counted', '1'); } catch (e) {}
+  }
+  window.mrpVisits = function () {
+    return v.n + (v.n === 1 ? ' visit' : ' visits') + ' · first ' + md(v.first) + ' · latest ' + md(v.last);
+  };
+  document.addEventListener('submit', function (e) {
+    try {
+      var f = e.target;
+      if (!f || !/formsubmit\.co/.test(f.getAttribute('action') || '')) return;
+      var el = f.elements['visits'];
+      if (!el) { el = document.createElement('input'); el.type = 'hidden'; el.name = 'visits'; f.appendChild(el); }
+      el.value = window.mrpVisits();
+    } catch (err) {}
+  }, true);
+})();
