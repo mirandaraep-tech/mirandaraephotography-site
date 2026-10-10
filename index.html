@@ -22,13 +22,18 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "ProfessionalService",
+  "@type": ["LocalBusiness", "ProfessionalService"],
   "@id": "https://mirandaraephotography.com/#business",
   "name": "Miranda Rae Photography",
   "description": "Florida Gulf Coast beach photographer offering relaxed family, couples, maternity, engagement and beach wedding photography.",
   "url": "https://mirandaraephotography.com/",
   "telephone": "+1-448-219-6539",
   "email": "bookmirandarae@gmail.com",
+  "address": {
+    "@type": "PostalAddress",
+    "addressRegion": "FL",
+    "addressCountry": "US"
+  },
   "image": "https://mirandaraephotography.com/.netlify/images?url=%2Fimages%2Fsite%2Fsisters-beach-sunset-blue-dresses.jpg&w=1500&fm=webp&q=80",
   "logo": "https://mirandaraephotography.com/images/destin-199/destin199-miranda.webp",
   "founder": {
@@ -61,6 +66,14 @@
     {
       "@type": "Place",
       "name": "30A (Santa Rosa Beach, Seaside, Rosemary Beach), FL"
+    },
+    {
+      "@type": "Place",
+      "name": "St. George Island, FL"
+    },
+    {
+      "@type": "Place",
+      "name": "Indian Pass, FL"
     }
   ],
   "sameAs": [
@@ -653,7 +666,8 @@ footer a{color:#fff}
 
 <footer>
   <p>Miranda Rae Photography · Florida Gulf Coast Beach Photographer</p>
-  <p>Serving Mexico Beach, Port St. Joe, Cape San Blas, Indian Pass, Panama City Beach, Destin, Santa Rosa Beach, Seaside, Rosemary Beach &amp; WaterColor</p>
+  <p>Serving Mexico Beach, Port St. Joe, Cape San Blas, Indian Pass, St. George Island, Panama City Beach, Destin, Santa Rosa Beach, Seaside, Rosemary Beach &amp; WaterColor</p>
+  <p>Phone: <a href="tel:+14482196539" onclick="gtag('event','phone_click',{page:PAGE,link:'home-footer'});">(448) 219-6539</a> · Email: <a href="mailto:bookmirandarae@gmail.com" onclick="gtag('event','email_click',{page:PAGE,link:'home-footer'});">bookmirandarae@gmail.com</a></p>
   <p><a class="sms" href="sms:+14482196539" onclick="return textTap();">💬 Text Miranda</a> · <a href="/gallery" onclick="gtag('event','gallery_click',{page:PAGE,link:'home-footer'});">Gallery</a></p>
   <p>© 2026 Miranda Rae Photography</p>
 </footer>
