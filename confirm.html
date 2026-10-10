@@ -121,6 +121,12 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         <option>Other</option>
       </select>
 
+      <div id="pricebox" hidden style="margin:18px 0 0;border:2px solid #16677a;border-radius:12px;padding:12px 14px;text-align:center;background:#eef7f8">
+        <div style="font-size:13px;color:#556770;letter-spacing:1px">YOUR SESSION PRICE</div>
+        <div id="pbamt" style="font:bold 30px Georgia,serif;color:#112b39;margin:2px 0"></div>
+        <div id="pbline" style="font-size:14px;color:#556770"></div>
+      </div>
+
       <button class="btn" type="button" id="go">✓ Confirm My Session</button>
       <p class="privacy-line" style="font-size:12px;opacity:.75;text-align:center;margin:10px 0 0">By confirming, you agree to our <a href="/privacy" style="color:inherit;text-decoration:underline">privacy notice</a>.</p>
       <p class="err" id="err" hidden>Something went wrong. Please try again, or text Miranda to confirm.</p>
@@ -137,12 +143,17 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <!-- DEPOSIT (added Oct 7 2026): Venmo @miranda-hughes-69889, $50, comes off session price -->
     <div class="deposit">
       <b>Pay your $50 deposit to hold your date.</b><br>
-      It comes off your session price, so you'll pay the rest on session day.
+      <span id="depline">It comes off your session price, so you'll pay the rest on session day.</span>
       <a class="btn" id="venmo" href="https://venmo.com/miranda-hughes-69889?txn=pay&amp;amount=50&amp;note=Photo%20session%20deposit" target="_blank" rel="noopener" onclick="try{gtag('event','deposit_click',{send_to:'G-DXQ60XNC8Y',method:'venmo'})}catch(e){}">Pay $50 with Venmo</a>
       <p style="margin:8px 0 0;font-size:13px;opacity:.75;text-align:center">Opens Venmo to Miranda Hughes (@miranda-hughes-69889)</p>
+      <!-- More pay buttons (Cash App, PayPal) go here, above "Prefer another way" -->
+      <div style="margin:14px 0 0;padding:12px 0 0;border-top:1px dashed #e0c99f">
+        <b>Prefer another way to pay?</b>
+        <a class="btn ghost" id="otherpay" style="margin-top:8px" href="sms:+14482196539?&amp;body=Hi%20Miranda!%20I%20just%20confirmed%20my%20session%20and%20I'd%20like%20to%20pay%20my%20deposit%20another%20way." onclick="try{gtag('event','deposit_click',{send_to:'G-DXQ60XNC8Y',method:'text_other'})}catch(e){}">💬 Text Miranda</a>
+      </div>
       <p style="margin:14px 0 0;font-size:13px;opacity:.8">If Miranda cancels for bad weather, your deposit moves to a new date, or is refunded if you'd prefer. If you cancel, the deposit is non-refundable.</p>
     </div>
-    <a class="btn ghost" href="sms:+14482196539?&body=Hi%20Miranda!%20I%20just%20confirmed%20my%20session.%20" onclick="try{gtag('event','text_message_click',{link_page:'/confirm'})}catch(e){}">💬 Text Miranda</a>
+    <p class="fine" style="margin-top:16px">Questions? <a id="qtext" href="sms:+14482196539" style="color:inherit;text-decoration:underline" onclick="try{gtag('event','text_message_click',{link_page:'/confirm'})}catch(e){}">Text Miranda</a></p>
   </div>
 </main>
 
@@ -166,7 +177,26 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   F.forEach(function(k){ setVal(k, q.get(k)); });
   // Agreed price from Miranda's "cnf" link (added Oct 10 2026), e.g. price=150 or price=$599
-  var agreed = Number(String(q.get('price') || '').replace(/[^0-9.]/g, '')) || 0;
+  var pathPrice = (location.pathname.match(/\/confirm\/\$?(\d+(?:\.\d+)?)/) || [])[1]; // short link, e.g. /confirm/150
+  var agreed = Number(String(q.get('price') || pathPrice || '').replace(/[^0-9.]/g, '')) || 0;
+
+  // Session price shown to the client (added Oct 10 2026): Miranda's agreed price if her link has one,
+  // otherwise the regular price for the beach. Hidden when unknown (e.g. "Other").
+  function priceNow(){
+    var cb = $('beach').value, cs = $('session').value, cp = '';
+    if (/wedding/i.test(cs)) cp = '$499';
+    else if (/^(Sunrise|Midday|Sunset)$/i.test(cs) && window.mrpPrice) cp = window.mrpPrice(cb, false);
+    var amount = agreed || Number(String(cp).replace(/[^0-9.]/g, '')) || 0;
+    return { amount: amount, text: agreed ? money(agreed) : (window.mrpPriceLabel ? window.mrpPriceLabel(cp) : cp) };
+  }
+  function showPrice(){
+    var p = priceNow(), b = $('pricebox');
+    if (!p.amount) { b.hidden = true; return; }
+    $('pbamt').textContent = money(p.amount);
+    $('pbline').textContent = p.amount > 50 ? '$50 deposit to hold your date · ' + money(p.amount - 50) + ' on session day' : '';
+    b.hidden = false;
+  }
+  ['beach', 'session'].forEach(function(id){ $(id).addEventListener('change', showPrice); });
 
   // Pre-fill name/date from a "Check My Date" form they filled on this phone earlier, if still saved
   try {
@@ -200,11 +230,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if ($('bot').value) return; // spam trap
     var btn = this; btn.disabled = true; $('err').hidden = true;
 
-    var cb = $('beach').value, cs = $('session').value, cp = '';
-    if (/wedding/i.test(cs)) cp = '$499';
-    else if (/^(Sunrise|Midday|Sunset)$/i.test(cs) && window.mrpPrice) cp = window.mrpPrice(cb, false);
-    var amount = agreed || Number(String(cp).replace(/[^0-9.]/g, '')) || 0;
-    var priceText = agreed ? money(agreed) : (window.mrpPriceLabel ? window.mrpPriceLabel(cp) : cp);
+    var cb = $('beach').value, pn = priceNow();
+    var amount = pn.amount, priceText = pn.text;
 
     counter(amount).then(function(c){
       var num = c && c.num ? '#' + c.num : '';
@@ -225,12 +252,19 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     }).catch(function(){ btn.disabled = false; $('err').hidden = false; });
   });
 
+  showPrice();
+
   function done(num){
-    var dt = $('date').value, nice = dt;
+    var dt = $('date').value, nice = dt, pn = priceNow();
     try { nice = new Date(dt + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); } catch (e) {}
     var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); };
     $('sum').innerHTML = (num ? '<b>Booking</b> #' + num + '<br>' : '') + '<b>Name</b> ' + esc($('name').value) + '<br><b>Date</b> ' + esc(nice) +
-      '<br><b>Beach</b> ' + esc($('beach').value) + '<br><b>Session</b> ' + esc($('session').value);
+      '<br><b>Beach</b> ' + esc($('beach').value) + '<br><b>Session</b> ' + esc($('session').value) +
+      (pn.amount ? '<br><b>Price</b> ' + esc(money(pn.amount)) : '');
+    if (pn.amount > 50) $('depline').textContent = 'It comes off your ' + money(pn.amount) + ' session, so you\'ll pay the remaining ' + money(pn.amount - 50) + ' on session day.';
+    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    var otherMsg = 'Hi Miranda! I just confirmed ' + (num ? 'booking #' + num : 'my session') + " and I'd like to pay my deposit another way. What else do you take?";
+    $('otherpay').href = 'sms:+14482196539' + (ios ? '&' : '?') + 'body=' + encodeURIComponent(otherMsg);
     if (num) {
       var last = $('name').value.trim().split(/\s+/).pop() || '';
       $('venmo').href = 'https://venmo.com/miranda-hughes-69889?txn=pay&amount=50&note=' + encodeURIComponent('Deposit #' + num + (last ? ' – ' + last : ''));
