@@ -18,7 +18,8 @@ export default async (req) => {
 
   const host = new URL(req.url).hostname.replace(/^www\./, "");
   const live = host === "mirandaraephotography.com";
-  const store = getStore(live ? "booking-counter" : "booking-counter-test");
+  // "strong" = always read the very latest numbers, so two quick entries can't overwrite each other
+  const store = getStore({ name: live ? "booking-counter" : "booking-counter-test", consistency: "strong" });
 
   const state = (await store.get("state", { type: "json" })) || { last: START, total: 0, count: 0, addons: 0 };
   let num = null;
