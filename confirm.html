@@ -177,7 +177,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   F.forEach(function(k){ setVal(k, q.get(k)); });
   // Agreed price from Miranda's "cnf" link (added Oct 10 2026), e.g. price=150 or price=$599
-  var agreed = Number(String(q.get('price') || '').replace(/[^0-9.]/g, '')) || 0;
+  var pathPrice = (location.pathname.match(/\/confirm\/\$?(\d+(?:\.\d+)?)/) || [])[1]; // short link, e.g. /confirm/150
+  var agreed = Number(String(q.get('price') || pathPrice || '').replace(/[^0-9.]/g, '')) || 0;
 
   // Session price shown to the client (added Oct 10 2026): Miranda's agreed price if her link has one,
   // otherwise the regular price for the beach. Hidden when unknown (e.g. "Other").

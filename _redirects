@@ -23,4 +23,4 @@
 /mexico-beach-sunrise-special /mexico-beach-photographer 301!
 
 # Short Confirm link with the agreed price, e.g. /confirm/150 (Oct 10 2026)
-/confirm/:price   /confirm?price=:price   302
+/confirm/:price   /confirm.html   200
