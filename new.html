@@ -85,6 +85,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <div class="extra"><div><label for="x2d">Extra photos</label><input id="x2d" type="text" placeholder="e.g. 10 more photos"></div><div><label for="x2">Amount</label><div class="money"><span>$</span><input id="x2" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
     <div class="extra"><div><label for="x3d">Extra time</label><input id="x3d" type="text" placeholder="e.g. 15 more minutes"></div><div><label for="x3">Amount</label><div class="money"><span>$</span><input id="x3" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
     <div class="extra"><div><label for="x4d">Something else</label><input id="x4d" type="text" placeholder="e.g. second location"></div><div><label for="x4">Amount</label><div class="money"><span>$</span><input id="x4" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <div class="extra"><div><label for="x5d">Something else</label><input id="x5d" type="text" placeholder="e.g. travel fee"></div><div><label for="x5">Amount</label><div class="money"><span>$</span><input id="x5" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
     <h2 style="margin-top:18px">Discount <span class="small">(optional, taken off the price)</span></h2>
     <div class="extra"><div><label for="dr">Reason <span class="opt">(client sees this)</span></label><input id="dr" type="text" placeholder="e.g. Returning client"></div><div><label for="dc">Amount off</label><div class="money"><span>$</span><input id="dc" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
     <label for="note">Note to client <span class="opt">(optional)</span></label>
@@ -131,7 +132,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
   function data(){
     var p = PK[$('pk').value], x = [];
-    [['x1d','x1','Extra people'],['x2d','x2','Extra photos'],['x3d','x3','Extra time'],['x4d','x4','Extra']].forEach(function(r){
+    [['x1d','x1','Extra people'],['x2d','x2','Extra photos'],['x3d','x3','Extra time'],['x4d','x4','Extra'],['x5d','x5','Extra']].forEach(function(r){
       var a = num(r[1]); if (a) x.push([$(r[0]).value.trim() || r[2], a]);
     });
     var o = { v: 1, n: $('n').value.trim(), d: $('d').value, t: $('t').value, b: $('b').value,
