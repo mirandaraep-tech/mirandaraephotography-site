@@ -179,7 +179,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var h = row(esc(k.pk) + (det ? '<br><small style="color:#556770">' + esc(det) + '</small>' : ''), money(k.base));
     (k.x || []).forEach(function(e){ h += row('+ ' + esc(e[0]), money(e[1])); });
     if (k.dc) h += row('− Discount' + (k.dr ? ': ' + esc(k.dr) : ''), '−' + money(k.dc), ';color:#2f8a4e');
-    h += row('<b>Total</b>', '<b>' + money(k.total) + '</b>', ';border-top:1px solid #e6ddd2;margin-top:6px;padding-top:6px;font-size:17px');
+    h += row('<strong style="color:#112b39">Total</strong>', '<strong style="color:#112b39">' + money(k.total) + '</strong>', ';border-top:1px solid #e6ddd2;margin-top:6px;padding-top:8px;font-size:20px');
     if (k.total > 50) h += '<div style="font-size:13px;color:#556770">$50 deposit to hold your date · ' + money(k.total - 50) + ' on session day</div>';
     return h;
   };
