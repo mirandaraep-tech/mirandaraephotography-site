@@ -124,6 +124,8 @@
   var P130 = /^(Mexico Beach|Port St\. Joe|Cape San Blas|Panama City Beach)$/, P199 = /^(Destin|30A|St\. George Island)$/;
   window.mrpPrice = function (beach, wedding) {
     if (wedding) return '$499';
+    // $199 ad pages (e.g. /mexico-beach-199, added Oct 13 2026): any beach picked there is the $199 Beach Special
+    if (beach && /-199(\.html)?\/?$/.test(location.pathname)) return '$199';
     if (P130.test(beach)) return '$130';
     if (P199.test(beach)) return '$199';
     return '';
