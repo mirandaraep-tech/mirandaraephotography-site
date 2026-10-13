@@ -24,3 +24,8 @@
 
 # Short Confirm link with the agreed price, e.g. /confirm/150 (Oct 10 2026)
 /confirm/:price   /confirm.html   200
+
+# St. George Island photos (Miranda's own, tagged by her Oct 13 2026) served under beach-labeled names
+/images/photos/st-george-island-toddler-on-catamaran.jpg        https://images-pw.pixieset.com/site/B8woOD/Zj4veM/DSC09384-19910961-1000.jpeg  200
+/images/photos/st-george-island-girl-striped-dress-catamaran.jpg https://images-pw.pixieset.com/site/B8woOD/rMmYOV/DSC09394-5c3b4a96-1000.jpeg  200
+/images/photos/st-george-island-baby-pink-bow-on-the-sand.jpg   https://images-pw.pixieset.com/site/B8woOD/DlqWPd/DSC09425-0bbe7ef4-1000.jpeg  200
