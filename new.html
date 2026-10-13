@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New Booking | Miranda Rae Photography</title>
+<!-- Private page (added Oct 12 2026): Miranda fills in a client's session details here (package, people,
+     photos, extras, discount) and texts the client a Confirm link with everything already filled in.
+     Not linked anywhere, not for search. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#112b39;--teal:#16677a;--cream:#fff9f1;--line:#e6ddd2;--muted:#556770}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;background:var(--cream)}
+.topbar{background:#fff;border-bottom:1px solid var(--line)}
+.topbar .in{width:min(560px,92%);margin:auto;display:flex;align-items:center;gap:10px;padding:10px 0}
+.topbar img{width:42px;height:42px;border-radius:50%;object-fit:cover;object-position:50% 22%;border:2px solid var(--teal)}
+.brand b{display:block;font:normal 28px/1 'Great Vibes','Brush Script MT',Georgia,serif}
+.brand span{display:block;font-size:9px;letter-spacing:3px;margin-top:3px}
+main{width:min(560px,92%);margin:22px auto 40px}
+.card{background:#fff;padding:22px 20px;border-radius:16px;box-shadow:0 12px 40px #26394122;margin-bottom:16px}
+h1{font:28px/1.15 Georgia,serif;text-align:center;margin:0}
+h2{font:bold 13px Arial,sans-serif;letter-spacing:2px;color:var(--teal);margin:0 0 6px;text-transform:uppercase}
+h2 .small{letter-spacing:0;text-transform:none;font-weight:normal}
+.intro{text-align:center;font-size:15px;margin:6px 0 4px;color:var(--muted)}
+label{display:block;font-size:13px;font-weight:bold;margin:12px 0 4px}
+label .opt{font-weight:normal;color:var(--muted)}
+input,select,textarea{font:inherit;border:1px solid #d5dce0;border-radius:8px;padding:11px;width:100%;min-height:46px;background:#fbfcfd;font-size:16px;color:#23394a}
+textarea{min-height:70px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.extra{display:grid;grid-template-columns:1.6fr 1fr;gap:8px;align-items:end}
+.money{position:relative}.money span{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted)}.money input{padding-left:24px}
+.total{border:2px solid var(--teal);border-radius:12px;padding:12px 14px;background:#eef7f8;margin-top:6px}
+.line{display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:2px 0}
+.line.big{font-weight:bold;font-size:20px;border-top:1px solid #bcdde3;margin-top:6px;padding-top:8px}
+.line.minus{color:#2f8a4e}
+.small{font-size:13px;color:var(--muted)}
+.btn{display:block;width:100%;border:0;border-radius:10px;background:var(--teal);color:#fff;font-weight:bold;font-size:17px;min-height:54px;margin-top:12px;cursor:pointer;text-align:center;text-decoration:none;line-height:54px}
+.btn.ghost{background:#fff;color:var(--teal);border:2px solid var(--teal);line-height:50px}
+.err{color:#a33;font-size:14px;text-align:center;margin:8px 0 0}
+[hidden]{display:none!important}
+footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
+@media(max-width:380px){.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="in">
+  <img src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae" width="42" height="42">
+  <div class="brand"><b>Miranda Rae Photography</b><span>NEW BOOKING · PRIVATE</span></div>
+</div></div>
+<main>
+  <div class="card"><h1>New Booking</h1><p class="intro">Fill in what you agreed on, then text it to the client to confirm.</p></div>
+
+  <div class="card">
+    <h2>Client</h2>
+    <label for="n">Client's name</label><input id="n" type="text" autocomplete="off">
+    <label for="ph">Client's mobile <span class="opt">(so the text goes straight to them)</span></label><input id="ph" type="tel" inputmode="tel" autocomplete="off" placeholder="850-555-0142">
+    <div class="row2">
+      <div><label for="d">Session date</label><input id="d" type="date"></div>
+      <div><label for="t">Time</label><select id="t"><option>Sunset</option><option>Sunrise</option><option>Midday</option><option>Wedding</option><option>Engagement</option><option>Other</option></select></div>
+    </div>
+    <label for="b">Beach / location</label>
+    <select id="b"><option>Mexico Beach</option><option>Port St. Joe</option><option>Cape San Blas</option><option>Panama City Beach</option><option>St. George Island</option><option>Destin</option><option>30A</option><option>Other</option></select>
+  </div>
+
+  <div class="card">
+    <h2>Session</h2>
+    <label for="pk">Package</label><select id="pk"></select>
+    <div class="row2">
+      <div><label for="base">Price</label><div class="money"><span>$</span><input id="base" type="number" inputmode="decimal" min="0" step="any"></div></div>
+      <div><label for="len">Length</label><input id="len" type="text"></div>
+    </div>
+    <div class="row2">
+      <div><label for="ppl">People</label><input id="ppl" type="text" placeholder="Up to 6"></div>
+      <div><label for="pho">Edited photos</label><input id="pho" type="text" placeholder="15"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Extras <span class="small">(optional, added to the price)</span></h2>
+    <div class="extra"><div><label for="x1d">Extra people</label><input id="x1d" type="text" placeholder="e.g. 2 more people"></div><div><label for="x1">Amount</label><div class="money"><span>$</span><input id="x1" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <div class="extra"><div><label for="x2d">Extra photos</label><input id="x2d" type="text" placeholder="e.g. 10 more photos"></div><div><label for="x2">Amount</label><div class="money"><span>$</span><input id="x2" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <div class="extra"><div><label for="x3d">Extra time</label><input id="x3d" type="text" placeholder="e.g. 15 more minutes"></div><div><label for="x3">Amount</label><div class="money"><span>$</span><input id="x3" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <div class="extra"><div><label for="x4d">Something else</label><input id="x4d" type="text" placeholder="e.g. second location"></div><div><label for="x4">Amount</label><div class="money"><span>$</span><input id="x4" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <div class="extra"><div><label for="x5d">Something else</label><input id="x5d" type="text" placeholder="e.g. travel fee"></div><div><label for="x5">Amount</label><div class="money"><span>$</span><input id="x5" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <h2 style="margin-top:18px">Discount <span class="small">(optional, taken off the price)</span></h2>
+    <div class="extra"><div><label for="dr">Reason <span class="opt">(client sees this)</span></label><input id="dr" type="text" placeholder="e.g. Returning client"></div><div><label for="dc">Amount off</label><div class="money"><span>$</span><input id="dc" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <label for="note">Note to client <span class="opt">(optional)</span></label>
+    <textarea id="note" placeholder="e.g. Meet at the beach access by your rental"></textarea>
+  </div>
+
+  <div class="card">
+    <h2>What the client will see</h2>
+    <div class="total" id="tot"></div>
+    <a class="btn" id="send" href="#">💬 Text to Client</a>
+    <a class="btn ghost" id="copy" href="#">📋 Copy Link</a>
+    <a class="btn ghost" id="prev" href="#" target="_blank" rel="noopener">👀 Preview Client's Page</a>
+    <p class="err" id="err" hidden>Please fill in the client's name and the date first.</p>
+    <p class="small" id="copied" hidden style="text-align:center">Link copied!</p>
+  </div>
+</main>
+<footer>Miranda Rae Photography · private page</footer>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  // Packages (same prices as the website). Picking one fills in price, length, people and photos; all can be changed.
+  var PK = [
+    ['$130 Beach Mini', 130, '30 minutes', 'Up to 6', '15'],
+    ['$199 Beach Special', 199, '30 minutes', 'Up to 11', '25'],
+    ['$499 Beach Wedding', 499, 'Up to 4 hours', '', 'Full gallery'],
+    ['Classic Session', 225, '45–60 minutes', '', '30–35'],
+    ['Family Session', 250, '45–60 minutes', 'Up to 15', '35+'],
+    ['Deluxe Session', 325, '75+ minutes', '', '50+'],
+    ['Engagement Session', 199, 'Up to 1 hour', '2', '35+'],
+    ['Surprise Proposal', 199, '', '', '30'],
+    ['Custom', '', '', '', '']
+  ];
+  PK.forEach(function(p, i){ var o = document.createElement('option'); o.value = i; o.textContent = p[0] + (p[1] && p[0].charAt(0) !== '$' ? ' – $' + p[1] : ''); $('pk').appendChild(o); });
+  var touched = false;
+  function fillPkg(){ var p = PK[$('pk').value]; $('base').value = p[1]; $('len').value = p[2]; $('ppl').value = p[3]; $('pho').value = p[4]; update(); }
+  $('pk').addEventListener('change', function(){ touched = true; fillPkg(); });
+  // Home beaches default to the $130 Mini, farther beaches to the $199 Beach Special (until she picks a package herself)
+  $('b').addEventListener('change', function(){ if (touched) return; $('pk').value = /Destin|30A|St\. George/.test($('b').value) ? 1 : 0; fillPkg(); });
+  $('t').addEventListener('change', function(){ if ($('t').value === 'Wedding' && !touched) { $('pk').value = 2; fillPkg(); } });
+
+  var num = function(id){ var v = Number($(id).value); return isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : 0; };
+  var money = function(n){ return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }); };
+  var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); };
+
+  function data(){
+    var p = PK[$('pk').value], x = [];
+    [['x1d','x1','Extra people'],['x2d','x2','Extra photos'],['x3d','x3','Extra time'],['x4d','x4','Extra'],['x5d','x5','Extra']].forEach(function(r){
+      var a = num(r[1]); if (a) x.push([$(r[0]).value.trim() || r[2], a]);
+    });
+    var o = { v: 1, n: $('n').value.trim(), d: $('d').value, t: $('t').value, b: $('b').value,
+      pk: p[0] === 'Custom' ? 'Custom session' : p[0].replace(/^\$\d+\s*/, ''),
+      base: num('base'), len: $('len').value.trim(), ppl: $('ppl').value.trim(), ph: $('pho').value.trim(), x: x,
+      dc: num('dc'), dr: $('dr').value.trim(), note: $('note').value.trim() };
+    var tot = o.base; x.forEach(function(e){ tot += e[1]; });
+    o.total = Math.max(0, Math.round((tot - o.dc) * 100) / 100);
+    return o;
+  }
+  function b64(s){ return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function link(o){ return location.origin + '/confirm?s=' + b64(JSON.stringify(o)); }
+
+  function update(){
+    var o = data(), h = '';
+    var det = [o.len, o.ppl ? o.ppl + ' people' : '', o.ph ? o.ph + ' edited photos' : ''].filter(Boolean).join(' · ');
+    h += '<div class="line"><span>' + esc(o.pk) + (det ? '<br><span class="small">' + esc(det) + '</span>' : '') + '</span><span>' + money(o.base) + '</span></div>';
+    o.x.forEach(function(e){ h += '<div class="line"><span>+ ' + esc(e[0]) + '</span><span>' + money(e[1]) + '</span></div>'; });
+    if (o.dc) h += '<div class="line minus"><span>− Discount' + (o.dr ? ': ' + esc(o.dr) : '') + '</span><span>−' + money(o.dc) + '</span></div>';
+    h += '<div class="line big"><span>Total</span><span>' + money(o.total) + '</span></div>';
+    if (o.total > 50) h += '<div class="small">$50 deposit to confirm · ' + money(o.total - 50) + ' on session day</div>';
+    $('tot').innerHTML = h;
+    $('prev').href = link(o);
+  }
+  document.addEventListener('input', update); document.addEventListener('change', update);
+
+  function ready(){ var ok = $('n').value.trim() && $('d').value; $('err').hidden = !!ok; return ok; }
+  $('send').addEventListener('click', function(e){
+    e.preventDefault(); if (!ready()) return;
+    var o = data(), first = o.n.split(/\s+/)[0];
+    var msg = 'Hi ' + first + '! Here are your session details. Tap to confirm and hold your date: ' + link(o);
+    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && 'ontouchend' in document);
+    var to = $('ph').value.replace(/[^\d+]/g, '');
+    location.href = 'sms:' + to + (ios ? '&' : '?') + 'body=' + encodeURIComponent(msg);
+  });
+  $('copy').addEventListener('click', function(e){
+    e.preventDefault(); if (!ready()) return;
+    var l = link(data());
+    var done = function(){ $('copied').hidden = false; setTimeout(function(){ $('copied').hidden = true; }, 2500); };
+    if (navigator.clipboard) navigator.clipboard.writeText(l).then(done, function(){ prompt('Copy this link:', l); });
+    else prompt('Copy this link:', l);
+  });
+  $('prev').addEventListener('click', function(e){ if (!ready()) e.preventDefault(); });
+  fillPkg();
+})();
+</script>
+</body>
+</html>
