@@ -3,6 +3,8 @@ User-agent: *
 Allow: /
 Disallow: /thank-you
 Disallow: /add-on
+Disallow: /new
+Disallow: /deposit
 
 User-agent: Googlebot
 Allow: /
