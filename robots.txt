@@ -5,6 +5,7 @@ Disallow: /thank-you
 Disallow: /add-on
 Disallow: /new
 Disallow: /deposit
+Disallow: /tag-photos
 
 User-agent: Googlebot
 Allow: /
