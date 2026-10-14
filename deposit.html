@@ -85,7 +85,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var btn = this; btn.disabled = true; $('err').hidden = true;
     var name = $('name').value.trim(), num = $('num').value.replace(/\D/g, ''), amt = Number($('amount').value) || 0, how = $('method').value;
     var day = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    var counted = got ? Promise.resolve(got) : fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'deposit', amount: amt, ref: num }) })
+    var counted = got ? Promise.resolve(got) : fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'deposit', amount: amt, ref: num, name: name }) })
       .then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
     counted.then(function(c){
       if (c) got = c;
@@ -93,9 +93,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (LIVE) o._cc = 'bookmirandarae@gmail.com';
       o['booking-number'] = num ? '#' + num : 'not filled in';
       o.name = name; o.amount = money(amt); o['paid-with'] = how; o.date = day;
+      var isTest = !!(c && c.notCounted === 'test');
+      if (isTest) o.test = 'TEST — not counted in the deposits total';
       o['deposits-total'] = c ? money(c.deposits) + ' from ' + c.depositCount + ' deposits received (private)' : 'not available';
       o.page = 'Deposit Received page';
-      o._subject = '✅ DEPOSIT RECEIVED: ' + [num ? '#' + num : '', name, money(amt)].filter(Boolean).join(' · ');
+      o._subject = (isTest ? '🧪 TEST DEPOSIT: ' : '✅ DEPOSIT RECEIVED: ') + [num ? '#' + num : '', name, money(amt)].filter(Boolean).join(' · ');
       return fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) })
         .then(function(r){
           if (!r.ok) throw new Error(r.status);
