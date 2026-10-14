@@ -36,5 +36,16 @@ a{color:#1d5b6b}
 <h2>Questions or removal requests</h2>
 <p>To ask about your information or have it deleted, email <a href="mailto:bookmirandarae@gmail.com">bookmirandarae@gmail.com</a> or text <a href="sms:+14482196539">448-219-6539</a>.</p>
 </main>
+<script>
+// Visitors from the hidden ad pages (e.g. /privacy?from=gulf-coast-199) only get a Back button,
+// so they stay on that landing page instead of wandering into the main site (Oct 14 2026)
+(function(){
+  var f = (new URLSearchParams(location.search).get('from') || '').replace(/[^a-z0-9-]/g, '');
+  if (!/-199$/.test(f)) return;
+  var bar = document.querySelector('.bar'), brand = bar && bar.querySelector('a'), nav = bar && bar.querySelector('.nav');
+  if (brand) { var b = document.createElement('b'); b.textContent = brand.textContent; brand.parentNode.replaceChild(b, brand); }
+  if (nav) nav.innerHTML = '<a href="/' + f + '">&larr; Back</a>';
+})();
+</script>
 </body>
 </html>
