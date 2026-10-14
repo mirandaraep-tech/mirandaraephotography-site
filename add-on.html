@@ -161,7 +161,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         o['what-was-added'] = $('what').value.trim() || 'not filled in';
         o['booking-number'] = num ? '#' + num : 'not filled in';
         o.date = day || 'not filled in';
-        o['running-total'] = c ? money(c.total) + ' from ' + c.count + ' confirmed sessions + ' + c.addons + ' add-ons (private)' : 'not available';
+        // Add-ons no longer change the running total (Oct 14 2026); this shows the confirmed-sessions total
+        o['running-total'] = c ? money(c.total) + ' from ' + c.count + ' confirmed sessions (add-ons are not added to the total; private)' : 'not available';
         o.page = 'Add-On page';
         o._subject = '➕ ADD-ON: ' + [name, num ? '#' + num : '', day, '+' + money(amt)].filter(Boolean).join(' · ');
         return fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) })
