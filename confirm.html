@@ -278,7 +278,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       var o = {};
       o._captcha = 'false'; o._template = 'table';
       if (LIVE) o._cc = 'bookmirandarae@gmail.com';
-      o['booking-number'] = num || 'not available';
+      o['booking-number'] = num || (c && c.notCounted === 'test' ? 'none (test)' : 'not available');
       F.forEach(function(k){ o[k] = $(k).value; });
       o['session-price'] = priceText || 'price set by Miranda';
       if (window.mrpPkg) { var K = window.mrpPkg;
@@ -287,12 +287,22 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         o['discount'] = K.dc ? '-' + money(K.dc) + (K.dr ? ' (' + K.dr + ')' : '') : 'none';
         o['note-to-client'] = K.note || '-'; o['booked-by'] = 'Miranda (New Booking page)'; }
       if (c && c.repeat) o['repeat'] = 'Same client confirmed this session again — same booking number, NOT added to the total again';
-      o['running-total'] = c ? money(c.total) + ' from ' + c.count + ' confirmed sessions' + (c.addons ? ' + ' + c.addons + ' add-ons' : '') + ' (private, not shown to clients)' : 'not available';
+      // Contracted out (Oct 14 2026): Miranda handed this session to another photographer on the New Booking page
+      if (c && c.photographer) {
+        var pay = Number(c.payout) || 0;
+        o['contracted-out'] = 'Shot by ' + c.photographer + ' · paid ' + money(pay) + (amount ? ' · Miranda keeps ' + money(Math.max(0, amount - pay)) : '');
+      }
+      var isTest = !!(c && c.notCounted === 'test');
+      if (isTest) o['test'] = 'TEST — not counted in the total and no booking number used';
+      // Private running total: only Confirm-page bookings count (Oct 14 2026)
+      o['running-total'] = c ? money(c.total) + ' from ' + c.count + ' confirmed sessions' +
+        (c.contracted ? ' · ' + c.contracted + ' contracted out · ' + money(c.payouts) + ' paid to photographers · Miranda keeps ' + money(c.keeps) : '') +
+        ' (private, not shown to clients)' : 'not available';
       o.page = 'Confirm page';
       try { o['came-from'] = window.mrpSource ? window.mrpSource() : 'not available'; } catch (e) {}
       try { if (window.mrpVisits) o.visits = window.mrpVisits(); } catch (e) {}
       var cparts = [$('name').value.trim() || 'No name', $('date').value ? (window.mrpDate ? window.mrpDate($('date').value, true) : $('date').value) : 'no date yet', cb, priceText || 'price set by Miranda'].filter(Boolean);
-      o._subject = '✅ CONFIRMED' + (num ? ' ' + num : '') + ': ' + cparts.join(' · ');
+      o._subject = (isTest ? '🧪 TEST' : '✅ CONFIRMED' + (num ? ' ' + num : '')) + ': ' + cparts.join(' · ') + (c && c.photographer ? ' · Shot by ' + c.photographer : '');
       return fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) })
         .then(function(r){ if (!r.ok) throw new Error(r.status); done(c && c.num); });
     }).catch(function(){ btn.disabled = false; $('err').hidden = false; });
