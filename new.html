@@ -42,6 +42,10 @@ textarea{min-height:70px}
 .btn.ghost{background:#fff;color:var(--teal);border:2px solid var(--teal);line-height:50px}
 .err{color:#a33;font-size:14px;text-align:center;margin:8px 0 0}
 [hidden]{display:none!important}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
+.chip{border:2px solid var(--teal);background:#fff;color:var(--teal);border-radius:999px;padding:8px 16px;font-size:16px;font-weight:bold;cursor:pointer}
+.chip.on{background:var(--teal);color:#fff}
+.keep{margin-top:10px;font-size:15px}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 @media(max-width:380px){.row2{grid-template-columns:1fr}}
 </style>
@@ -90,6 +94,20 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <div class="extra"><div><label for="dr">Reason <span class="opt">(client sees this)</span></label><input id="dr" type="text" placeholder="e.g. Returning client"></div><div><label for="dc">Amount off</label><div class="money"><span>$</span><input id="dc" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
     <label for="note">Note to client <span class="opt">(optional)</span></label>
     <textarea id="note" placeholder="e.g. Meet at the beach access by your rental"></textarea>
+  </div>
+
+  <div class="card">
+    <a class="btn ghost" id="cotog" href="#" style="margin-top:0">🤝 Contracting out this session</a>
+    <div id="cobox" hidden>
+      <h2>Contracting out <span class="small">(private, the client never sees this)</span></h2>
+      <label>Who's shooting it?</label>
+      <div class="chips" id="cobtns"></div>
+      <input id="coname" type="text" autocomplete="off" placeholder="Or type a name">
+      <label for="copay">Paid to them</label>
+      <div class="money"><span>$</span><input id="copay" type="number" inputmode="decimal" min="0" step="any"></div>
+      <div class="keep" id="cokeep"></div>
+      <a class="small" id="cooff" href="#" style="display:inline-block;margin-top:10px;color:var(--muted)">✕ Not contracting out</a>
+    </div>
   </div>
 
   <div class="card">
@@ -159,10 +177,43 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   document.addEventListener('input', update); document.addEventListener('change', update);
 
+  // Contracting out (Oct 14 2026): who's shooting it and what they're paid. Saved privately on the site
+  // when the link is sent, never put in the client's link. Names typed once become one-tap buttons.
+  var names = ['Kallie'];
+  function chips(){
+    var cur = $('coname').value.trim().toLowerCase();
+    $('cobtns').innerHTML = names.map(function(n){ return '<button type="button" class="chip' + (n.toLowerCase() === cur ? ' on' : '') + '">' + esc(n) + '</button>'; }).join('');
+    Array.prototype.forEach.call($('cobtns').children, function(b){ b.addEventListener('click', function(){ $('coname').value = b.textContent; chips(); keep(); $('copay').focus(); }); });
+  }
+  function keep(){
+    if ($('cobox').hidden) return;
+    var pay = num('copay'), t = data().total, who = $('coname').value.trim() || 'them';
+    $('cokeep').innerHTML = pay ? 'Pays ' + esc(who) + ' <b>' + money(pay) + '</b> · Miranda keeps <b>' + money(Math.max(0, t - pay)) + '</b>' : '';
+  }
+  try { fetch('/api/booking-counter').then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ if (j && j.photographers && j.photographers.length) { names = j.photographers; chips(); } }).catch(function(){}); } catch (e) {}
+  chips();
+  $('coname').addEventListener('input', function(){ chips(); keep(); });
+  $('copay').addEventListener('input', keep);
+  document.addEventListener('input', keep);
+  $('cotog').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = false; $('cotog').hidden = true; keep(); });
+  $('cooff').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = true; $('cotog').hidden = false; $('coname').value = ''; $('copay').value = ''; chips(); });
+
+  // Tell the site about this booking before the link goes out (client's phone for the test check, and who's shooting)
+  function remember(o){
+    var co = !$('cobox').hidden && $('coname').value.trim();
+    var body = JSON.stringify({ kind: 'pending', name: o.n, date: o.d, beach: o.b, phone: $('ph').value,
+      photographer: co ? $('coname').value.trim() : '', payout: co ? num('copay') : 0 });
+    try {
+      if (navigator.sendBeacon && navigator.sendBeacon('/api/booking-counter', new Blob([body], { type: 'application/json' }))) return;
+    } catch (e) {}
+    try { fetch('/api/booking-counter', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body }); } catch (e) {}
+  }
+
   function ready(){ var ok = $('n').value.trim() && $('d').value; $('err').hidden = !!ok; return ok; }
   $('send').addEventListener('click', function(e){
     e.preventDefault(); if (!ready()) return;
     var o = data(), first = o.n.split(/\s+/)[0];
+    remember(o);
     var msg = 'Hi ' + first + '! Here are your session details. Tap to confirm and hold your date: ' + link(o);
     var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && 'ontouchend' in document);
     var to = $('ph').value.replace(/[^\d+]/g, '');
@@ -170,12 +221,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   });
   $('copy').addEventListener('click', function(e){
     e.preventDefault(); if (!ready()) return;
-    var l = link(data());
+    var od = data(); remember(od);
+    var l = link(od);
     var done = function(){ $('copied').hidden = false; setTimeout(function(){ $('copied').hidden = true; }, 2500); };
     if (navigator.clipboard) navigator.clipboard.writeText(l).then(done, function(){ prompt('Copy this link:', l); });
     else prompt('Copy this link:', l);
   });
-  $('prev').addEventListener('click', function(e){ if (!ready()) e.preventDefault(); });
+  $('prev').addEventListener('click', function(e){ if (!ready()) { e.preventDefault(); return; } remember(data()); });
   fillPkg();
 })();
 </script>
