@@ -85,7 +85,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var btn = this; btn.disabled = true; $('err').hidden = true;
     var name = $('name').value.trim(), num = $('num').value.replace(/\D/g, ''), amt = Number($('amount').value) || 0, how = $('method').value;
     var day = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    var counted = got ? Promise.resolve(got) : fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'deposit', amount: amt, ref: num, name: name }) })
+    var counted = got ? Promise.resolve(got) : fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'deposit', amount: amt, ref: num, name: name, method: how }) })
       .then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
     counted.then(function(c){
       if (c) got = c;
