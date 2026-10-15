@@ -27,6 +27,18 @@ const cents = (n) => Math.round(n * 100) / 100;
 const cleanMoney = (v) => { const n = Number(String(v || "0").replace(/[^0-9.]/g, "")); return isFinite(n) && n >= 0 && n <= 10000 ? n : 0; };
 const json = (o) => Response.json(o, { headers: { "Cache-Control": "no-store" } });
 
+// Master page (Oct 15 2026): every booking and entry is also kept as a list, shown on the private
+// /log page behind a passcode. Times are labels (Sunrise, Sunset...), so the slot check treats the
+// same date + same time as taken, and a Wedding as taking the whole day.
+// Only a SHA-256 fingerprint of the passcode is kept here (this code is public on GitHub).
+const PASS_SHA256 = "7520b1eea1d95304e8ae042ee214edcc352583b8a4101ce34c54bb20d5915b30";
+const sha = async (t) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))).map((b) => b.toString(16).padStart(2, "0")).join("");
+const okPass = async (req, data) => (await sha((req.headers.get("x-pass") || (data && data.pass) || "").trim().toLowerCase())) === PASS_SHA256;
+const day = (v) => String(v || "").slice(0, 10);
+const clash = (a, b) => day(a.date) && day(a.date) === day(b.date) &&
+  (/wedding/i.test(a.time || "") || /wedding/i.test(b.time || "") || String(a.time || "").toLowerCase() === String(b.time || "").toLowerCase());
+const clip = (v, n = 120) => String(v == null ? "" : v).slice(0, n);
+
 function summary(state, live) {
   const payouts = cents(state.payouts || 0);
   return {
@@ -44,6 +56,17 @@ export default async (req) => {
   const state = (await store.get("state", { type: "json" })) || { last: START, total: 0, count: 0, addons: 0 };
 
   // Photographer names for the New Booking page's one-tap buttons (names only, no numbers)
+  const getList = async (k) => (await store.get(k, { type: "json" })) || [];
+  const logIt = async (e) => {
+    const log = await getList("log");
+    log.push({ at: new Date().toISOString(), ...e });
+    await store.setJSON("log", log.slice(-1000));
+  };
+  const url = new URL(req.url);
+  if (req.method === "GET" && url.searchParams.get("log")) {
+    if (!(await okPass(req))) return json({ error: "passcode" });
+    return json({ bookings: await getList("bookings"), log: (await getList("log")).slice(-300), test: !live });
+  }
   if (req.method === "GET") {
     const list = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS;
     return json({ photographers: list });
@@ -65,6 +88,30 @@ export default async (req) => {
 
   let data = {};
   try { data = await req.json(); } catch (e) {}
+  // Master page buttons: Deposit Received / Paid in Full / Cancel (+ undo)
+  if (data.kind === "status") {
+    if (!(await okPass(req, data))) return json({ error: "passcode" });
+    const list = await getList("bookings");
+    const b = list.find((x) => x.num === parseInt(data.num, 10));
+    if (!b) return json({ error: "not found" });
+    const now = new Date().toISOString(), who = clip(data.by, 40);
+    const a = data.action;
+    if (a === "deposit") b.deposit = { amount: cleanMoney(data.amount) || 50, method: clip(data.method, 30) || "Venmo", at: now, by: who };
+    else if (a === "undo-deposit") delete b.deposit;
+    else if (a === "paid") b.paid = { amount: cents(Math.max(0, (b.total || 0) + (b.addons || 0) - ((b.deposit && b.deposit.amount) || 0))), method: clip(data.method, 30), at: now, by: who };
+    else if (a === "undo-paid") delete b.paid;
+    else if (a === "cancel") b.cancelled = { at: now, by: who };
+    else if (a === "undo-cancel") delete b.cancelled;
+    else return json({ error: "action" });
+    await store.setJSON("bookings", list);
+    await logIt({ kind: a, num: b.num, name: b.name, amount: a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : 0, by: who, test: !!b.test });
+    return json({ ok: true, booking: b });
+  }
+  // A "Check My Date" request from any page on the site (logged only, never counted)
+  if (data.kind === "request") {
+    await logIt({ kind: "request", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), detail: clip(data.detail), test: isTestName(data.name) || isTestPhone(data.phone) });
+    return json({ ok: true });
+  }
   const kinds = ["confirm", "addon", "deposit", "pending"];
   const kind = kinds.includes(data.kind) ? data.kind : "confirm";
   const amount = cleanMoney(data.amount);
@@ -79,6 +126,7 @@ export default async (req) => {
       state.pending = (state.pending || []).filter((p) => p.key !== key);
       const p = { key, at: new Date().toISOString() };
       if (isTestPhone(data.phone)) p.testPhone = true;
+      p.by = clip(data.by, 40); p.phone = digits(data.phone);
       const who = String(data.photographer || "").trim().slice(0, 60);
       if (who) {
         p.photographer = who;
@@ -90,6 +138,7 @@ export default async (req) => {
       state.pending.push(p);
       if (state.pending.length > 200) state.pending = state.pending.slice(-200);
       await save();
+      await logIt({ kind: "sent", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), by: p.by, detail: p.photographer ? "Shot by " + p.photographer : "", test: !!(p.testPhone || isTestName(data.name)) });
     }
     return json({ ok: true });
   }
@@ -101,6 +150,11 @@ export default async (req) => {
       await save();
       return json({ num, notCounted: "test", deposits: state.deposits || 0, depositCount: state.depositCount || 0, test: !live });
     }
+    if (num) {
+      const list = await getList("bookings"), b = list.find((x) => x.num === num);
+      if (b && !b.deposit) { b.deposit = { amount, method: clip(data.method, 30), at: new Date().toISOString(), by: "Deposit page" }; await store.setJSON("bookings", list); }
+    }
+    await logIt({ kind: "deposit", num, name: clip(data.name, 60), amount, detail: clip(data.method, 30) });
     state.deposits = cents((state.deposits || 0) + amount);
     state.depositCount = (state.depositCount || 0) + 1;
     await save();
@@ -109,6 +163,11 @@ export default async (req) => {
 
   // Add-On page: emailed to both inboxes, but no longer added to the total (Oct 14 2026)
   if (kind === "addon") {
+    if (ref > START) {
+      const list = await getList("bookings"), b = list.find((x) => x.num === ref);
+      if (b) { b.addons = cents((b.addons || 0) + amount); await store.setJSON("bookings", list); }
+    }
+    await logIt({ kind: "addon", num: ref > START ? ref : null, name: clip(data.name, 60), amount, detail: clip(data.what) });
     await save();
     return json({ num: ref > START ? ref : null, ...summary(state, live) });
   }
@@ -116,8 +175,29 @@ export default async (req) => {
   // Confirm page
   const key = keyOf(data);
   const pend = (state.pending || []).find((p) => p.key === key) || null;
-  if (isTestName(data.name) || isTestPhone(data.phone) || (pend && pend.testPhone)) {
+  const isTest = isTestName(data.name) || isTestPhone(data.phone) || !!(pend && pend.testPhone);
+  const bookings = await getList("bookings");
+  const me = { date: data.date, time: clip(data.time, 30) };
+  // Slot check: someone else already holds this date + time (tests only clash with tests)
+  const taken = bookings.find((b) => !b.cancelled && b.key !== key && !!b.test === isTest && clash(b, me));
+  if (taken && !data.force) {
+    await logIt({ kind: "slot-taken", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), detail: (me.time || "") + " already held by #" + taken.num + " " + taken.name, test: isTest });
+    return json({ conflict: true, with: taken.num });
+  }
+  const keepBooking = async (num) => {
+    if (bookings.some((b) => b.key === key && !b.cancelled)) return;
+    bookings.push({ key, num, name: clip(data.name, 60), date: day(data.date), time: me.time, beach: clip(data.beach, 40),
+      pkg: clip(data.pkg, 60), total: amount, by: clip((pend && pend.by) || data.by, 40), phone: pend && pend.phone || "",
+      photographer: pend && pend.photographer || "", payout: pend && pend.payout || 0, test: isTest, created: new Date().toISOString() });
+    await store.setJSON("bookings", bookings.slice(-500));
+    await logIt({ kind: "confirm", num, name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), amount, by: (pend && pend.by) || "", test: isTest });
+  };
+  if (isTest) {
+    // Tests get their own T-numbers on the master page and never touch the totals
+    state.lastTest = (state.lastTest || 0) + 1;
+    const tnum = 900000 + state.lastTest;
     await save();
+    await keepBooking(tnum);
     return json({ num: null, notCounted: "test", ...summary(state, live) });
   }
   // Same client confirming the same date + beach again (e.g. tapped the link twice): give back the
@@ -141,6 +221,7 @@ export default async (req) => {
   state.count += 1;
   state.total = cents(state.total + amount);
   await save();
+  await keepBooking(rec.num);
   return json({ num: rec.num, photographer: rec.photographer || null, payout: rec.payout || 0, ...summary(state, live) });
 };
 
