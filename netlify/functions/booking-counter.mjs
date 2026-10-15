@@ -18,6 +18,25 @@ const START = 100; // first booking becomes #101
 // Phone numbers that mean "this is a test" (last 10 digits)
 const TEST_PHONES = ["2563996736", "2566134522", "4482196539"]; // Randy, Bradyn, Miranda
 const DEFAULT_PHOTOGRAPHERS = ["Kallie"];
+// Split for contracted-out sessions (Oct 15 2026): Miranda's share is a percentage of the session
+// (default 25%, or $50 if that's more) or a dollar amount she types. The photographer gets the rest,
+// and add-ons are split the same way. Miranda can change the usual percentage from the New Booking page.
+const DEFAULT_SPLIT = { pct: 25, min: 50 };
+const cleanSplit = (s) => {
+  if (!s || typeof s !== "object") return null;
+  const val = Number(s.val);
+  if (!isFinite(val) || val < 0) return null;
+  if (s.mode === "amt") return { mode: "amt", val: Math.min(val, 10000) };
+  const min = Number(s.min);
+  return { mode: "pct", val: Math.min(val, 100), ...(isFinite(min) && min > 0 ? { min: Math.min(min, 10000) } : {}) };
+};
+// Miranda's share of a contracted session total (never more than the total)
+const shareOf = (split, total) => {
+  if (!split) return null;
+  const t = Math.max(0, total || 0);
+  const v = split.mode === "amt" ? split.val : Math.max(t * split.val / 100, split.min || 0);
+  return cents(Math.min(t, v));
+};
 
 const digits = (v) => String(v || "").replace(/\D/g, "").slice(-10);
 const isTestName = (v) => /\btest\b/i.test(String(v || ""));
@@ -71,7 +90,7 @@ export default async (req) => {
   }
   if (req.method === "GET") {
     const list = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS;
-    return json({ photographers: list });
+    return json({ photographers: list, split: state.splitDefault || DEFAULT_SPLIT });
   }
   if (req.method !== "POST") return new Response("Not found", { status: 404 });
 
@@ -119,6 +138,15 @@ export default async (req) => {
     await store.setJSON("log", keepL);
     return json({ ok: true, removed: (list.length - keepB.length) + (log.length - keepL.length) });
   }
+  // New Booking page "Make this the usual" (Oct 15 2026): saves Miranda's usual percentage
+  if (data.kind === "split-default") {
+    const pct = Number(data.pct);
+    if (!isFinite(pct) || pct < 0 || pct > 100) return json({ error: "pct" });
+    state.splitDefault = { pct: Math.round(pct * 100) / 100, min: (state.splitDefault || DEFAULT_SPLIT).min };
+    state.updated = new Date().toISOString(); await store.setJSON("state", state);
+    await logIt({ kind: "split-default", detail: "Usual split now " + state.splitDefault.pct + "% to Miranda", by: clip(data.by, 40) });
+    return json({ ok: true, split: state.splitDefault });
+  }
   // A "Check My Date" request from any page on the site (logged only, never counted)
   if (data.kind === "request") {
     await logIt({ kind: "request", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), detail: clip(data.detail), test: isTestName(data.name) || isTestPhone(data.phone) });
@@ -142,7 +170,8 @@ export default async (req) => {
       const who = String(data.photographer || "").trim().slice(0, 60);
       if (who) {
         p.photographer = who;
-        p.payout = cleanMoney(data.payout);
+        p.split = cleanSplit(data.split);
+        if (!p.split) p.payout = cleanMoney(data.payout); // older New Booking pages sent a dollar payout
         const names = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS.slice();
         if (!names.some((n) => n.toLowerCase() === who.toLowerCase())) names.push(who);
         state.photographers = names.slice(-12);
@@ -177,7 +206,11 @@ export default async (req) => {
   if (kind === "addon") {
     if (ref > START) {
       const list = await getList("bookings"), b = list.find((x) => x.num === ref);
-      if (b) { b.addons = cents((b.addons || 0) + amount); await store.setJSON("bookings", list); }
+      if (b) {
+        b.addons = cents((b.addons || 0) + amount);
+        if (b.split) b.payout = cents((b.total || 0) + b.addons - shareOf(b.split, (b.total || 0) + b.addons));
+        await store.setJSON("bookings", list);
+      }
     }
     await logIt({ kind: "addon", num: ref > START ? ref : null, name: clip(data.name, 60), amount, detail: clip(data.what) });
     await save();
@@ -187,6 +220,8 @@ export default async (req) => {
   // Confirm page
   const key = keyOf(data);
   const pend = (state.pending || []).find((p) => p.key === key) || null;
+  // Photographer's pay for a contracted session: the session total minus Miranda's share
+  if (pend && pend.photographer && pend.split) pend.payout = cents(amount - shareOf(pend.split, amount));
   const isTest = isTestName(data.name) || isTestPhone(data.phone) || !!(pend && pend.testPhone);
   const bookings = await getList("bookings");
   // Who's shooting decides whose time it is (Oct 15 2026): a session contracted out (e.g. to Kallie)
@@ -205,7 +240,7 @@ export default async (req) => {
     if (bookings.some((b) => b.key === key && !b.cancelled)) return;
     bookings.push({ key, num, name: clip(data.name, 60), date: day(data.date), time: me.time, beach: clip(data.beach, 40),
       pkg: clip(data.pkg, 60), total: amount, by: clip((pend && pend.by) || data.by, 40), phone: pend && pend.phone || "",
-      photographer: pend && pend.photographer || "", payout: pend && pend.payout || 0, test: isTest, created: new Date().toISOString() });
+      photographer: pend && pend.photographer || "", payout: pend && pend.payout || 0, ...(pend && pend.photographer && pend.split ? { split: pend.split } : {}), test: isTest, created: new Date().toISOString() });
     await store.setJSON("bookings", bookings.slice(-500));
     await logIt({ kind: "confirm", num, name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), amount, by: (pend && pend.by) || "", detail: headsUp, test: isTest });
   };
