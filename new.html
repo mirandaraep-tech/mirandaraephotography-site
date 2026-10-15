@@ -46,6 +46,8 @@ textarea{min-height:70px}
 .chip{border:2px solid var(--teal);background:#fff;color:var(--teal);border-radius:999px;padding:8px 16px;font-size:16px;font-weight:bold;cursor:pointer}
 .chip.on{background:var(--teal);color:#fff}
 .keep{margin-top:10px;font-size:15px}
+#whocard.mini{padding:12px 20px}#whocard.mini h2,#whocard.mini .chips,#whocard.mini #whoother{display:none}
+.locked{opacity:.35;pointer-events:none}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 @media(max-width:380px){.row2{grid-template-columns:1fr}}
 </style>
@@ -57,6 +59,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 </div></div>
 <main>
   <div class="card"><h1>New Booking</h1><p class="intro">Fill in what you agreed on, then text it to the client to confirm.</p></div>
+
+  <div class="card" id="whocard">
+    <h2>Who's entering this?</h2>
+    <div class="chips" id="whobtns"><button type="button" class="chip">Miranda</button><button type="button" class="chip">Bradyn</button><button type="button" class="chip">Other</button></div>
+    <input id="whoother" type="text" autocomplete="off" placeholder="Type your name" hidden>
+    <div id="whoset" hidden style="font-size:15px">Entering as <b id="whoname"></b> · <a href="#" id="whochg" style="color:var(--teal)">Change</a></div>
+  </div>
+  <div id="formwrap">
 
   <div class="card">
     <h2>Client</h2>
@@ -119,6 +129,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <p class="err" id="err" hidden>Please fill in the client's name and the date first.</p>
     <p class="small" id="copied" hidden style="text-align:center">Link copied!</p>
   </div>
+  </div>
 </main>
 <footer>Miranda Rae Photography · private page</footer>
 <script>
@@ -155,7 +166,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var o = { v: 1, n: $('n').value.trim(), d: $('d').value, t: $('t').value, b: $('b').value,
       pk: p[0] === 'Custom' ? 'Custom session' : p[0].replace(/^\$\d+\s*/, ''),
       base: num('base'), len: $('len').value.trim(), ppl: $('ppl').value.trim(), ph: $('pho').value.trim(), x: x,
-      dc: num('dc'), dr: $('dr').value.trim(), note: $('note').value.trim() };
+      dc: num('dc'), dr: $('dr').value.trim(), note: $('note').value.trim(), by: who() };
     var tot = o.base; x.forEach(function(e){ tot += e[1]; });
     o.total = Math.max(0, Math.round((tot - o.dc) * 100) / 100);
     return o;
@@ -200,7 +211,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // Tell the site about this booking before the link goes out (client's phone for the test check, and who's shooting)
   function remember(o){
     var co = !$('cobox').hidden && $('coname').value.trim();
-    var body = JSON.stringify({ kind: 'pending', name: o.n, date: o.d, beach: o.b, phone: $('ph').value,
+    var body = JSON.stringify({ kind: 'pending', by: who(), name: o.n, date: o.d, beach: o.b, phone: $('ph').value,
       photographer: co ? $('coname').value.trim() : '', payout: co ? num('copay') : 0 });
     try {
       if (navigator.sendBeacon && navigator.sendBeacon('/api/booking-counter', new Blob([body], { type: 'application/json' }))) return;
@@ -208,7 +219,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     try { fetch('/api/booking-counter', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body }); } catch (e) {}
   }
 
-  function ready(){ var ok = $('n').value.trim() && $('d').value; $('err').hidden = !!ok; return ok; }
+  function ready(){ if (!who()) { $('whocard').scrollIntoView({ behavior: 'smooth' }); return false; } var ok = $('n').value.trim() && $('d').value; $('err').hidden = !!ok; return ok; }
   $('send').addEventListener('click', function(e){
     e.preventDefault(); if (!ready()) return;
     var o = data(), first = o.n.split(/\s+/)[0];
@@ -227,7 +238,27 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     else prompt('Copy this link:', l);
   });
   $('prev').addEventListener('click', function(e){ if (!ready()) { e.preventDefault(); return; } remember(data()); });
+  // Who's entering this (Oct 15 2026): Miranda · Bradyn · Other. Picked once per phone, then shrinks.
+  // The form stays grayed out until someone picks. The name rides in the Confirm link and the emails.
+  var WHO = ''; try { WHO = localStorage.getItem('mrp-who') || ''; } catch (e) {}
+  function who(){ return WHO; }
+  function showWho(){
+    var set = !!WHO;
+    $('formwrap').classList.toggle('locked', !set);
+    $('whocard').classList.toggle('mini', set);
+    $('whoset').hidden = !set; $('whoname').textContent = WHO;
+    update();
+  }
+  function setWho(n){ WHO = String(n || '').trim().slice(0, 40); try { if (WHO) localStorage.setItem('mrp-who', WHO); else localStorage.removeItem('mrp-who'); } catch (e) {} showWho(); }
+  Array.prototype.forEach.call($('whobtns').children, function(b){ b.addEventListener('click', function(){
+    if (b.textContent === 'Other') { $('whoother').hidden = false; $('whoother').focus(); return; }
+    $('whoother').hidden = true; setWho(b.textContent);
+  }); });
+  $('whoother').addEventListener('change', function(){ if ($('whoother').value.trim()) setWho($('whoother').value); });
+  $('whoother').addEventListener('keydown', function(e){ if (e.key === 'Enter' && $('whoother').value.trim()) setWho($('whoother').value); });
+  $('whochg').addEventListener('click', function(e){ e.preventDefault(); WHO = ''; $('whoother').value = ''; $('whoother').hidden = true; showWho(); });
   fillPkg();
+  showWho();
 })();
 </script>
 </body>
