@@ -237,7 +237,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       .then(function(r){ return r.json(); }).then(function(j){ if (j && j.ok) { SPLIT = j.split; keep(); } else alert("That didn't save. Please try again."); })
       .catch(function(){ alert("That didn't save. Please check your connection."); });
   });
-  document.addEventListener('input', keep);
+  document.addEventListener('input', keep); document.addEventListener('change', keep);
   $('cotog').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = false; $('cotog').hidden = true; keep(); });
   $('cooff').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = true; $('cotog').hidden = false; $('coname').value = ''; TOUCHED = false; setMode('pct'); chips(); });
 
