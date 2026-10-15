@@ -83,7 +83,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         <div class="tile"><b id="tDue">–</b><span>Still to collect</span></div>
         <div class="tile"><b id="tKeeps">–</b><span>Total to Miranda</span></div>
       </div>
-      <p class="muted" style="margin:10px 0 0">Counts bookings confirmed on the Confirm page since Oct 15. Tests and cancelled bookings are left out.</p>
+      <p class="muted" style="margin:10px 0 0">Counts every booking confirmed on the Confirm page. Tests and cancelled bookings are left out.</p>
     </div>
 
     <div class="card">
@@ -208,7 +208,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var h = '<div class="tbl"><table><tr><th>#</th><th>Date</th><th>Time</th><th>Client</th><th>Beach</th><th>Package</th><th>Total</th><th>Deposit</th><th>Paid in full</th><th>Still due</th><th>Photographer</th><th>Their pay</th><th>Miranda&#39;s share</th><th>Set up by</th><th>Status</th></tr>';
     rows.forEach(function(b){
       var st = b.cancelled ? 'Cancelled' : b.paid ? 'Paid' : b.deposit ? 'Deposit in' : 'No deposit';
-      h += '<tr class="' + (b.cancelled ? 'cx' : '') + (b.test ? ' tst' : '') + '"><td>' + (b.num < 900000 ? b.num : 'test') + '</td><td>' + esc(b.date ? nice(b.date) : '') + '</td><td>' + esc(b.time || '') +
+      h += '<tr class="' + (b.cancelled ? 'cx' : '') + (b.test ? ' tst' : '') + '"><td>' + (b.num < 101 ? 'early' : b.num < 900000 ? b.num : 'test') + '</td><td>' + esc(b.date ? nice(b.date) : '') + '</td><td>' + esc(b.time || '') +
         '</td><td>' + esc(b.name) + '</td><td>' + esc(b.beach || '') + '</td><td>' + esc(b.pkg || '') + '</td><td>' + money((b.total || 0) + (b.addons || 0)) +
         '</td><td>' + (b.deposit ? money(b.deposit.amount) + ' ' + esc(b.deposit.method || '') : '') + '</td><td>' + (b.paid ? money(b.paid.amount) : '') +
         '</td><td>' + (b.cancelled ? '' : money(due(b))) + '</td><td>' + esc(b.photographer || 'Miranda') +
@@ -243,7 +243,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       acts += '<button class="btn red" data-a="cancel">Cancel</button>';
     }
     return '<div class="bk' + (b.cancelled ? ' cx' : '') + '" data-num="' + b.num + '">' +
-      '<div class="top"><span class="nm">' + esc(b.name) + '</span><span class="meta">' + (b.num < 900000 ? '#' + b.num : 'test') + '</span></div>' +
+      '<div class="top"><span class="nm">' + esc(b.name) + '</span><span class="meta">' + (b.num < 101 ? 'early' : b.num < 900000 ? '#' + b.num : 'test') + '</span></div>' +
       '<div class="meta">' + esc([b.date ? nice(b.date) : '', b.time, b.beach].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="meta">' + esc(b.pkg || 'Session') + ' · ' + money(total) + (b.addons ? ' (incl. ' + money(b.addons) + ' add-ons)' : '') + (!b.cancelled && due(b) ? ' · <b>' + money(due(b)) + ' still due</b>' : '') + '</div>' +
       (b.by ? '<div class="meta">Set up by ' + esc(b.by) + '</div>' : '') +
