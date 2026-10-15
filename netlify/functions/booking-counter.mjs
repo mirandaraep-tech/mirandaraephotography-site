@@ -179,14 +179,17 @@ export default async (req) => {
   const pend = (state.pending || []).find((p) => p.key === key) || null;
   const isTest = isTestName(data.name) || isTestPhone(data.phone) || !!(pend && pend.testPhone);
   const bookings = await getList("bookings");
-  const me = { date: data.date, time: clip(data.time, 30) };
+  // Who's shooting decides whose time it is (Oct 15 2026): a session contracted out (e.g. to Kallie)
+  // doesn't block Miranda's times, and only clashes with that same photographer's other sessions.
+  const me = { date: data.date, time: clip(data.time, 30), photographer: (pend && pend.photographer) || "" };
+  const sameShooter = (b) => String(b.photographer || "").toLowerCase() === String(me.photographer || "").toLowerCase();
   // Slot check: someone else already holds this date + time (tests only clash with tests)
-  const taken = bookings.find((b) => !b.cancelled && b.key !== key && !!b.test === isTest && clash(b, me));
+  const taken = bookings.find((b) => !b.cancelled && b.key !== key && !!b.test === isTest && sameShooter(b) && clash(b, me));
   if (taken && !data.force) {
     await logIt({ kind: "slot-taken", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), detail: (me.time || "") + " already held by #" + taken.num + " " + taken.name, test: isTest });
     return json({ conflict: true, with: taken.num });
   }
-  const near = bookings.find((b) => !b.cancelled && b.key !== key && !!b.test === isTest && weddingDay(b, me));
+  const near = bookings.find((b) => !b.cancelled && b.key !== key && !!b.test === isTest && sameShooter(b) && weddingDay(b, me));
   const headsUp = near ? "Same day as #" + near.num + " " + near.name + "'s " + (/wedding/i.test(near.time || "") ? "wedding" : (near.time || "session")) + " — check the timing" : "";
   const keepBooking = async (num) => {
     if (bookings.some((b) => b.key === key && !b.cancelled)) return;
