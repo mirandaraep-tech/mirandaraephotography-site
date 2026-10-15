@@ -133,6 +133,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     </div>
   </div>
 
+  <!-- Time already taken (slot check, Oct 15 2026) -->
+  <div class="card" id="taken" hidden>
+    <h1>That time was just booked</h1>
+    <p class="intro">Sorry! Someone else confirmed that date and time first. Miranda has been told, and she'll help you find another time.</p>
+    <a class="btn" id="takentext" href="sms:+14482196539">💬 Text Miranda</a>
+  </div>
+
   <!-- Step 2: confirmed -->
   <div class="card" id="step2" hidden>
     <div class="check">✓</div>
@@ -151,7 +158,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         <b>Prefer another way to pay?</b>
         <a class="btn ghost" id="otherpay" style="margin-top:8px" href="sms:+14482196539?&amp;body=Hi%20Miranda!%20I%20just%20confirmed%20my%20session%20and%20I'd%20like%20to%20pay%20my%20deposit%20another%20way." onclick="try{gtag('event','deposit_click',{send_to:'G-DXQ60XNC8Y',method:'text_other'})}catch(e){}">💬 Text Miranda</a>
       </div>
-      <p style="margin:14px 0 0;font-size:13px;opacity:.8">If Miranda cancels for bad weather, your deposit moves to a new date, or is refunded if you'd prefer. If you cancel, the deposit is non-refundable.</p>
+      <p style="margin:14px 0 0;font-size:13px;opacity:.8">Your $50 deposit saves your date just for you and comes off your session price. Since Miranda turns other families away once your date is held, deposits aren't refundable. If the weather doesn't cooperate or something comes up, just reach out. Miranda will do her best to find a new date that works for you.</p>
     </div>
     <p class="fine" style="margin-top:16px">Questions? <a id="qtext" href="sms:+14482196539" style="color:inherit;text-decoration:underline" onclick="try{gtag('event','text_message_click',{link_page:'/confirm'})}catch(e){}">Text Miranda</a></p>
   </div>
@@ -258,7 +265,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (got) return Promise.resolve(got);
     var ctl = window.AbortController ? new AbortController() : null;
     var t = setTimeout(function(){ if (ctl) ctl.abort(); }, 6000);
-    return fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'confirm', amount: amount, name: $('name').value, date: $('date').value, beach: $('beach').value }), signal: ctl ? ctl.signal : undefined })
+    return fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'confirm', amount: amount, name: $('name').value, date: $('date').value, beach: $('beach').value, time: $('session').value, pkg: window.mrpPkg ? window.mrpPkg.pk : '', by: window.mrpPkg && window.mrpPkg.by || '' }), signal: ctl ? ctl.signal : undefined })
       .then(function(r){ clearTimeout(t); return r.ok ? r.json() : null; })
       .then(function(c){ if (c) got = c; return c; })
       .catch(function(){ clearTimeout(t); return null; });
@@ -274,6 +281,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var amount = pn.amount, priceText = pn.text;
 
     counter(amount).then(function(c){
+      if (c && c.conflict) return slotTaken(c);
       var num = c && c.num ? '#' + c.num : '';
       var o = {};
       o._captcha = 'false'; o._template = 'table';
@@ -285,7 +293,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         o['package'] = K.pk + (K.base ? ' (' + money(K.base) + ')' : ''); o['length'] = K.len || '-'; o['people'] = K.ppl || '-'; o['edited-photos'] = K.ph || '-';
         o['extras'] = (K.x || []).map(function(e){ return e[0] + ' +' + money(e[1]); }).join('; ') || 'none';
         o['discount'] = K.dc ? '-' + money(K.dc) + (K.dr ? ' (' + K.dr + ')' : '') : 'none';
-        o['note-to-client'] = K.note || '-'; o['booked-by'] = 'Miranda (New Booking page)'; }
+        o['note-to-client'] = K.note || '-'; o['booked-by'] = (K.by || 'Miranda') + ' (New Booking page)'; }
       if (c && c.repeat) o['repeat'] = 'Same client confirmed this session again — same booking number, NOT added to the total again';
       // Contracted out (Oct 14 2026): Miranda handed this session to another photographer on the New Booking page
       if (c && c.photographer) {
@@ -324,6 +332,20 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(d) });
     } catch (e) {}
   });
+
+  // Slot check (Oct 15 2026): the date + time is already held by another booking.
+  // The client is told to text Miranda, and Miranda gets an email so she can sort it out.
+  function slotTaken(c){
+    var nm = $('name').value.trim(), dt = $('date').value, when = (window.mrpDate ? window.mrpDate(dt, true) : dt) + ' · ' + $('session').value;
+    var o = { _captcha: 'false', _template: 'table', name: nm, date: when, beach: $('beach').value,
+      note: 'This client tried to confirm, but that date and time is already held by booking #' + c.with + '. They were asked to text Miranda. Nothing was counted.' };
+    if (LIVE) o._cc = 'bookmirandarae@gmail.com';
+    o._subject = '⚠️ TIME ALREADY BOOKED: ' + [nm, when, $('beach').value].join(' · ');
+    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    $('takentext').href = 'sms:+14482196539' + (ios ? '&' : '?') + 'body=' + encodeURIComponent('Hi Miranda! I tried to confirm ' + when + ' at ' + $('beach').value + ' but it says that time was just booked. What other times do you have?');
+    $('step1').hidden = true; $('taken').hidden = false; window.scrollTo(0, 0);
+    return fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) }).catch(function(){});
+  }
 
   function done(num){
     var dt = $('date').value, nice = dt, pn = priceNow();
