@@ -167,6 +167,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       pk: p[0] === 'Custom' ? 'Custom session' : p[0].replace(/^\$\d+\s*/, ''),
       base: num('base'), len: $('len').value.trim(), ppl: $('ppl').value.trim(), ph: $('pho').value.trim(), x: x,
       dc: num('dc'), dr: $('dr').value.trim(), note: $('note').value.trim(), by: who() };
+    // Who's shooting (Oct 15 2026): only the photographer's name goes in the client's link, never the pay
+    if (!$('cobox').hidden && $('coname').value.trim()) o.sh = $('coname').value.trim().slice(0, 40);
     var tot = o.base; x.forEach(function(e){ tot += e[1]; });
     o.total = Math.max(0, Math.round((tot - o.dc) * 100) / 100);
     return o;
