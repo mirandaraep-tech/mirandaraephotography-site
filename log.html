@@ -81,9 +81,23 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         <div class="tile"><b id="tBooked">–</b><span>Booked <span id="tBookedN"></span></span></div>
         <div class="tile"><b id="tCollected">–</b><span>Collected so far</span></div>
         <div class="tile"><b id="tDue">–</b><span>Still to collect</span></div>
-        <div class="tile"><b id="tKeeps">–</b><span>Miranda keeps <span id="tPaidOut"></span></span></div>
+        <div class="tile"><b id="tKeeps">–</b><span>Total to Miranda</span></div>
       </div>
       <p class="muted" style="margin:10px 0 0">Counts bookings confirmed on the Confirm page since Oct 15. Tests and cancelled bookings are left out.</p>
+    </div>
+
+    <div class="card">
+      <h2>Miranda's totals</h2>
+      <div class="filters">
+        <button class="chip on" data-p="month">This month</button>
+        <button class="chip" data-p="year">This year</button>
+        <button class="chip" data-p="all">All time</button>
+      </div>
+      <div class="filters" style="margin-top:8px">
+        <button class="chip on" data-k="booked">Booked</button>
+        <button class="chip" data-k="collected">Collected</button>
+      </div>
+      <div id="mt" style="margin-top:12px"></div>
     </div>
 
     <div class="card">
@@ -130,16 +144,46 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       DATA = j; $('lock').hidden = true; $('app').hidden = false; draw();
     }).catch(function(){ $('asof').textContent = "Couldn't load. Pull down to refresh."; });
   }
+  // Contracted sessions (Oct 15 2026): Miranda's share is a % (with a $ minimum) or a $ amount;
+  // the photographer gets the rest of the session total, add-ons included.
+  function tot(b){ return (b.total || 0) + (b.addons || 0); }
+  function shareOf(sp, t){ var v = sp.mode === 'amt' ? sp.val : Math.max(t * sp.val / 100, sp.min || 0); return Math.round(Math.min(Math.max(0, t), v) * 100) / 100; }
+  function payOf(b){ if (!b.photographer) return 0; return b.split ? Math.round((tot(b) - shareOf(b.split, tot(b))) * 100) / 100 : (b.payout || 0); }
+  function mineOf(b){ return Math.max(0, tot(b) - payOf(b)); }
+  function collOf(b){ return ((b.deposit && b.deposit.amount) || 0) + ((b.paid && b.paid.amount) || 0); }
+  var PERIOD = 'month', KIND = 'booked';
+  function inPeriod(b){
+    if (PERIOD === 'all' || !b.date) return PERIOD === 'all';
+    return PERIOD === 'year' ? b.date.slice(0, 4) === today.slice(0, 4) : b.date.slice(0, 7) === today.slice(0, 7);
+  }
+  function mirandaTotals(real){
+    var own = 0, share = 0, n = 0, per = {}, paidOut = 0;
+    real.filter(inPeriod).forEach(function(b){
+      var c = KIND === 'collected';
+      if (!b.photographer) { own += c ? collOf(b) : tot(b); return; }
+      n++;
+      var mine = mineOf(b), got = c ? Math.min(mine, collOf(b)) : mine, theirs = c ? Math.max(0, collOf(b) - mine) : payOf(b);
+      share += got; paidOut += theirs; per[b.photographer] = (per[b.photographer] || 0) + theirs;
+    });
+    var who = Object.keys(per).map(function(k){ return esc(k) + ' ' + money(per[k]); }).join(' · ');
+    var line = function(l, v, big){ return '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #f0ebe4' + (big ? ';font-weight:bold;font-size:18px' : '') + '"><span>' + l + '</span><span>' + money(v) + '</span></div>'; };
+    $('mt').innerHTML = line('📸 From her own sessions', own) +
+      line('📷 Her share from contracted sessions' + (n ? ' <span class="muted">(' + n + ')</span>' : ''), share) +
+      line('Total to Miranda', own + share, true) +
+      '<p class="muted" style="margin:10px 0 0">Paid to photographers: <b>' + money(paidOut) + '</b>' + (who ? ' (' + who + ')' : '') + '</p>' +
+      (KIND === 'collected' ? '<p class="muted" style="margin:6px 0 0">Collected = deposits and Paid in Full marked on this page. On a contracted session, the first money in counts toward Miranda\'s share.</p>' : '');
+  }
   function due(b){ return Math.max(0, (b.total || 0) + (b.addons || 0) - ((b.deposit && b.deposit.amount) || 0) - ((b.paid && b.paid.amount) || 0)); }
 
   function draw(){
     var tests = $('showTests').checked, all = DATA.bookings || [];
     var real = all.filter(function(b){ return !b.test && !b.cancelled; });
     var booked = 0, coll = 0, owe = 0, paidOut = 0;
-    real.forEach(function(b){ booked += (b.total || 0) + (b.addons || 0); coll += ((b.deposit && b.deposit.amount) || 0) + ((b.paid && b.paid.amount) || 0); owe += due(b); paidOut += b.payout || 0; });
+    real.forEach(function(b){ booked += tot(b); coll += collOf(b); owe += due(b); paidOut += payOf(b); });
+    mirandaTotals(real);
     $('tBooked').textContent = money(booked); $('tBookedN').textContent = '· ' + real.length + ' session' + (real.length === 1 ? '' : 's');
     $('tCollected').textContent = money(coll); $('tDue').textContent = money(owe);
-    $('tKeeps').textContent = money(booked - paidOut); $('tPaidOut').textContent = paidOut ? '· ' + money(paidOut) + ' to other photographers' : '';
+    $('tKeeps').textContent = money(booked - paidOut);
     $('asof').textContent = (DATA.test ? 'TEST COPY · ' : '') + 'Updated ' + when(new Date().toISOString());
 
     var rows = all.filter(function(b){
@@ -151,7 +195,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('list').innerHTML = !rows.length ? '<p class="muted">Nothing here yet.</p>' : VIEW === 'table' ? table(rows) : rows.map(card).join('');
 
     var feed = (DATA.log || []).filter(function(e){ return tests || !e.test; }).slice(-80).reverse();
-    var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on' };
+    var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', 'split-default': '⚙️ Usual split changed' };
     $('feed').innerHTML = feed.length ? feed.map(function(e){
       return '<div class="ev"><b>' + (LBL[e.kind] || esc(e.kind)) + '</b> ' + (e.num && e.num < 900000 ? '#' + e.num + ' ' : '') + esc(e.name || '') +
         (e.amount ? ' · ' + money(e.amount) : '') + (e.test ? ' <span class="tag t-gry">TEST</span>' : '') +
@@ -161,14 +205,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
   // Table view (Oct 15 2026): one row per booking, spreadsheet style; scrolls sideways on a phone
   function table(rows){
-    var h = '<div class="tbl"><table><tr><th>#</th><th>Date</th><th>Time</th><th>Client</th><th>Beach</th><th>Package</th><th>Total</th><th>Deposit</th><th>Paid in full</th><th>Still due</th><th>Photographer</th><th>Set up by</th><th>Status</th></tr>';
+    var h = '<div class="tbl"><table><tr><th>#</th><th>Date</th><th>Time</th><th>Client</th><th>Beach</th><th>Package</th><th>Total</th><th>Deposit</th><th>Paid in full</th><th>Still due</th><th>Photographer</th><th>Their pay</th><th>Miranda&#39;s share</th><th>Set up by</th><th>Status</th></tr>';
     rows.forEach(function(b){
       var st = b.cancelled ? 'Cancelled' : b.paid ? 'Paid' : b.deposit ? 'Deposit in' : 'No deposit';
       h += '<tr class="' + (b.cancelled ? 'cx' : '') + (b.test ? ' tst' : '') + '"><td>' + (b.num < 900000 ? b.num : 'test') + '</td><td>' + esc(b.date ? nice(b.date) : '') + '</td><td>' + esc(b.time || '') +
         '</td><td>' + esc(b.name) + '</td><td>' + esc(b.beach || '') + '</td><td>' + esc(b.pkg || '') + '</td><td>' + money((b.total || 0) + (b.addons || 0)) +
         '</td><td>' + (b.deposit ? money(b.deposit.amount) + ' ' + esc(b.deposit.method || '') : '') + '</td><td>' + (b.paid ? money(b.paid.amount) : '') +
-        '</td><td>' + (b.cancelled ? '' : money(due(b))) + '</td><td>' + esc(b.photographer ? b.photographer + (b.payout ? ' (' + money(b.payout) + ')' : '') : 'Miranda') +
-        '</td><td>' + esc(b.by || '') + '</td><td>' + st + '</td></tr>';
+        '</td><td>' + (b.cancelled ? '' : money(due(b))) + '</td><td>' + esc(b.photographer || 'Miranda') +
+        '</td><td>' + (b.photographer ? money(payOf(b)) : '') + '</td><td>' + money(mineOf(b)) + '</td><td>' + esc(b.by || '') + '</td><td>' + st + '</td></tr>';
     });
     return h + '</table></div><p class="muted" style="margin:6px 0 0">Switch to Cards to use the Deposit / Paid / Cancel buttons.</p>';
   }
@@ -180,7 +224,15 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     else if (b.paid) tags += '<span class="tag t-grn">Paid in full</span>';
     else if (b.deposit) tags += '<span class="tag t-grn">Deposit in · ' + money(b.deposit.amount) + ' ' + esc(b.deposit.method || '') + '</span>';
     else tags += '<span class="tag t-yel">No deposit yet</span>';
-    if (b.photographer) tags += '<span class="tag t-blu">Shot by ' + esc(b.photographer) + (b.payout ? ' · paid ' + money(b.payout) : '') + '</span>';
+    if (b.photographer) tags += '<span class="tag t-blu">📷 Shot by ' + esc(b.photographer) + ' (contracted out)</span>';
+    var rc = '';
+    if (b.photographer) {
+      var rl = function(l, v, x){ return '<div style="display:flex;justify-content:space-between;' + (x || '') + '"><span>' + l + '</span><span>' + v + '</span></div>'; };
+      var how = b.split ? (b.split.mode === 'amt' ? '' : ' <span class="muted">(' + b.split.val + '%' + (b.split.min ? ' or ' + money(b.split.min) : '') + ')</span>') : '';
+      rc = '<div style="margin-top:8px;padding:8px 10px;background:#f6fafb;border-radius:10px;font-size:14px">' +
+        rl('Session total', money(tot(b))) + rl(esc(b.photographer) + "'s pay", '−' + money(payOf(b))) +
+        rl("<b>Miranda's share</b>" + how, '<b>' + money(mineOf(b)) + '</b>', 'border-top:1px solid var(--line);margin-top:4px;padding-top:4px') + '</div>';
+    }
     var total = (b.total || 0) + (b.addons || 0), acts = '';
     if (b.cancelled) acts = '<button class="btn ghost" data-a="undo-cancel">Undo cancel</button>';
     else {
@@ -195,7 +247,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<div class="meta">' + esc([b.date ? nice(b.date) : '', b.time, b.beach].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="meta">' + esc(b.pkg || 'Session') + ' · ' + money(total) + (b.addons ? ' (incl. ' + money(b.addons) + ' add-ons)' : '') + (!b.cancelled && due(b) ? ' · <b>' + money(due(b)) + ' still due</b>' : '') + '</div>' +
       (b.by ? '<div class="meta">Set up by ' + esc(b.by) + '</div>' : '') +
-      '<div>' + tags + '</div><div class="acts">' + acts + '</div></div>';
+      '<div>' + tags + '</div>' + rc + '<div class="acts">' + acts + '</div></div>';
   }
 
   function act(num, a, method){
@@ -226,6 +278,12 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     FILTER = c.getAttribute('data-f'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-f]'), function(x){ x.classList.toggle('on', x === c); }); draw();
   }); });
   $('showTests').addEventListener('change', draw);
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-p]'), function(c){ c.addEventListener('click', function(){
+    PERIOD = c.getAttribute('data-p'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-p]'), function(x){ x.classList.toggle('on', x === c); }); if (DATA) draw();
+  }); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-k]'), function(c){ c.addEventListener('click', function(){
+    KIND = c.getAttribute('data-k'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-k]'), function(x){ x.classList.toggle('on', x === c); }); if (DATA) draw();
+  }); });
   function setView(v){ VIEW = v; try { localStorage.setItem('mrp-log-view', v); } catch (e) {} Array.prototype.forEach.call(document.querySelectorAll('.chip[data-v]'), function(x){ x.classList.toggle('on', x.getAttribute('data-v') === v); }); if (DATA) draw(); }
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-v]'), function(c){ c.addEventListener('click', function(){ setView(c.getAttribute('data-v')); }); });
   setView(VIEW);

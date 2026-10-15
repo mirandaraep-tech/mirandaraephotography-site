@@ -113,8 +113,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       <label>Who's shooting it?</label>
       <div class="chips" id="cobtns"></div>
       <input id="coname" type="text" autocomplete="off" placeholder="Or type a name">
-      <label for="copay">Paid to them</label>
-      <div class="money"><span>$</span><input id="copay" type="number" inputmode="decimal" min="0" step="any"></div>
+      <label for="coval">Miranda's share</label>
+      <div class="chips" id="comode"><button type="button" class="chip on" data-m="pct">%</button><button type="button" class="chip" data-m="amt">$</button></div>
+      <div class="money"><span id="cosym">%</span><input id="coval" type="number" inputmode="decimal" min="0" step="any"></div>
+      <div class="small" id="conote" style="margin-top:6px"></div>
+      <a class="small" id="cosave" href="#" hidden style="display:inline-block;margin-top:6px"></a>
       <div class="keep" id="cokeep"></div>
       <a class="small" id="cooff" href="#" style="display:inline-block;margin-top:10px;color:var(--muted)">✕ Not contracting out</a>
     </div>
@@ -189,32 +192,60 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   document.addEventListener('input', update); document.addEventListener('change', update);
 
-  // Contracting out (Oct 14 2026): who's shooting it and what they're paid. Saved privately on the site
+  // Contracting out (Oct 14 2026): who's shooting it and Miranda's share (Oct 15 2026). Saved privately on the site
   // when the link is sent, never put in the client's link. Names typed once become one-tap buttons.
   var names = ['Kallie'];
   function chips(){
     var cur = $('coname').value.trim().toLowerCase();
     $('cobtns').innerHTML = names.map(function(n){ return '<button type="button" class="chip' + (n.toLowerCase() === cur ? ' on' : '') + '">' + esc(n) + '</button>'; }).join('');
-    Array.prototype.forEach.call($('cobtns').children, function(b){ b.addEventListener('click', function(){ $('coname').value = b.textContent; chips(); keep(); $('copay').focus(); }); });
+    Array.prototype.forEach.call($('cobtns').children, function(b){ b.addEventListener('click', function(){ $('coname').value = b.textContent; chips(); keep(); }); });
+  }
+  // Miranda's share (Oct 15 2026): a % of the session (usual 25%, or $50 if that's more) or a $ amount.
+  // The photographer gets the rest. Add-ons later are split the same way.
+  var SPLIT = { pct: 25, min: 50 }, MODE = 'pct', TOUCHED = false;
+  function split(){
+    var v = $('coval').value === '' ? (MODE === 'pct' ? SPLIT.pct : 0) : num('coval');
+    if (MODE === 'amt') return { mode: 'amt', val: v };
+    var o = { mode: 'pct', val: v }; if (v === SPLIT.pct && SPLIT.min) o.min = SPLIT.min; return o;
+  }
+  function shareOf(sp, t){ var v = sp.mode === 'amt' ? sp.val : Math.max(t * sp.val / 100, sp.min || 0); return Math.round(Math.min(Math.max(0, t), v) * 100) / 100; }
+  function setMode(m){
+    MODE = m; Array.prototype.forEach.call($('comode').children, function(b){ b.classList.toggle('on', b.getAttribute('data-m') === m); });
+    $('cosym').textContent = m === 'pct' ? '%' : '$';
+    $('coval').value = m === 'pct' ? SPLIT.pct : ''; keep();
   }
   function keep(){
     if ($('cobox').hidden) return;
-    var pay = num('copay'), t = data().total, who = $('coname').value.trim() || 'them';
-    $('cokeep').innerHTML = pay ? 'Pays ' + esc(who) + ' <b>' + money(pay) + '</b> · Miranda keeps <b>' + money(Math.max(0, t - pay)) + '</b>' : '';
+    var t = data().total, who = $('coname').value.trim() || 'the photographer', sp = split(), mine = shareOf(sp, t);
+    $('conote').textContent = MODE === 'pct' ? (sp.min ? 'Usual: ' + SPLIT.pct + '% or ' + money(SPLIT.min) + ', whichever is more' : sp.val + '% of the session') : 'Miranda keeps this dollar amount';
+    $('cokeep').innerHTML = t ? esc(who) + "'s pay <b>" + money(Math.max(0, t - mine)) + "</b> · Miranda's share <b>" + money(mine) + '</b>' : '';
+    var other = MODE === 'pct' && $('coval').value !== '' && num('coval') !== SPLIT.pct;
+    $('cosave').hidden = !other; if (other) $('cosave').textContent = 'Make ' + num('coval') + '% the usual';
   }
-  try { fetch('/api/booking-counter').then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ if (j && j.photographers && j.photographers.length) { names = j.photographers; chips(); } }).catch(function(){}); } catch (e) {}
-  chips();
+  try { fetch('/api/booking-counter').then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+    if (j && j.photographers && j.photographers.length) { names = j.photographers; chips(); }
+    if (j && j.split && isFinite(j.split.pct)) { SPLIT = j.split; if (MODE === 'pct' && !TOUCHED) $('coval').value = SPLIT.pct; keep(); }
+  }).catch(function(){}); } catch (e) {}
+  chips(); $('coval').value = SPLIT.pct;
   $('coname').addEventListener('input', function(){ chips(); keep(); });
-  $('copay').addEventListener('input', keep);
+  $('coval').addEventListener('input', function(){ TOUCHED = true; keep(); });
+  Array.prototype.forEach.call($('comode').children, function(b){ b.addEventListener('click', function(){ TOUCHED = false; setMode(b.getAttribute('data-m')); if (MODE === 'amt') $('coval').focus(); }); });
+  $('cosave').addEventListener('click', function(e){
+    e.preventDefault(); var pct = num('coval');
+    if (!confirm('Make ' + pct + '% the usual share for Miranda on contracted sessions?')) return;
+    fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'split-default', pct: pct, by: who() }) })
+      .then(function(r){ return r.json(); }).then(function(j){ if (j && j.ok) { SPLIT = j.split; keep(); } else alert("That didn't save. Please try again."); })
+      .catch(function(){ alert("That didn't save. Please check your connection."); });
+  });
   document.addEventListener('input', keep);
   $('cotog').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = false; $('cotog').hidden = true; keep(); });
-  $('cooff').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = true; $('cotog').hidden = false; $('coname').value = ''; $('copay').value = ''; chips(); });
+  $('cooff').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = true; $('cotog').hidden = false; $('coname').value = ''; TOUCHED = false; setMode('pct'); chips(); });
 
   // Tell the site about this booking before the link goes out (client's phone for the test check, and who's shooting)
   function remember(o){
     var co = !$('cobox').hidden && $('coname').value.trim();
     var body = JSON.stringify({ kind: 'pending', by: who(), name: o.n, date: o.d, beach: o.b, phone: $('ph').value,
-      photographer: co ? $('coname').value.trim() : '', payout: co ? num('copay') : 0 });
+      photographer: co ? $('coname').value.trim() : '', split: co ? split() : null });
     try {
       if (navigator.sendBeacon && navigator.sendBeacon('/api/booking-counter', new Blob([body], { type: 'application/json' }))) return;
     } catch (e) {}
