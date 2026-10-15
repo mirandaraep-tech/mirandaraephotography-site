@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bookings | Miranda Rae Photography</title>
+<!-- Private master page (added Oct 15 2026): every booking, deposit, add-on and request in one place,
+     behind a passcode each phone remembers. Not linked anywhere, not for search. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Bookings">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#112b39;--teal:#16677a;--cream:#fff9f1;--line:#e6ddd2;--muted:#556770;--ok:#2f8a4e;--warn:#b7791f;--bad:#a33}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.45;background:var(--cream)}
+.topbar{background:#fff;border-bottom:1px solid var(--line)}
+.topbar .in{width:min(640px,92%);margin:auto;display:flex;align-items:center;gap:10px;padding:10px 0}
+.topbar img{width:42px;height:42px;border-radius:50%;object-fit:cover;object-position:50% 22%;border:2px solid var(--teal)}
+.brand b{display:block;font:normal 28px/1 'Great Vibes','Brush Script MT',Georgia,serif}
+.brand span{display:block;font-size:9px;letter-spacing:3px;margin-top:3px}
+main{width:min(640px,92%);margin:18px auto 40px}
+.card{background:#fff;padding:18px;border-radius:16px;box-shadow:0 12px 40px #26394118;margin-bottom:14px}
+h1{font:26px/1.15 Georgia,serif;margin:0 0 4px}
+h2{font:bold 12px Arial,sans-serif;letter-spacing:2px;color:var(--teal);margin:0 0 10px;text-transform:uppercase}
+input,select{font:inherit;border:1px solid #d5dce0;border-radius:8px;padding:10px;min-height:44px;background:#fbfcfd;font-size:16px;width:100%}
+.btn{border:0;border-radius:10px;background:var(--teal);color:#fff;font-weight:bold;font-size:15px;min-height:42px;padding:0 14px;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--teal);border:2px solid var(--teal)}
+.btn.red{background:#fff;color:var(--bad);border:2px solid #e3b5b5}
+.btn.big{width:100%;min-height:52px;font-size:17px;margin-top:10px}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tile{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.tile b{display:block;font:bold 24px Georgia,serif}
+.tile span{font-size:12px;color:var(--muted)}
+.bk{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
+.bk.cx{opacity:.55}
+.bk .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.bk .nm{font-weight:bold;font-size:17px}
+.bk .meta{font-size:14px;color:var(--muted)}
+.tag{display:inline-block;font-size:12px;font-weight:bold;border-radius:999px;padding:2px 9px;margin:6px 4px 0 0}
+.t-yel{background:#fff1cf;color:#8a5a00}.t-grn{background:#dcf3e3;color:#1f6b3a}.t-red{background:#f7dede;color:var(--bad)}.t-gry{background:#eceff1;color:#455a64}.t-blu{background:#e1f0f3;color:var(--teal)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.acts select{width:auto;min-height:42px;padding:6px 8px}
+.ev{font-size:14px;border-top:1px solid #f0ebe4;padding:7px 0}
+.ev small{color:var(--muted)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:14px}
+.chip{border:2px solid var(--teal);background:#fff;color:var(--teal);border-radius:999px;padding:6px 13px;font-size:14px;font-weight:bold;cursor:pointer}
+.chip.on{background:var(--teal);color:#fff}
+.err{color:var(--bad);font-size:14px}
+.muted{color:var(--muted);font-size:14px}
+[hidden]{display:none!important}
+footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="in">
+  <img src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae" width="42" height="42">
+  <div class="brand"><b>Miranda Rae Photography</b><span>BOOKINGS · PRIVATE</span></div>
+</div></div>
+<main>
+  <div class="card" id="lock" hidden>
+    <h1>Bookings</h1>
+    <p class="muted">Enter the passcode. This phone will remember it.</p>
+    <input id="pass" type="password" autocomplete="off" placeholder="Passcode">
+    <button class="btn big" id="unlock">Open</button>
+    <p class="err" id="perr" hidden>That passcode didn't work.</p>
+  </div>
+
+  <div id="app" hidden>
+    <div class="card">
+      <h1>Bookings</h1>
+      <div class="muted" id="asof"></div>
+      <div class="tiles" style="margin-top:12px">
+        <div class="tile"><b id="tBooked">–</b><span>Booked <span id="tBookedN"></span></span></div>
+        <div class="tile"><b id="tCollected">–</b><span>Collected so far</span></div>
+        <div class="tile"><b id="tDue">–</b><span>Still to collect</span></div>
+        <div class="tile"><b id="tKeeps">–</b><span>Miranda keeps <span id="tPaidOut"></span></span></div>
+      </div>
+      <p class="muted" style="margin:10px 0 0">Counts bookings confirmed on the Confirm page since Oct 15. Tests and cancelled bookings are left out.</p>
+    </div>
+
+    <div class="card">
+      <h2>Bookings</h2>
+      <div class="filters">
+        <button class="chip on" data-f="upcoming">Upcoming</button>
+        <button class="chip" data-f="past">Past</button>
+        <button class="chip" data-f="all">All</button>
+        <label style="margin-left:auto"><input type="checkbox" id="showTests" style="width:auto;min-height:0"> Show tests</label>
+      </div>
+      <div id="list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Everything that came in</h2>
+      <div id="feed"></div>
+    </div>
+    <p style="text-align:center"><a href="#" id="forget" class="muted">Lock this phone</a></p>
+  </div>
+</main>
+<footer>Miranda Rae Photography · private page</footer>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var LIVE = /(^|\.)mirandaraephotography\.com$/.test(location.hostname);
+  var API = '/api/booking-counter', PASS = '', WHO = '', DATA = null, FILTER = 'upcoming';
+  try { PASS = localStorage.getItem('mrp-log-pass') || ''; WHO = localStorage.getItem('mrp-who') || ''; } catch (e) {}
+  var money = function(n){ n = Number(n) || 0; return '$' + n.toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }); };
+  var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); };
+  var nice = function(d){ try { return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); } catch (e) { return d; } };
+  var when = function(iso){ try { var d = new Date(iso); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
+  var today = new Date(); today = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+  function load(){
+    return fetch(API + '?log=1', { headers: { 'x-pass': PASS }, cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(j){
+      if (j.error) { $('app').hidden = true; $('lock').hidden = false; if (PASS) $('perr').hidden = false; return; }
+      try { localStorage.setItem('mrp-log-pass', PASS); } catch (e) {}
+      DATA = j; $('lock').hidden = true; $('app').hidden = false; draw();
+    }).catch(function(){ $('asof').textContent = "Couldn't load. Pull down to refresh."; });
+  }
+  function due(b){ return Math.max(0, (b.total || 0) + (b.addons || 0) - ((b.deposit && b.deposit.amount) || 0) - ((b.paid && b.paid.amount) || 0)); }
+
+  function draw(){
+    var tests = $('showTests').checked, all = DATA.bookings || [];
+    var real = all.filter(function(b){ return !b.test && !b.cancelled; });
+    var booked = 0, coll = 0, owe = 0, paidOut = 0;
+    real.forEach(function(b){ booked += (b.total || 0) + (b.addons || 0); coll += ((b.deposit && b.deposit.amount) || 0) + ((b.paid && b.paid.amount) || 0); owe += due(b); paidOut += b.payout || 0; });
+    $('tBooked').textContent = money(booked); $('tBookedN').textContent = '· ' + real.length + ' session' + (real.length === 1 ? '' : 's');
+    $('tCollected').textContent = money(coll); $('tDue').textContent = money(owe);
+    $('tKeeps').textContent = money(booked - paidOut); $('tPaidOut').textContent = paidOut ? '· ' + money(paidOut) + ' to other photographers' : '';
+    $('asof').textContent = (DATA.test ? 'TEST COPY · ' : '') + 'Updated ' + when(new Date().toISOString());
+
+    var rows = all.filter(function(b){
+      if (b.test && !tests) return false;
+      if (FILTER === 'upcoming') return !b.date || b.date >= today;
+      if (FILTER === 'past') return b.date && b.date < today;
+      return true;
+    }).sort(function(a, b){ return FILTER === 'past' ? (b.date || '').localeCompare(a.date || '') : (a.date || '').localeCompare(b.date || ''); });
+    $('list').innerHTML = rows.length ? rows.map(card).join('') : '<p class="muted">Nothing here yet.</p>';
+
+    var feed = (DATA.log || []).filter(function(e){ return tests || !e.test; }).slice(-80).reverse();
+    var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on' };
+    $('feed').innerHTML = feed.length ? feed.map(function(e){
+      return '<div class="ev"><b>' + (LBL[e.kind] || esc(e.kind)) + '</b> ' + (e.num && e.num < 900000 ? '#' + e.num + ' ' : '') + esc(e.name || '') +
+        (e.amount ? ' · ' + money(e.amount) : '') + (e.test ? ' <span class="tag t-gry">TEST</span>' : '') +
+        '<br><small>' + esc([when(e.at), e.date ? nice(e.date) : '', e.beach, e.detail, e.by ? 'by ' + e.by : ''].filter(Boolean).join(' · ')) + '</small></div>';
+    }).join('') : '<p class="muted">Nothing yet.</p>';
+  }
+
+  function card(b){
+    var tags = '';
+    if (b.test) tags += '<span class="tag t-gry">TEST</span>';
+    if (b.cancelled) tags += '<span class="tag t-red">Cancelled</span>';
+    else if (b.paid) tags += '<span class="tag t-grn">Paid in full</span>';
+    else if (b.deposit) tags += '<span class="tag t-grn">Deposit in · ' + money(b.deposit.amount) + ' ' + esc(b.deposit.method || '') + '</span>';
+    else tags += '<span class="tag t-yel">No deposit yet</span>';
+    if (b.photographer) tags += '<span class="tag t-blu">Shot by ' + esc(b.photographer) + (b.payout ? ' · paid ' + money(b.payout) : '') + '</span>';
+    var total = (b.total || 0) + (b.addons || 0), acts = '';
+    if (b.cancelled) acts = '<button class="btn ghost" data-a="undo-cancel">Undo cancel</button>';
+    else {
+      if (!b.deposit) acts += '<select data-m><option>Venmo</option><option>Cash App</option><option>PayPal</option><option>Pixieset</option><option>Cash</option><option>Other</option></select><button class="btn" data-a="deposit">Deposit Received</button>';
+      else if (!b.paid) acts += '<button class="btn ghost" data-a="undo-deposit">Undo deposit</button>';
+      if (!b.paid) acts += '<button class="btn" data-a="paid">Paid in Full</button>';
+      else acts += '<button class="btn ghost" data-a="undo-paid">Undo paid</button>';
+      acts += '<button class="btn red" data-a="cancel">Cancel</button>';
+    }
+    return '<div class="bk' + (b.cancelled ? ' cx' : '') + '" data-num="' + b.num + '">' +
+      '<div class="top"><span class="nm">' + esc(b.name) + '</span><span class="meta">' + (b.num < 900000 ? '#' + b.num : 'test') + '</span></div>' +
+      '<div class="meta">' + esc([b.date ? nice(b.date) : '', b.time, b.beach].filter(Boolean).join(' · ')) + '</div>' +
+      '<div class="meta">' + esc(b.pkg || 'Session') + ' · ' + money(total) + (b.addons ? ' (incl. ' + money(b.addons) + ' add-ons)' : '') + (!b.cancelled && due(b) ? ' · <b>' + money(due(b)) + ' still due</b>' : '') + '</div>' +
+      (b.by ? '<div class="meta">Set up by ' + esc(b.by) + '</div>' : '') +
+      '<div>' + tags + '</div><div class="acts">' + acts + '</div></div>';
+  }
+
+  function act(num, a, method){
+    var b = (DATA.bookings || []).filter(function(x){ return x.num === num; })[0]; if (!b) return;
+    if (a === 'cancel' && !confirm('Cancel ' + b.name + "'s booking? It comes off the totals and frees up that time.")) return;
+    if (a === 'paid' && !confirm('Mark ' + b.name + ' as paid in full (' + money(due(b)) + ' more)?')) return;
+    var who = WHO || 'Miranda';
+    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify({ kind: 'status', num: num, action: a, method: method || '', by: who, pass: PASS }) })
+      .then(function(r){ return r.json(); }).then(function(j){
+        if (!j.ok) { alert("That didn't save. Please try again."); return; }
+        // Same "DEPOSIT RECEIVED" email as the Deposit Received page
+        if (a === 'deposit' && !b.test) {
+          var o = { _captcha: 'false', _template: 'table', 'booking-number': '#' + num, name: b.name, amount: money(j.booking.deposit.amount), 'paid-with': j.booking.deposit.method, 'marked-by': who, page: 'Bookings page' };
+          if (LIVE) o._cc = 'bookmirandarae@gmail.com';
+          o._subject = '✅ DEPOSIT RECEIVED: ' + ['#' + num, b.name, money(j.booking.deposit.amount)].join(' · ');
+          fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) }).catch(function(){});
+        }
+        load();
+      }).catch(function(){ alert("That didn't save. Please check your connection and try again."); });
+  }
+
+  $('list').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-a]'); if (!btn) return;
+    var box = btn.closest('.bk'), m = box.querySelector('select[data-m]');
+    btn.disabled = true; act(Number(box.getAttribute('data-num')), btn.getAttribute('data-a'), m ? m.value : '');
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-f]'), function(c){ c.addEventListener('click', function(){
+    FILTER = c.getAttribute('data-f'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-f]'), function(x){ x.classList.toggle('on', x === c); }); draw();
+  }); });
+  $('showTests').addEventListener('change', draw);
+  $('unlock').addEventListener('click', function(){ PASS = $('pass').value.trim(); $('perr').hidden = true; load(); });
+  $('pass').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('unlock').click(); });
+  $('forget').addEventListener('click', function(e){ e.preventDefault(); try { localStorage.removeItem('mrp-log-pass'); } catch (x) {} PASS = ''; $('app').hidden = true; $('lock').hidden = false; });
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden && DATA) load(); });
+  if (PASS) load(); else $('lock').hidden = false;
+})();
+</script>
+</body>
+</html>
