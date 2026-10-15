@@ -35,8 +35,10 @@ const PASS_SHA256 = "7520b1eea1d95304e8ae042ee214edcc352583b8a4101ce34c54bb20d59
 const sha = async (t) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))).map((b) => b.toString(16).padStart(2, "0")).join("");
 const okPass = async (req, data) => (await sha((req.headers.get("x-pass") || (data && data.pass) || "").trim().toLowerCase())) === PASS_SHA256;
 const day = (v) => String(v || "").slice(0, 10);
-const clash = (a, b) => day(a.date) && day(a.date) === day(b.date) &&
-  (/wedding/i.test(a.time || "") || /wedding/i.test(b.time || "") || String(a.time || "").toLowerCase() === String(b.time || "").toLowerCase());
+// Oct 15 2026: a Wedding no longer blocks the whole day. A wedding only clashes with another wedding;
+// a session on a wedding day still confirms, and Miranda gets a heads-up in the email to check the timing.
+const clash = (a, b) => day(a.date) && day(a.date) === day(b.date) && String(a.time || "").toLowerCase() === String(b.time || "").toLowerCase();
+const weddingDay = (a, b) => day(a.date) && day(a.date) === day(b.date) && (/wedding/i.test(a.time || "") !== /wedding/i.test(b.time || ""));
 const clip = (v, n = 120) => String(v == null ? "" : v).slice(0, n);
 
 function summary(state, live) {
@@ -184,13 +186,15 @@ export default async (req) => {
     await logIt({ kind: "slot-taken", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), detail: (me.time || "") + " already held by #" + taken.num + " " + taken.name, test: isTest });
     return json({ conflict: true, with: taken.num });
   }
+  const near = bookings.find((b) => !b.cancelled && b.key !== key && !!b.test === isTest && weddingDay(b, me));
+  const headsUp = near ? "Same day as #" + near.num + " " + near.name + "'s " + (/wedding/i.test(near.time || "") ? "wedding" : (near.time || "session")) + " — check the timing" : "";
   const keepBooking = async (num) => {
     if (bookings.some((b) => b.key === key && !b.cancelled)) return;
     bookings.push({ key, num, name: clip(data.name, 60), date: day(data.date), time: me.time, beach: clip(data.beach, 40),
       pkg: clip(data.pkg, 60), total: amount, by: clip((pend && pend.by) || data.by, 40), phone: pend && pend.phone || "",
       photographer: pend && pend.photographer || "", payout: pend && pend.payout || 0, test: isTest, created: new Date().toISOString() });
     await store.setJSON("bookings", bookings.slice(-500));
-    await logIt({ kind: "confirm", num, name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), amount, by: (pend && pend.by) || "", test: isTest });
+    await logIt({ kind: "confirm", num, name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), amount, by: (pend && pend.by) || "", detail: headsUp, test: isTest });
   };
   if (isTest) {
     // Tests get their own T-numbers on the master page and never touch the totals
@@ -198,7 +202,7 @@ export default async (req) => {
     const tnum = 900000 + state.lastTest;
     await save();
     await keepBooking(tnum);
-    return json({ num: null, notCounted: "test", ...summary(state, live) });
+    return json({ num: null, notCounted: "test", headsUp, ...summary(state, live) });
   }
   // Same client confirming the same date + beach again (e.g. tapped the link twice): give back the
   // same booking number and don't add the price again (added Oct 12 2026).
@@ -222,7 +226,7 @@ export default async (req) => {
   state.total = cents(state.total + amount);
   await save();
   await keepBooking(rec.num);
-  return json({ num: rec.num, photographer: rec.photographer || null, payout: rec.payout || 0, ...summary(state, live) });
+  return json({ num: rec.num, photographer: rec.photographer || null, payout: rec.payout || 0, headsUp, ...summary(state, live) });
 };
 
 export const config = { path: "/api/booking-counter" };
