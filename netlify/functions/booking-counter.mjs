@@ -109,6 +109,16 @@ export default async (req) => {
     await logIt({ kind: a, num: b.num, name: b.name, amount: a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : 0, by: who, test: !!b.test });
     return json({ ok: true, booking: b });
   }
+  // Master page "Clear all tests" button (Oct 15 2026): removes test bookings and test entries from
+  // the master page only. Real bookings, totals and booking numbers are never touched.
+  if (data.kind === "clear-tests") {
+    if (!(await okPass(req, data))) return json({ error: "passcode" });
+    const list = await getList("bookings"), log = await getList("log");
+    const keepB = list.filter((b) => !b.test), keepL = log.filter((e) => !e.test);
+    await store.setJSON("bookings", keepB);
+    await store.setJSON("log", keepL);
+    return json({ ok: true, removed: (list.length - keepB.length) + (log.length - keepL.length) });
+  }
   // A "Check My Date" request from any page on the site (logged only, never counted)
   if (data.kind === "request") {
     await logIt({ kind: "request", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), detail: clip(data.detail), test: isTestName(data.name) || isTestPhone(data.phone) });
