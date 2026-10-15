@@ -48,6 +48,12 @@ input,select{font:inherit;border:1px solid #d5dce0;border-radius:8px;padding:10p
 .chip{border:2px solid var(--teal);background:#fff;color:var(--teal);border-radius:999px;padding:6px 13px;font-size:14px;font-weight:bold;cursor:pointer}
 .chip.on{background:var(--teal);color:#fff}
 .err{color:var(--bad);font-size:14px}
+.tbl{overflow-x:auto;margin-top:10px;-webkit-overflow-scrolling:touch}
+.tbl table{border-collapse:collapse;font-size:13px;min-width:760px;width:100%}
+.tbl th,.tbl td{border:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap}
+.tbl th{background:#eef7f8;color:var(--teal);font-size:12px;position:sticky;top:0}
+.tbl tr.cx td{opacity:.5;text-decoration:line-through}
+.tbl tr.tst td{background:#f6f6f6}
 .muted{color:var(--muted);font-size:14px}
 [hidden]{display:none!important}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
@@ -88,6 +94,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         <button class="chip" data-f="all">All</button>
         <label style="margin-left:auto"><input type="checkbox" id="showTests" style="width:auto;min-height:0"> Show tests</label>
       </div>
+      <div class="filters" style="margin-top:10px">
+        <button class="chip on" data-v="cards">Cards</button>
+        <button class="chip" data-v="table">Table view</button>
+        <button class="btn red" id="clearTests" style="margin-left:auto;min-height:36px;font-size:13px">Clear all tests</button>
+      </div>
       <div id="list"></div>
     </div>
 
@@ -103,7 +114,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 (function(){
   var $ = function(id){ return document.getElementById(id); };
   var LIVE = /(^|\.)mirandaraephotography\.com$/.test(location.hostname);
-  var API = '/api/booking-counter', PASS = '', WHO = '', DATA = null, FILTER = 'upcoming';
+  var API = '/api/booking-counter', PASS = '', WHO = '', DATA = null, FILTER = 'upcoming', VIEW = 'cards';
+  try { VIEW = localStorage.getItem('mrp-log-view') || 'cards'; } catch (e) {}
   try { PASS = localStorage.getItem('mrp-log-pass') || ''; WHO = localStorage.getItem('mrp-who') || ''; } catch (e) {}
   var money = function(n){ n = Number(n) || 0; return '$' + n.toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }); };
   var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); };
@@ -136,7 +148,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (FILTER === 'past') return b.date && b.date < today;
       return true;
     }).sort(function(a, b){ return FILTER === 'past' ? (b.date || '').localeCompare(a.date || '') : (a.date || '').localeCompare(b.date || ''); });
-    $('list').innerHTML = rows.length ? rows.map(card).join('') : '<p class="muted">Nothing here yet.</p>';
+    $('list').innerHTML = !rows.length ? '<p class="muted">Nothing here yet.</p>' : VIEW === 'table' ? table(rows) : rows.map(card).join('');
 
     var feed = (DATA.log || []).filter(function(e){ return tests || !e.test; }).slice(-80).reverse();
     var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on' };
@@ -145,6 +157,20 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         (e.amount ? ' · ' + money(e.amount) : '') + (e.test ? ' <span class="tag t-gry">TEST</span>' : '') +
         '<br><small>' + esc([when(e.at), e.date ? nice(e.date) : '', e.beach, e.detail, e.by ? 'by ' + e.by : ''].filter(Boolean).join(' · ')) + '</small></div>';
     }).join('') : '<p class="muted">Nothing yet.</p>';
+  }
+
+  // Table view (Oct 15 2026): one row per booking, spreadsheet style; scrolls sideways on a phone
+  function table(rows){
+    var h = '<div class="tbl"><table><tr><th>#</th><th>Date</th><th>Time</th><th>Client</th><th>Beach</th><th>Package</th><th>Total</th><th>Deposit</th><th>Paid in full</th><th>Still due</th><th>Photographer</th><th>Set up by</th><th>Status</th></tr>';
+    rows.forEach(function(b){
+      var st = b.cancelled ? 'Cancelled' : b.paid ? 'Paid' : b.deposit ? 'Deposit in' : 'No deposit';
+      h += '<tr class="' + (b.cancelled ? 'cx' : '') + (b.test ? ' tst' : '') + '"><td>' + (b.num < 900000 ? b.num : 'test') + '</td><td>' + esc(b.date ? nice(b.date) : '') + '</td><td>' + esc(b.time || '') +
+        '</td><td>' + esc(b.name) + '</td><td>' + esc(b.beach || '') + '</td><td>' + esc(b.pkg || '') + '</td><td>' + money((b.total || 0) + (b.addons || 0)) +
+        '</td><td>' + (b.deposit ? money(b.deposit.amount) + ' ' + esc(b.deposit.method || '') : '') + '</td><td>' + (b.paid ? money(b.paid.amount) : '') +
+        '</td><td>' + (b.cancelled ? '' : money(due(b))) + '</td><td>' + esc(b.photographer ? b.photographer + (b.payout ? ' (' + money(b.payout) + ')' : '') : 'Miranda') +
+        '</td><td>' + esc(b.by || '') + '</td><td>' + st + '</td></tr>';
+    });
+    return h + '</table></div><p class="muted" style="margin:6px 0 0">Switch to Cards to use the Deposit / Paid / Cancel buttons.</p>';
   }
 
   function card(b){
@@ -200,6 +226,15 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     FILTER = c.getAttribute('data-f'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-f]'), function(x){ x.classList.toggle('on', x === c); }); draw();
   }); });
   $('showTests').addEventListener('change', draw);
+  function setView(v){ VIEW = v; try { localStorage.setItem('mrp-log-view', v); } catch (e) {} Array.prototype.forEach.call(document.querySelectorAll('.chip[data-v]'), function(x){ x.classList.toggle('on', x.getAttribute('data-v') === v); }); if (DATA) draw(); }
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-v]'), function(c){ c.addEventListener('click', function(){ setView(c.getAttribute('data-v')); }); });
+  setView(VIEW);
+  $('clearTests').addEventListener('click', function(){
+    if (!confirm('Remove all TEST bookings and test entries from this page? Real bookings are not touched.')) return;
+    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify({ kind: 'clear-tests', pass: PASS }) })
+      .then(function(r){ return r.json(); }).then(function(j){ if (!j.ok) { alert("That didn't work. Please try again."); return; } alert('Done. ' + j.removed + ' test item' + (j.removed === 1 ? '' : 's') + ' removed.'); load(); })
+      .catch(function(){ alert("That didn't work. Please check your connection and try again."); });
+  });
   $('unlock').addEventListener('click', function(){ PASS = $('pass').value.trim(); $('perr').hidden = true; load(); });
   $('pass').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('unlock').click(); });
   $('forget').addEventListener('click', function(e){ e.preventDefault(); try { localStorage.removeItem('mrp-log-pass'); } catch (x) {} PASS = ''; $('app').hidden = true; $('lock').hidden = false; });
