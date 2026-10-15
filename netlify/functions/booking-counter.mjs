@@ -83,6 +83,33 @@ export default async (req) => {
     log.push({ at: new Date().toISOString(), ...e });
     await store.setJSON("log", log.slice(-1000));
   };
+  // One-time load (Oct 15 2026): real bookings confirmed before the Bookings log started, copied from
+  // the confirmation emails. Goes on the log page only; the running total already counted them.
+  // Left out: tests #104/#105/#107, Ava Allen's double #103, and #110 (Brianna Smith's second tap).
+  if (live && !state.importOct15) {
+    const list = await getList("bookings"), now = new Date().toISOString();
+    const early = [
+      { num: 98, name: "Lauren Kays", date: "2026-10-17", time: "Sunrise", beach: "Mexico Beach", pkg: "Beach Mini", total: 130 },
+      { num: 99, name: "Veronica Kemmerer", date: "2026-10-13", time: "Sunrise", beach: "Port St. Joe", pkg: "Beach Mini", total: 130 },
+      { num: 101, name: "Victoria Waldner", date: "2026-10-28", time: "Sunrise", beach: "Cape San Blas", pkg: "Beach Mini", total: 130 },
+      { num: 102, name: "Ava Allen", date: "2026-10-23", time: "Sunset", beach: "30A", pkg: "Beach Special", total: 199 },
+      { num: 106, name: "Ashley Carter", date: "2026-10-10", time: "Sunset", beach: "Mexico Beach", pkg: "Beach Mini", total: 130, by: "Miranda", deposit: { amount: 50, method: "Venmo", at: "2026-10-13T14:38:00Z", by: "Deposit page" } },
+      { num: 108, name: "Brianna Smith", date: "2026-10-25", time: "Sunrise", beach: "30A", pkg: "Beach Special + Travel Fee", total: 229, by: "Miranda" },
+      { num: 109, name: "Taylor Ransdell", date: "2026-10-14", time: "Sunset", beach: "Other", pkg: "Beach Mini", total: 130 },
+      { num: 111, name: "andrea stumpf", date: "2026-10-18", time: "Sunrise", beach: "Panama City Beach", pkg: "Beach Special", total: 199, by: "Miranda", deposit: { amount: 50, method: "Venmo", at: "2026-10-15T18:00:55Z", by: "Deposit page" } },
+    ];
+    let added = 0;
+    for (const b of early) {
+      if (list.some((x) => x.num === b.num)) continue;
+      list.push({ key: keyOf(b), by: "", phone: "", photographer: "", payout: 0, test: false, created: now, imported: true, ...b });
+      added++;
+    }
+    list.sort((x, y) => (x.num || 0) - (y.num || 0));
+    await store.setJSON("bookings", list.slice(-500));
+    state.importOct15 = now + " (" + added + " added)";
+    await store.setJSON("state", state);
+  }
+
   const url = new URL(req.url);
   if (req.method === "GET" && url.searchParams.get("log")) {
     if (!(await okPass(req))) return json({ error: "passcode" });
