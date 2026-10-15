@@ -200,7 +200,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   card.innerHTML = '<p style="font:bold 13px Arial,sans-serif;letter-spacing:2px;color:#16677a;margin:14px 0 4px">YOUR SESSION DETAILS</p>' +
     '<div class="sum" style="margin-top:0"><b>Name</b> ' + esc(o.n) + '<br><b>Date</b> ' + esc(nice) + (o.t ? ' · ' + esc(o.t) : '') + '<br><b>Beach</b> ' + esc(o.b) + '</div>' +
     '<div class="sum" style="line-height:1.6">' + window.mrpPkgLines(o) + '</div>' +
-    (o.note ? '<p style="font-size:14px;background:#eef7f8;border-radius:10px;padding:10px 12px;margin:10px 0 0"><b>Note from Miranda:</b> ' + esc(o.note) + '</p>' : '');
+    (o.note ? '<p style="font-size:14px;background:#eef7f8;border-radius:10px;padding:10px 12px;margin:10px 0 0"><b>Note from Miranda:</b> ' + esc(o.note) + '</p>' : '') +
+    // Your photographer (Oct 15 2026): only when someone other than Miranda is shooting
+    (o.sh ? '<p style="font-size:14px;background:#fff4e3;border:1px solid #f0d9b5;border-radius:10px;padding:10px 12px;margin:10px 0 0">📷 <b>Your photographer: ' + esc(o.sh) + '</b>, one of Miranda\'s trusted partners</p>' : '');
   var hf = document.querySelector('label[for="heard-from"]'); hf.parentNode.insertBefore(card, hf);
   var intro = document.querySelector('#step1 .intro'); if (intro) intro.textContent = 'Here are the details we talked about. Double-check them and tap Confirm. — Miranda';
 })();
@@ -357,6 +359,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<br><b>Beach</b> ' + esc($('beach').value) + '<br><b>Session</b> ' + esc($('session').value) +
       (pn.amount ? '<br><b>Price</b> ' + esc(money(pn.amount)) : '');
     if (window.mrpPkg) $('sum').innerHTML += '<div style="margin-top:8px;line-height:1.6">' + window.mrpPkgLines(window.mrpPkg) + '</div>';
+    if (window.mrpPkg && window.mrpPkg.sh) $('sum').innerHTML += '<div style="margin-top:8px"><b>Photographer</b> ' + esc(window.mrpPkg.sh) + '</div>';
     window.mrpBookNum = num || '';
     if (pn.amount > 50) $('depline').textContent = 'It comes off your ' + money(pn.amount) + ' session, so you\'ll pay the remaining ' + money(pn.amount - 50) + ' on session day.';
     var ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
