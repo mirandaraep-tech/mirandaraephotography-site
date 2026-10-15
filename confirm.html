@@ -300,7 +300,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       // Contracted out (Oct 14 2026): Miranda handed this session to another photographer on the New Booking page
       if (c && c.photographer) {
         var pay = Number(c.payout) || 0;
-        o['contracted-out'] = 'Shot by ' + c.photographer + ' · paid ' + money(pay) + (amount ? ' · Miranda keeps ' + money(Math.max(0, amount - pay)) : '');
+        o['contracted-out'] = 'Shot by ' + c.photographer + ' · ' + c.photographer + "'s pay " + money(pay) + (amount ? " · Miranda's share " + money(Math.max(0, amount - pay)) : '');
       }
       // Session on the same day as a wedding (Oct 15 2026): still confirmed, Miranda checks the timing
       if (c && c.headsUp) o['heads-up'] = '⚠️ ' + c.headsUp;
@@ -308,7 +308,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (isTest) o['test'] = 'TEST — not counted in the total and no booking number used';
       // Private running total: only Confirm-page bookings count (Oct 14 2026)
       o['running-total'] = c ? money(c.total) + ' from ' + c.count + ' confirmed sessions' +
-        (c.contracted ? ' · ' + c.contracted + ' contracted out · ' + money(c.payouts) + ' paid to photographers · Miranda keeps ' + money(c.keeps) : '') +
+        (c.contracted ? ' · ' + c.contracted + ' contracted out · ' + money(c.payouts) + ' paid to photographers · Miranda\'s total ' + money(c.keeps) : '') +
         ' (private, not shown to clients)' : 'not available';
       o.page = 'Confirm page';
       try { o['came-from'] = window.mrpSource ? window.mrpSource() : 'not available'; } catch (e) {}
