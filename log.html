@@ -55,6 +55,31 @@ input,select{font:inherit;border:1px solid #d5dce0;border-radius:8px;padding:10p
 .tbl tr.cx td{opacity:.5;text-decoration:line-through}
 .tbl tr.tst td{background:#f6f6f6}
 .muted{color:var(--muted);font-size:14px}
+/* Calendar view (Oct 15 2026) */
+.cal-nav{display:flex;justify-content:space-between;align-items:center;margin:12px 0 6px}
+.cal-nav b{font:bold 18px Georgia,serif}
+.cal-nav button{border:0;background:#fff;color:var(--teal);font-size:24px;width:44px;height:40px;cursor:pointer;border-radius:10px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}
+.cal .h{font-size:12px;color:var(--muted);padding:2px 0}
+.cal .d{border:0;background:#fff;font:inherit;font-size:15px;color:var(--ink);padding:6px 0 4px;border-radius:10px;min-height:46px;cursor:pointer}
+.cal .d.past{color:#9aa7ad}
+.cal .d.today{border:2px solid var(--teal)}
+.cal .d.sel{background:var(--teal);color:#fff}
+.cal .dots{display:flex;justify-content:center;gap:3px;height:7px;margin-top:3px;flex-wrap:wrap}
+.cal .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.c-yel{background:#e0a32b}.c-grn{background:#3f9a5c}.c-pur{background:#7f77dd}.c-pnk{background:#d4537e}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin:10px 0 4px}
+.legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:-1px}
+.dayhd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
+.dayhd b{font:bold 18px Georgia,serif}
+.sunline{font-size:14px;color:var(--muted);white-space:nowrap}
+.grp{font-size:12px;font-weight:bold;letter-spacing:2px;color:var(--teal);text-transform:uppercase;margin:12px 0 0}
+.bk.k{background:#eeedfe;border:1px solid #afa9ec;padding:0;overflow:hidden}
+.bk.w{background:#fbeaf0;border:1px solid #ed93b1;padding:0;overflow:hidden}
+.bk .bar{color:#fff;font-weight:bold;font-size:15px;padding:7px 12px}
+.bk.k .bar{background:#7f77dd}.bk.w .bar{background:#d4537e}
+.bk .inner{padding:12px}
+.headsup{background:#fff1cf;color:#8a5a00;font-size:14px;border-radius:10px;padding:8px 10px;margin-top:10px}
 [hidden]{display:none!important}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 </style>
@@ -102,15 +127,16 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
     <div class="card">
       <h2>Bookings</h2>
-      <div class="filters">
+      <div class="filters" id="fRow">
         <button class="chip on" data-f="upcoming">Upcoming</button>
         <button class="chip" data-f="past">Past</button>
         <button class="chip" data-f="all">All</button>
         <label style="margin-left:auto"><input type="checkbox" id="showTests" style="width:auto;min-height:0"> Show tests</label>
       </div>
       <div class="filters" style="margin-top:10px">
+        <button class="chip" data-v="calendar">📅 Calendar</button>
         <button class="chip on" data-v="cards">Cards</button>
-        <button class="chip" data-v="table">Table view</button>
+        <button class="chip" data-v="table">Table</button>
         <button class="btn red" id="clearTests" style="margin-left:auto;min-height:36px;font-size:13px">Clear all tests</button>
       </div>
       <div id="list"></div>
@@ -192,7 +218,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (FILTER === 'past') return b.date && b.date < today;
       return true;
     }).sort(function(a, b){ return FILTER === 'past' ? (b.date || '').localeCompare(a.date || '') : (a.date || '').localeCompare(b.date || ''); });
-    $('list').innerHTML = !rows.length ? '<p class="muted">Nothing here yet.</p>' : VIEW === 'table' ? table(rows) : rows.map(card).join('');
+    $('fRow').hidden = $('clearTests').hidden = VIEW === 'calendar';
+    $('list').innerHTML = VIEW === 'calendar' ? calendar(all.filter(function(b){ return (tests || !b.test) && !b.cancelled && b.date; })) :
+      !rows.length ? '<p class="muted">Nothing here yet.</p>' : VIEW === 'table' ? table(rows) : rows.map(card).join('');
 
     var feed = (DATA.log || []).filter(function(e){ return tests || !e.test; }).slice(-80).reverse();
     var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', 'split-default': '⚙️ Usual split changed' };
@@ -202,6 +230,68 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         '<br><small>' + esc([when(e.at), e.date ? nice(e.date) : '', e.beach, e.detail, e.by ? 'by ' + e.by : ''].filter(Boolean).join(' · ')) + '</small></div>';
     }).join('') : '<p class="muted">Nothing yet.</p>';
   }
+
+  // Calendar view (Oct 15 2026): month grid with a dot per booking, tap a day for its sessions.
+  // Sunrise/sunset worked out right here for Mexico Beach (Central time); no outside service.
+  var CALM = today.slice(0, 7), SEL = today;
+  try { var cs = sessionStorage.getItem('mrp-cal'); if (cs) { CALM = cs.slice(0, 7); SEL = cs; } } catch (e) {}
+  function sun(ds){
+    var p = ds.split('-').map(Number), r = Math.PI / 180, lat = 29.948, lng = -85.42;
+    var J = Date.UTC(p[0], p[1] - 1, p[2]) / 86400000 + 2440587.5;
+    var Js = Math.ceil(J - 2451545.0 + 0.0008) - lng / 360;
+    var M = (357.5291 + 0.98560028 * Js) % 360;
+    var L = (M + 1.9148 * Math.sin(M * r) + 0.02 * Math.sin(2 * M * r) + 0.0003 * Math.sin(3 * M * r) + 282.9372) % 360;
+    var Jt = 2451545.0 + Js + 0.0053 * Math.sin(M * r) - 0.0069 * Math.sin(2 * L * r);
+    var sd = Math.sin(L * r) * Math.sin(23.4397 * r), cd = Math.cos(Math.asin(sd));
+    var w = Math.acos((Math.sin(-0.833 * r) - Math.sin(lat * r) * sd) / (Math.cos(lat * r) * cd)) / r;
+    var f = function(j){ try { return new Date((j - 2440587.5) * 86400000).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' }).replace(/ (AM|PM)/, ''); } catch (e) { return ''; } };
+    return [f(Jt - w / 360), f(Jt + w / 360)];
+  }
+  var ORDER = { sunrise: 1, midday: 2, wedding: 3, engagement: 4, sunset: 6 };
+  var GROUP = { sunrise: 'Morning', midday: 'Midday', wedding: 'Wedding', sunset: 'Evening' };
+  function ord(b){ return ORDER[String(b.time || '').toLowerCase()] || 5; }
+  function grp(b){ return GROUP[String(b.time || '').toLowerCase()] || 'Other times'; }
+  function isWed(b){ return /wedding/i.test(b.time || '') || /wedding/i.test(b.pkg || ''); }
+  function dotOf(b){ return b.photographer ? 'c-pur' : isWed(b) ? 'c-pnk' : (b.deposit || b.paid) ? 'c-grn' : 'c-yel'; }
+  function calCard(b){
+    if (!b.photographer && !isWed(b)) return card(b);
+    var c = card(b), bar = b.photographer ? '📷 ' + esc(b.photographer) + "'s session" : '💍 Wedding';
+    return c.replace('<div class="bk', '<div class="bk ' + (b.photographer ? 'k' : 'w')).replace('">', '"><div class="bar">' + bar + '</div><div class="inner">') + '</div>';
+  }
+  function calendar(list){
+    var by = {};
+    list.forEach(function(b){ (by[b.date] = by[b.date] || []).push(b); });
+    var y = Number(CALM.slice(0, 4)), m = Number(CALM.slice(5, 7)), first = new Date(y, m - 1, 1).getDay(), days = new Date(y, m, 0).getDate();
+    var h = '<div class="cal-nav"><button data-cal="-1" aria-label="Previous month">‹</button><b>' + new Date(y, m - 1, 15).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) + '</b><button data-cal="1" aria-label="Next month">›</button></div><div class="cal">';
+    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(function(x){ h += '<div class="h">' + x + '</div>'; });
+    for (var i = 0; i < first; i++) h += '<div></div>';
+    for (var d = 1; d <= days; d++) {
+      var ds = CALM + '-' + String(d).padStart(2, '0'), bs = (by[ds] || []).sort(function(a, b){ return ord(a) - ord(b); });
+      h += '<button class="d' + (ds < today ? ' past' : '') + (ds === today ? ' today' : '') + (ds === SEL ? ' sel' : '') + '" data-day="' + ds + '">' + d +
+        '<div class="dots">' + bs.map(function(b){ return '<span class="dot ' + dotOf(b) + '"></span>'; }).join('') + '</div></button>';
+    }
+    h += '</div><div class="legend"><span><span class="dot c-yel"></span>No deposit yet</span><span><span class="dot c-grn"></span>Deposit in</span><span><span class="dot c-pur"></span>Contracted out</span><span><span class="dot c-pnk"></span>Wedding</span></div>';
+    var st = sun(SEL), mine = (by[SEL] || []).slice().sort(function(a, b){ return ord(a) - ord(b) || (a.num - b.num); });
+    h += '<div class="dayhd"><b>' + nice(SEL) + '</b><span class="sunline">🌅 ' + st[0] + ' · 🌇 ' + st[1] + '</span></div>' +
+      '<div class="muted" style="font-size:12px">Sunrise · sunset at Mexico Beach (Central time). Port St. Joe, Cape San Blas and St. George Island clocks run 1 hour ahead.</div>';
+    if (!mine.length) h += '<p class="muted">Nothing booked this day.</p>';
+    var last = '';
+    mine.forEach(function(b){ var g = grp(b); if (g !== last) { h += '<div class="grp">' + g + '</div>'; last = g; } h += calCard(b); });
+    var shooters = {};
+    mine.forEach(function(b){ var s = b.photographer || 'Miranda'; (shooters[s] = shooters[s] || []).push(b); });
+    Object.keys(shooters).forEach(function(s){ var a = shooters[s];
+      if (a.some(isWed) && a.length > 1) h += '<div class="headsup">⚠️ ' + (s === 'Miranda' ? 'Miranda has' : esc(s) + ' has') + ' a wedding and another session this day. Double-check the timing and travel.</div>'; });
+    return h;
+  }
+  $('list').addEventListener('click', function(e){
+    var nav = e.target.closest('button[data-cal]'), dy = e.target.closest('button[data-day]');
+    if (nav) { var y = Number(CALM.slice(0, 4)), m = Number(CALM.slice(5, 7)) + Number(nav.getAttribute('data-cal'));
+      if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } CALM = y + '-' + String(m).padStart(2, '0'); SEL = CALM === today.slice(0, 7) ? today : CALM + '-01'; }
+    else if (dy) SEL = dy.getAttribute('data-day');
+    else return;
+    try { sessionStorage.setItem('mrp-cal', SEL); } catch (x) {}
+    draw();
+  });
 
   // Table view (Oct 15 2026): one row per booking, spreadsheet style; scrolls sideways on a phone
   function table(rows){
