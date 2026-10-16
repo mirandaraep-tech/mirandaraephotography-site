@@ -59,6 +59,10 @@ const day = (v) => String(v || "").slice(0, 10);
 const clash = (a, b) => day(a.date) && day(a.date) === day(b.date) && String(a.time || "").toLowerCase() === String(b.time || "").toLowerCase();
 const weddingDay = (a, b) => day(a.date) && day(a.date) === day(b.date) && (/wedding/i.test(a.time || "") !== /wedding/i.test(b.time || ""));
 const clip = (v, n = 120) => String(v == null ? "" : v).slice(0, n);
+// Deductions (Oct 16 2026): money taken off a booking from the master page (fewer people, a discount...)
+const lessOf = (b) => cents((b.deducts || []).reduce((s, x) => s + (x.amount || 0), 0));
+const totOf = (b) => cents((b.total || 0) + (b.addons || 0) - lessOf(b));
+const resplit = (b) => { if (b.split) b.payout = cents(totOf(b) - shareOf(b.split, totOf(b))); };
 
 function summary(state, live) {
   const payouts = cents(state.payouts || 0);
@@ -146,13 +150,32 @@ export default async (req) => {
     const a = data.action;
     if (a === "deposit") b.deposit = { amount: cleanMoney(data.amount) || 50, method: clip(data.method, 30) || "Venmo", at: now, by: who };
     else if (a === "undo-deposit") delete b.deposit;
-    else if (a === "paid") b.paid = { amount: cents(Math.max(0, (b.total || 0) + (b.addons || 0) - ((b.deposit && b.deposit.amount) || 0))), method: clip(data.method, 30), at: now, by: who };
+    else if (a === "paid") b.paid = { amount: cents(Math.max(0, totOf(b) - ((b.deposit && b.deposit.amount) || 0))), method: clip(data.method, 30), at: now, by: who };
     else if (a === "undo-paid") delete b.paid;
     else if (a === "cancel") b.cancelled = { at: now, by: who };
     else if (a === "undo-cancel") delete b.cancelled;
-    else return json({ error: "action" });
+    else if (a === "deduct") {
+      const amt = cents(cleanMoney(data.amount));
+      if (!(amt > 0) || amt > totOf(b)) return json({ error: "amount" });
+      b.deducts = (b.deducts || []).concat({ amount: amt, why: clip(data.why, 80), at: now, by: who });
+      resplit(b);
+    } else if (a === "undo-deduct") {
+      if (!(b.deducts && b.deducts.length)) return json({ error: "nothing" });
+      b.deducts.pop(); if (!b.deducts.length) delete b.deducts;
+      resplit(b);
+    } else if (a === "move") {
+      // Move date (Oct 16 2026): same time of day, new date. Blocked if that photographer already has that slot.
+      const nd = day(data.date);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(nd)) return json({ error: "date" });
+      const same = (x) => String(x.photographer || "").toLowerCase() === String(b.photographer || "").toLowerCase();
+      const other = list.find((x) => x !== b && !x.cancelled && !!x.test === !!b.test && same(x) && clash(x, { date: nd, time: b.time }));
+      if (other) return json({ conflict: true, with: other.num, name: other.name });
+      b.movedFrom = b.date; b.date = nd;
+    } else return json({ error: "action" });
     await store.setJSON("bookings", list);
-    await logIt({ kind: a, num: b.num, name: b.name, amount: a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : 0, by: who, test: !!b.test });
+    const amt = a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : a === "deduct" ? b.deducts[b.deducts.length - 1].amount : 0;
+    await logIt({ kind: a === "move" ? "moved" : a, num: b.num, name: b.name, amount: amt, by: who, test: !!b.test,
+      ...(a === "move" ? { date: b.date, detail: "Moved from " + b.movedFrom } : a === "deduct" ? { detail: b.deducts[b.deducts.length - 1].why } : {}) });
     return json({ ok: true, booking: b });
   }
   // Master page "Clear all tests" button (Oct 15 2026): removes test bookings and test entries from
@@ -235,7 +258,7 @@ export default async (req) => {
       const list = await getList("bookings"), b = list.find((x) => x.num === ref);
       if (b) {
         b.addons = cents((b.addons || 0) + amount);
-        if (b.split) b.payout = cents((b.total || 0) + b.addons - shareOf(b.split, (b.total || 0) + b.addons));
+        resplit(b);
         await store.setJSON("bookings", list);
       }
     }
