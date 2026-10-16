@@ -79,6 +79,7 @@ input,select{font:inherit;border:1px solid #d5dce0;border-radius:8px;padding:10p
 .bk .bar{color:#fff;font-weight:bold;font-size:15px;padding:7px 12px}
 .bk.k .bar{background:#7f77dd}.bk.w .bar{background:#d4537e}
 .bk .inner{padding:12px}
+.xf{margin-top:10px;padding:10px;border:1px dashed #c9d6da;border-radius:10px;background:#fbfcfd}
 .headsup{background:#fff1cf;color:#8a5a00;font-size:14px;border-radius:10px;padding:8px 10px;margin-top:10px}
 [hidden]{display:none!important}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
@@ -323,21 +324,32 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         rl('Session total', money(tot(b))) + rl(esc(b.photographer) + "'s pay", '−' + money(payOf(b))) +
         rl("<b>Miranda's share</b>" + how, '<b>' + money(mineOf(b)) + '</b>', 'border-top:1px solid var(--line);margin-top:4px;padding-top:4px') + '</div>';
     }
-    var total = (b.total || 0) + (b.addons || 0), acts = '';
+    var total = (b.total || 0) + (b.addons || 0), acts = '', xf = '';
     if (b.cancelled) acts = '<button class="btn ghost" data-a="undo-cancel">Undo cancel</button>';
     else {
       if (!b.deposit) acts += '<select data-m><option>Venmo</option><option>Cash App</option><option>PayPal</option><option>Pixieset</option><option>Cash</option><option>Other</option></select><button class="btn" data-a="deposit">Deposit Received</button>';
       else if (!b.paid) acts += '<button class="btn ghost" data-a="undo-deposit">Undo deposit</button>';
       if (!b.paid) acts += '<button class="btn" data-a="paid">Paid in Full</button>';
-      else acts += '<button class="btn ghost" data-a="undo-paid">Undo paid</button>';
+      else {
+        // An extra added after Paid in Full (Oct 15 2026): one tap marks the rest paid
+        if (due(b)) acts += '<button class="btn" data-a="paid">Mark ' + money(due(b)) + ' paid</button>';
+        acts += '<button class="btn ghost" data-a="undo-paid">Undo paid</button>';
+      }
+      acts += '<button class="btn ghost" data-a="extra">+ Add extra</button>';
       acts += '<button class="btn red" data-a="cancel">Cancel</button>';
+      // Add extra (Oct 15 2026): replaces the separate Add-On page; no booking number to look up
+      xf = '<div class="xf" hidden><div style="font-weight:bold;margin-bottom:6px">Add an extra for ' + esc(b.name) + '</div>' +
+        '<input data-w type="text" maxlength="120" placeholder="What was added (like 10 more photos)">' +
+        '<div style="display:flex;align-items:center;gap:6px;margin-top:8px"><b style="font-size:20px">$</b><input data-x type="number" inputmode="decimal" min="1" step="any" placeholder="40"></div>' +
+        '<p class="err" data-xe hidden>Enter the extra amount.</p>' +
+        '<div class="acts"><button class="btn" data-a="extra-save">Save extra</button><button class="btn ghost" data-a="extra-cancel">Never mind</button></div></div>';
     }
     return '<div class="bk' + (b.cancelled ? ' cx' : '') + '" data-num="' + b.num + '">' +
       '<div class="top"><span class="nm">' + esc(b.name) + '</span><span class="meta">' + (b.num < 101 ? 'early' : b.num < 900000 ? '#' + b.num : 'test') + '</span></div>' +
       '<div class="meta">' + esc([b.date ? nice(b.date) : '', b.time, b.beach].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="meta">' + esc(b.pkg || 'Session') + ' · ' + money(total) + (b.addons ? ' (incl. ' + money(b.addons) + ' add-ons)' : '') + (!b.cancelled && due(b) ? ' · <b>' + money(due(b)) + ' still due</b>' : '') + '</div>' +
       (b.by ? '<div class="meta">Set up by ' + esc(b.by) + '</div>' : '') +
-      '<div>' + tags + '</div>' + rc + '<div class="acts">' + acts + '</div></div>';
+      '<div>' + tags + '</div>' + rc + '<div class="acts">' + acts + '</div>' + xf + '</div>';
   }
 
   function act(num, a, method){
@@ -359,10 +371,31 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       }).catch(function(){ alert("That didn't save. Please check your connection and try again."); });
   }
 
+  function saveExtra(box, btn){
+    var num = Number(box.getAttribute('data-num')), b = (DATA.bookings || []).filter(function(x){ return x.num === num; })[0]; if (!b) return;
+    var what = box.querySelector('[data-w]').value.trim(), amt = Math.round(parseFloat(box.querySelector('[data-x]').value) * 100) / 100;
+    if (!(amt > 0)) { box.querySelector('[data-xe]').hidden = false; return; }
+    box.querySelector('[data-xe]').hidden = true; btn.disabled = true;
+    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify({ kind: 'addon', amount: amt, ref: num, name: b.name, what: what }) })
+      .then(function(r){ return r.json(); }).then(function(j){
+        if (j.error) { btn.disabled = false; alert("That didn't save. Please try again."); return; }
+        // Same "ADD-ON" email the Add-On page sent
+        if (!b.test) {
+          var d = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          var o = { _captcha: 'false', _template: 'table', name: b.name, 'booking-number': '#' + num, 'extra-amount': '+' + money(amt), 'what-was-added': what || 'not filled in', 'session-date': b.date ? nice(b.date) : '', 'added-by': WHO || 'Miranda', page: 'Bookings page' };
+          if (LIVE) o._cc = 'bookmirandarae@gmail.com';
+          o._subject = '➕ ADD-ON: ' + [b.name, '#' + num, d, '+' + money(amt)].join(' · ');
+          fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) }).catch(function(){});
+        }
+        load();
+      }).catch(function(){ btn.disabled = false; alert("That didn't save. Please check your connection and try again."); });
+  }
   $('list').addEventListener('click', function(e){
     var btn = e.target.closest('button[data-a]'); if (!btn) return;
-    var box = btn.closest('.bk'), m = box.querySelector('select[data-m]');
-    btn.disabled = true; act(Number(box.getAttribute('data-num')), btn.getAttribute('data-a'), m ? m.value : '');
+    var box = btn.closest('.bk'), m = box.querySelector('select[data-m]'), a = btn.getAttribute('data-a');
+    if (a === 'extra' || a === 'extra-cancel') { box.querySelector('.xf').hidden = a === 'extra-cancel'; if (a === 'extra') box.querySelector('[data-w]').focus(); return; }
+    if (a === 'extra-save') { saveExtra(box, btn); return; }
+    btn.disabled = true; act(Number(box.getAttribute('data-num')), a, m ? m.value : '');
   });
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-f]'), function(c){ c.addEventListener('click', function(){
     FILTER = c.getAttribute('data-f'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-f]'), function(x){ x.classList.toggle('on', x === c); }); draw();
