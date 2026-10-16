@@ -84,8 +84,28 @@ input,select{font:inherit;border:1px solid #d5dce0;border-radius:8px;padding:10p
 /* Oct 16 2026: simpler cards, filters that stay on screen, search */
 .tile.grn{background:#eef8f1;border-color:#bfe3cb}.tile.grn b{color:#1f6b3a}
 .tile.blu{background:#e9f4f6;border-color:#bcdce3;cursor:pointer}.tile.blu b{color:var(--teal)}
-.sticky{position:sticky;top:0;z-index:5;background:#fff;padding:8px 0 8px;border-bottom:1px solid #f0ebe4}
+.sticky{position:sticky;top:0;z-index:5;background:#fff;padding:10px 0 8px;border-bottom:1px solid #f0ebe4}
 .sticky .filters{flex-wrap:wrap;gap:6px}
+.bkhd{display:flex;justify-content:space-between;align-items:center}
+.views{display:flex;gap:4px}
+.vb{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:8px;width:38px;height:34px;font-size:16px;cursor:pointer;padding:0}
+.vb.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.fc{border:1px solid #cfdde1;background:#fff;color:var(--ink);border-radius:999px;padding:5px 11px;font-size:13px;cursor:pointer;white-space:nowrap}
+.fc .n{color:var(--muted);margin-left:2px}
+.fc.on{background:var(--teal);border-color:var(--teal);color:#fff}.fc.on .n{color:#cfe6ea}
+.fc.warn .n{color:#b7791f;font-weight:bold}.fc.on.warn .n{color:#ffe2a8}
+/* Folding rows: one line per booking, tap to open */
+.bk{padding:0;overflow:hidden}
+.bk .sum{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 12px;cursor:pointer}
+.bk .sum .nm{font-size:16px}
+.bk .sum .sub{font-size:13px;color:var(--muted);margin-top:1px}
+.bk .det{padding:0 12px 12px}
+.bk:not(.open) .det{display:none}
+.bk.open .sum{background:#f6fafb}
+.pill{font-size:12px;font-weight:bold;border-radius:999px;padding:3px 9px;white-space:nowrap}
+.p-y{background:#fff1cf;color:#8a5a00}.p-g{background:#dcf3e3;color:#1f6b3a}.p-b{background:#e1f0f3;color:var(--teal)}.p-x{background:#eceff1;color:#455a64}
+.bk .who{color:var(--teal);font-size:13px;font-weight:normal}
+.bk.k .inner,.bk.w .inner{padding:0}
 .chip{white-space:nowrap}
 .pay{margin-top:8px;font-size:14px;border-top:1px solid #f0ebe4;padding-top:6px}
 .pay .r{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
@@ -126,6 +146,29 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       <p class="muted" style="margin:10px 0 0">Collected is only what Miranda keeps. On a session shot by someone else, the photographer collects the rest. Tests and cancelled bookings are left out.</p>
     </div>
 
+    <div class="card" id="bkCard">
+      <!-- Oct 16 2026 cleanup: views as small icons, one slim sticky filter strip with counts, folding rows -->
+      <div class="bkhd">
+        <h2 style="margin:0">Bookings</h2>
+        <div class="views">
+          <button class="vb" data-v="calendar" aria-label="Calendar" title="Calendar">📅</button>
+          <button class="vb on" data-v="cards" aria-label="List" title="List">☰</button>
+          <button class="vb" data-v="table" aria-label="Table" title="Table">▦</button>
+        </div>
+      </div>
+      <div class="sticky" id="fBox">
+        <div class="filters" id="fRow">
+          <button class="fc" data-f="all">All <span class="n"></span></button>
+          <button class="fc on" data-f="upcoming">Upcoming <span class="n"></span></button>
+          <button class="fc" data-f="completed">Completed <span class="n"></span></button>
+          <button class="fc" data-f="unpaid">Unpaid <span class="n"></span></button>
+          <button class="fc" data-f="needs">Needs a look <span class="n"></span></button>
+        </div>
+      </div>
+      <input id="q" type="search" autocomplete="off" placeholder="Search a name (or Kallie)" style="margin-top:10px">
+      <div id="list"></div>
+    </div>
+
     <div class="card">
       <h2>Miranda's totals</h2>
       <div class="filters">
@@ -140,33 +183,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       <div id="mt" style="margin-top:12px"></div>
     </div>
 
-    <div class="card" id="bkCard">
-      <h2>Bookings</h2>
-      <div class="filters">
-        <button class="chip" data-v="calendar">📅 Calendar</button>
-        <button class="chip on" data-v="cards">Cards</button>
-        <button class="chip" data-v="table">Table</button>
-      </div>
-      <div class="sticky" id="fBox">
-        <div class="filters" id="fRow">
-          <button class="chip" data-f="all">All</button>
-          <button class="chip on" data-f="upcoming">Upcoming</button>
-          <button class="chip" data-f="completed">Completed</button>
-          <button class="chip" data-f="unpaid">Unpaid</button>
-          <button class="chip" data-f="needs">Needs a look</button>
-        </div>
-        <input id="q" type="search" autocomplete="off" placeholder="Search a name (or Kallie)" style="margin-top:8px">
-      </div>
-      <div class="filters" id="tRow" style="margin-top:8px">
-        <label><input type="checkbox" id="showTests" style="width:auto;min-height:0"> Show tests</label>
-        <button class="btn red" id="clearTests" style="margin-left:auto;min-height:36px;font-size:13px">Clear all tests</button>
-      </div>
-      <div id="list"></div>
-    </div>
-
     <div class="card">
       <h2>Everything that came in</h2>
       <div id="feed"></div>
+    </div>
+    <div class="filters" id="tRow" style="justify-content:center;gap:16px;margin:4px 0 10px">
+      <label class="muted"><input type="checkbox" id="showTests" style="width:auto;min-height:0;vertical-align:-2px"> Show tests</label>
+      <button class="lnk" id="clearTests" style="color:var(--bad)">Clear all tests</button>
     </div>
     <p style="text-align:center"><a href="#" id="forget" class="muted">Lock this phone</a></p>
   </div>
@@ -243,20 +266,29 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
     // Search finds anyone (cancelled too) by client or photographer name; otherwise cancelled ones stay hidden
     var q = ($('q').value || '').trim().toLowerCase();
+    var fits = function(b, f){
+      if (f === 'upcoming') return !b.date || b.date >= today;
+      if (f === 'completed') return b.date && b.date < today;
+      if (f === 'unpaid') return due(b) > 0;
+      if (f === 'needs') return flagged(b);
+      return true;
+    };
+    var shown = all.filter(function(b){ return (tests || !b.test) && !b.cancelled; });
+    // A count on each filter button; "Needs a look" turns amber when something's waiting
+    Array.prototype.forEach.call(document.querySelectorAll('.fc[data-f]'), function(x){
+      var f = x.getAttribute('data-f'), n = shown.filter(function(b){ return fits(b, f); }).length;
+      x.querySelector('.n').textContent = n; x.classList.toggle('warn', f === 'needs' && n > 0);
+    });
     var rows = all.filter(function(b){
       if (b.test && !tests) return false;
       if (q) return (String(b.name || '') + ' ' + String(b.photographer || '')).toLowerCase().indexOf(q) >= 0;
       if (b.cancelled) return false;
-      if (FILTER === 'upcoming') return !b.date || b.date >= today;
-      if (FILTER === 'completed') return b.date && b.date < today;
-      if (FILTER === 'unpaid') return due(b) > 0;
-      if (FILTER === 'needs') return flagged(b);
-      return true;
+      return fits(b, FILTER);
     }).sort(function(a, b){ var back = !q && (FILTER === 'completed' || FILTER === 'needs'); return back ? (b.date || '').localeCompare(a.date || '') : (a.date || '').localeCompare(b.date || ''); });
-    $('fBox').hidden = $('tRow').hidden = VIEW === 'calendar';
+    $('fBox').hidden = $('q').hidden = VIEW === 'calendar';
     var EMPTY = { upcoming: 'No upcoming sessions.', completed: 'No completed sessions yet.', unpaid: 'Everyone is paid up.', needs: 'Nothing needs a look. 👍', all: 'Nothing here yet.' };
     $('list').innerHTML = VIEW === 'calendar' ? calendar(all.filter(function(b){ return (tests || !b.test) && !b.cancelled && b.date; })) :
-      !rows.length ? '<p class="muted" style="margin-top:12px">' + (q ? 'No one by that name.' : EMPTY[FILTER] || 'Nothing here yet.') + '</p>' : VIEW === 'table' ? table(rows) : rows.map(card).join('');
+      !rows.length ? '<p class="muted" style="margin-top:12px">' + (q ? 'No one by that name.' : EMPTY[FILTER] || 'Nothing here yet.') + '</p>' : VIEW === 'table' ? table(rows) : rows.map(function(b){ return card(b); }).join('');
 
     // "Link texted" lines disappear once that client confirms (same name + session date),
     // and repeat taps for the same client show as one line. What's left = clients still waiting.
@@ -302,8 +334,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function isWed(b){ return /wedding/i.test(b.time || '') || /wedding/i.test(b.pkg || ''); }
   function dotOf(b){ return b.photographer ? 'c-pur' : isWed(b) ? 'c-pnk' : (b.deposit || b.paid) ? 'c-grn' : 'c-yel'; }
   function calCard(b){
-    if (!b.photographer && !isWed(b)) return card(b);
-    var c = card(b), bar = b.photographer ? '📷 ' + esc(b.photographer) + "'s session" : '💍 Wedding';
+    if (!b.photographer && !isWed(b)) return card(b, true);
+    var c = card(b, true), bar = b.photographer ? '📷 ' + esc(b.photographer) + "'s session" : '💍 Wedding';
     return c.replace('<div class="bk', '<div class="bk ' + (b.photographer ? 'k' : 'w')).replace('">', '"><div class="bar">' + bar + '</div><div class="inner">') + '</div>';
   }
   function calendar(list){
@@ -355,10 +387,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     return h + '</table></div><p class="muted" style="margin:6px 0 0">Switch to Cards to use the Deposit / Paid / Cancel buttons.</p>';
   }
 
-  function card(b){
+  var OPEN = null; // the one booking row that's open (stays open after a button saves)
+  function card(b, open){
     var tags = '';
-    if (b.test) tags += '<span class="tag t-gry">TEST</span>';
-    if (b.cancelled) tags += '<span class="tag t-red">Cancelled</span>';
     if (b.photographer) tags += '<span class="tag t-blu">📷 Shot by ' + esc(b.photographer) + ' (contracted out)</span>';
     var rc = '';
     if (b.photographer) {
@@ -411,13 +442,19 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         '<p class="err" data-xe hidden>Enter the extra amount.</p>' +
         '<div class="acts"><button class="btn" data-a="extra-save">Save extra</button><button class="btn ghost" data-a="extra-cancel">Never mind</button></div></div>';
     }
-    return '<div class="bk' + (b.cancelled ? ' cx' : '') + (fl ? ' fl' : '') + '" data-num="' + b.num + '">' +
-      '<div class="top"><span class="nm">' + esc(b.name) + '</span><span class="meta">' + (b.num < 101 ? 'early' : b.num < 900000 ? '#' + b.num : 'test') + '</span></div>' +
-      '<div class="meta">' + esc([b.date ? nice(b.date) : '', b.time, b.beach].filter(Boolean).join(' · ')) + '</div>' +
-      '<div class="meta">' + esc(b.pkg || 'Session') + ' · ' + money(total) + '</div>' +
+    // Folding row (Oct 16 2026): name, date and one colored money pill; tap to open the details and buttons
+    var pill = b.cancelled ? '<span class="pill p-x">Cancelled</span>' :
+      owed ? (b.photographer && b.deposit ? '<span class="pill p-b">' + esc(b.photographer) + ' collects ' + money(owed) + '</span>' : '<span class="pill p-y">Owes ' + money(owed) + '</span>') :
+      '<span class="pill p-g">Paid ✓</span>';
+    var isOpen = open || OPEN === b.num;
+    return '<div class="bk' + (b.cancelled ? ' cx' : '') + (fl ? ' fl' : '') + (isOpen ? ' open' : '') + '" data-num="' + b.num + '">' +
+      '<div class="sum" data-tog role="button" tabindex="0" aria-expanded="' + isOpen + '"><div><div class="nm">' + esc(b.name) + (b.photographer ? ' <span class="who">· ' + esc(b.photographer) + '</span>' : '') + (b.test ? ' <span class="tag t-gry" style="margin:0">TEST</span>' : '') + '</div>' +
+      '<div class="sub">' + (fl ? '⚠️ ' : '') + esc([b.date ? nice(b.date) : '', b.time, b.beach].filter(Boolean).join(' · ')) + '</div></div>' + pill + '</div>' +
+      '<div class="det">' +
+      '<div class="meta">' + esc(b.pkg || 'Session') + ' · ' + money(total) + ' · ' + (b.num < 101 ? 'early booking' : b.num < 900000 ? '#' + b.num : 'test') + '</div>' +
       (b.by ? '<div class="meta">Set up by ' + esc(b.by) + '</div>' : '') +
       (fl ? '<div class="flag">⚠️ Date passed — shot or moved?</div>' : '') +
-      (tags ? '<div>' + tags + '</div>' : '') + rc + pay + '<div class="acts">' + acts + '</div>' + xf + '</div>';
+      (tags ? '<div>' + tags + '</div>' : '') + rc + pay + '<div class="acts">' + acts + '</div>' + xf + '</div></div>';
   }
 
   function act(num, a, method, extra, btn){
@@ -470,6 +507,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       }).catch(function(){ btn.disabled = false; alert("That didn't save. Please check your connection and try again."); });
   }
   $('list').addEventListener('click', function(e){
+    // Tap a booking row to open it; tapping it again (or another row) closes it
+    var tg = e.target.closest('[data-tog]');
+    if (tg && VIEW !== 'calendar') {
+      var bx = tg.closest('.bk'), n = Number(bx.getAttribute('data-num')), was = bx.classList.contains('open');
+      Array.prototype.forEach.call($('list').querySelectorAll('.bk.open'), function(x){ x.classList.remove('open'); x.querySelector('[data-tog]').setAttribute('aria-expanded', 'false'); });
+      if (!was) { bx.classList.add('open'); tg.setAttribute('aria-expanded', 'true'); }
+      OPEN = was ? null : n; return;
+    }
     var btn = e.target.closest('button[data-a]'); if (!btn) return;
     var box = btn.closest('.bk'), m = box.querySelector('select[data-m]'), a = btn.getAttribute('data-a'), num = Number(box.getAttribute('data-num'));
     // One little form open at a time: + Add extra, − Deduct, Move date
@@ -497,9 +542,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     btn.disabled = true; act(num, a, m ? m.value : '', null, btn);
   });
   function setFilter(f){
-    FILTER = f; Array.prototype.forEach.call(document.querySelectorAll('.chip[data-f]'), function(x){ x.classList.toggle('on', x.getAttribute('data-f') === f); }); if (DATA) draw();
+    FILTER = f; Array.prototype.forEach.call(document.querySelectorAll('.fc[data-f]'), function(x){ x.classList.toggle('on', x.getAttribute('data-f') === f); }); if (DATA) draw();
   }
-  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-f]'), function(c){ c.addEventListener('click', function(){ setFilter(c.getAttribute('data-f')); }); });
+  Array.prototype.forEach.call(document.querySelectorAll('.fc[data-f]'), function(c){ c.addEventListener('click', function(){ setFilter(c.getAttribute('data-f')); }); });
   $('q').addEventListener('input', function(){ if (DATA) draw(); });
   // Tap the Upcoming sessions box: show the upcoming list
   $('tUpTile').addEventListener('click', function(){ $('q').value = ''; if (VIEW === 'calendar') setView('cards'); setFilter('upcoming'); $('bkCard').scrollIntoView({ behavior: 'smooth' }); });
@@ -510,8 +555,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-k]'), function(c){ c.addEventListener('click', function(){
     KIND = c.getAttribute('data-k'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-k]'), function(x){ x.classList.toggle('on', x === c); }); if (DATA) draw();
   }); });
-  function setView(v){ VIEW = v; try { localStorage.setItem('mrp-log-view', v); } catch (e) {} Array.prototype.forEach.call(document.querySelectorAll('.chip[data-v]'), function(x){ x.classList.toggle('on', x.getAttribute('data-v') === v); }); if (DATA) draw(); }
-  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-v]'), function(c){ c.addEventListener('click', function(){ setView(c.getAttribute('data-v')); }); });
+  function setView(v){ VIEW = v; try { localStorage.setItem('mrp-log-view', v); } catch (e) {} Array.prototype.forEach.call(document.querySelectorAll('.vb[data-v]'), function(x){ x.classList.toggle('on', x.getAttribute('data-v') === v); }); if (DATA) draw(); }
+  Array.prototype.forEach.call(document.querySelectorAll('.vb[data-v]'), function(c){ c.addEventListener('click', function(){ setView(c.getAttribute('data-v')); }); });
   setView(VIEW);
   $('clearTests').addEventListener('click', function(){
     if (!confirm('Remove all TEST bookings and test entries from this page? Real bookings are not touched.')) return;
