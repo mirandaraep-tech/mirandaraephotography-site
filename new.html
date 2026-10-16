@@ -61,7 +61,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   <img src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae" width="42" height="42">
   <div class="brand"><b>Miranda Rae Photography</b><span>NEW BOOKING · PRIVATE</span></div>
 </div></div>
-<div class="pastbar" id="pastbar" hidden>PAST SESSION — no text will be sent · <a href="#" id="pastoff" style="color:#fff">Turn off</a></div>
+<div class="pastbar" id="pastbar" hidden>ADD WITHOUT TEXTING — nothing is sent to the client · <a href="#" id="pastoff" style="color:#fff">Turn off</a></div>
 <main>
   <div class="card"><h1>New Booking</h1><p class="intro">Fill in what you agreed on, then text it to the client to confirm.</p></div>
 
@@ -132,11 +132,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <h2>What the client will see</h2>
     <div class="total" id="tot"></div>
     <div id="pastpaid" hidden>
-      <label>Already paid?</label>
-      <div class="chips" id="paidbtns"><button type="button" class="chip on" data-p="1">Paid in full</button><button type="button" class="chip" data-p="0">Still owes</button></div>
+      <label>What's been paid?</label>
+      <div class="chips" id="paidbtns"><button type="button" class="chip on" data-p="none">Nothing yet</button><button type="button" class="chip" data-p="deposit">Deposit paid ($50)</button><button type="button" class="chip" data-p="full">Paid in full</button></div>
     </div>
     <a class="btn" id="send" href="#">💬 Text to Client</a>
-    <a class="btn past" id="savepast" href="#" hidden>🗂️ Save Past Session</a>
+    <a class="btn past" id="savepast" href="#" hidden>💾 Save (no text sent)</a>
     <a class="btn ghost" id="copy" href="#">📋 Copy Link</a>
     <a class="btn ghost" id="prev" href="#" target="_blank" rel="noopener">👀 Preview Client's Page</a>
     <p class="err" id="err" hidden>Please fill in the client's name and the date first.</p>
@@ -145,10 +145,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   <div class="card" id="pastdone" hidden style="text-align:center">
     <h2>Saved ✓</h2>
     <p id="pastmsg" style="margin:4px 0 0"></p>
-    <a class="btn past" id="pastmore" href="#">Enter another past session</a>
+    <a class="btn past" id="pastmore" href="#">Add another</a>
     <a class="btn ghost" id="pastfin" href="#">Done</a>
   </div>
-  <a class="pastlink" id="pastopen" href="#">Entering an old session?</a>
+  <a class="pastlink" id="pastopen" href="#">Already scheduled? Add without texting</a>
   </div>
 </main>
 <footer>Miranda Rae Photography · private page</footer>
@@ -307,16 +307,16 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   $('whoother').addEventListener('change', function(){ if ($('whoother').value.trim()) setWho($('whoother').value); });
   $('whoother').addEventListener('keydown', function(e){ if (e.key === 'Enter' && $('whoother').value.trim()) setWho($('whoother').value); });
   $('whochg').addEventListener('click', function(e){ e.preventDefault(); WHO = ''; $('whoother').value = ''; $('whoother').hidden = true; showWho(); });
-  // Past session (Oct 16 2026): backlog a session that already happened. Tucked away at the bottom,
-  // asks first, shows a bright banner, only takes today or earlier, and turns itself off after each save.
-  var PAST = false, PAID = true;
+  // Add without texting (Oct 16 2026; started as "Entering an old session?"): for clients Miranda has
+  // already set up, past or upcoming. Tucked away at the bottom, asks first, shows a bright banner, hides
+  // the text buttons, checks with her before saving, and turns itself off after each save or page reload.
+  var PAST = false, PAY = 'none';
   function today(){ var t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }
   function setPast(on){
     PAST = on;
     $('pastbar').hidden = !on; $('pastopen').hidden = on; $('pastpaid').hidden = !on; $('savepast').hidden = !on;
     ['send', 'copy', 'prev'].forEach(function(id){ $(id).hidden = on; });
-    $('d').max = on ? today() : '';
-    document.querySelector('.intro').textContent = on ? 'Fill in a session that already happened. It goes straight to the Bookings page. Nothing is sent to the client.' : 'Fill in what you agreed on, then text it to the client to confirm.';
+    document.querySelector('.intro').textContent = on ? 'For a client you already have set up. It goes straight to the Bookings page. Nothing is sent to the client.' : 'Fill in what you agreed on, then text it to the client to confirm.';
     document.querySelector('#tot').previousElementSibling.textContent = on ? 'Session total' : "What the client will see";
     $('err').hidden = true; update();
   }
@@ -324,37 +324,47 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     ['n', 'ph', 'd', 'note', 'dr', 'dc', 'x1', 'x1d', 'x2', 'x2d', 'x3', 'x3d', 'x4', 'x4d', 'x5', 'x5d'].forEach(function(id){ $(id).value = ''; });
     $('t').selectedIndex = 0; $('b').selectedIndex = 0; $('pk').value = 0; touched = false; fillPkg();
     if (!$('cobox').hidden) $('cooff').click();
-    setPaid(true);
+    setPay('none');
   }
-  function setPaid(v){ PAID = v; Array.prototype.forEach.call($('paidbtns').children, function(b){ b.classList.toggle('on', (b.getAttribute('data-p') === '1') === v); }); }
-  Array.prototype.forEach.call($('paidbtns').children, function(b){ b.addEventListener('click', function(){ setPaid(b.getAttribute('data-p') === '1'); }); });
+  function setPay(v){ PAY = v; Array.prototype.forEach.call($('paidbtns').children, function(b){ b.classList.toggle('on', b.getAttribute('data-p') === v); }); }
+  Array.prototype.forEach.call($('paidbtns').children, function(b){ b.addEventListener('click', function(){ setPay(b.getAttribute('data-p')); }); });
   $('pastopen').addEventListener('click', function(e){
     e.preventDefault();
-    if (!confirm('This is for sessions that already happened. No text will be sent to the client. Continue?')) return;
+    if (!confirm('This is for clients you already have set up (past or upcoming). No text will be sent to the client. Continue?')) return;
     setPast(true); window.scrollTo({ top: 0, behavior: 'smooth' });
   });
   $('pastoff').addEventListener('click', function(e){ e.preventDefault(); setPast(false); });
   var saving = false;
-  $('savepast').addEventListener('click', function(e){
-    e.preventDefault(); if (saving || !ready()) return;
-    var o = data();
-    if (o.d > today()) { $('err').textContent = "That date hasn't happened yet. Use the regular New Booking for future sessions."; $('err').hidden = false; return; }
+  function nice(d){ return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); }
+  var PAYTXT = { none: 'nothing paid yet', deposit: 'deposit paid', full: 'paid in full' };
+  function savePast(force){
+    var o = data(), isPast = o.d < today();
     var co = !$('cobox').hidden && $('coname').value.trim();
     saving = true; $('savepast').textContent = 'Saving…';
     fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-      kind: 'past', by: who(), name: o.n, phone: $('ph').value, date: o.d, time: o.t, beach: o.b, pkg: o.pk + (o.x.length ? ' + extras' : ''),
-      amount: o.total, paid: PAID, photographer: co ? $('coname').value.trim() : '', split: co ? split() : null }) })
+      kind: 'direct', by: who(), name: o.n, phone: $('ph').value, date: o.d, time: o.t, beach: o.b, pkg: o.pk + (o.x.length ? ' + extras' : ''),
+      amount: o.total, pay: PAY, deposit: 50, force: !!force, photographer: co ? $('coname').value.trim() : '', split: co ? split() : null }) })
       .then(function(r){ return r.json(); }).then(function(j){
         if (j && j.ok) {
-          $('pastmsg').textContent = o.n + ' · ' + new Date(o.d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' · ' + money(o.total) + (PAID ? ' · paid in full' : ' · still owes');
+          $('pastmsg').innerHTML = esc(o.n) + ' · ' + esc(nice(o.d)) + ' · ' + money(o.total) + ' · ' + PAYTXT[PAY] +
+            '<br>' + (j.past ? 'Saved under <b>Past</b>. Not counted in the totals.' : 'Saved as booking <b>#' + j.booking.num + '</b>' + (j.booking.test ? ' (test)' : '') + '. Counts as an upcoming session.');
           setPast(false); clearForm();
           Array.prototype.forEach.call(document.querySelectorAll('#formwrap > .card'), function(c){ c.hidden = c.id !== 'pastdone'; });
           $('pastdone').hidden = false; $('pastopen').hidden = true; window.scrollTo({ top: 0 });
+        } else if (j && j.conflict) {
+          if (confirm('Heads up: ' + (j.withName || 'another client') + ' (#' + j.with + ') is already booked for ' + o.t + ' that day.\n\nTap OK to save anyway, or Cancel to go back and change it.')) { saving = false; savePast(true); return; }
         } else if (j && j.duplicate) alert(o.n + ' is already on the Bookings page for that date and beach.');
-        else if (j && j.error === 'future') alert("That date hasn't happened yet. Use the regular New Booking for future sessions.");
         else alert("That didn't save. Please try again.");
       }).catch(function(){ alert("That didn't save. Please check your connection."); })
-      .then(function(){ saving = false; $('savepast').textContent = '🗂️ Save Past Session'; });
+      .then(function(){ if (saving) { saving = false; $('savepast').textContent = '💾 Save (no text sent)'; } });
+  }
+  $('savepast').addEventListener('click', function(e){
+    e.preventDefault(); if (saving || !ready()) return;
+    var o = data(), isPast = o.d < today();
+    var msg = (isPast ? 'PAST SESSION' : 'UPCOMING SESSION') + '\n\n' + o.n + '\n' + nice(o.d) + ' · ' + o.t + ' · ' + o.b + '\n' + money(o.total) + ' · ' + PAYTXT[PAY] +
+      '\n\n' + (isPast ? 'Goes under Past. Not counted in the totals.' : 'Counts in the totals as an upcoming session.') + '\nNothing will be texted. Save it?';
+    if (!confirm(msg)) return;
+    savePast(false);
   });
   function backToForm(past){
     $('pastdone').hidden = true;

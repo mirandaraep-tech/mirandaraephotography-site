@@ -197,33 +197,58 @@ export default async (req) => {
     await logIt({ kind: "split-default", detail: "Usual split now " + state.splitDefault.pct + "% to Miranda", by: clip(data.by, 40) });
     return json({ ok: true, split: state.splitDefault });
   }
-  // Past session (Oct 16 2026): Miranda backlogs a session that already happened, from the New Booking
-  // page's "Entering an old session?" mode. No text goes out, no slot check, no booking number, and it
-  // never touches the running total; it's kept on the Bookings page under its own "Past" filter.
-  if (data.kind === "past") {
+  // Add without texting (Oct 16 2026; started as "Entering an old session?"): Miranda adds a client she's
+  // already set up, straight from New Booking. Nothing is texted. The date decides what it is:
+  // - a past date is a Past session: no booking number, no slot check, never in the running total
+  // - today or later is a real upcoming booking: gets a booking number, counts in the total, and goes
+  //   through the same double-booking check as the Confirm page.
+  // pay: "none" (nothing paid yet), "deposit" ($50 or the amount sent) or "full" (paid in full).
+  if (data.kind === "past" || data.kind === "direct") {
     const d = day(data.date);
-    const ct = new Date(Date.now() - 6 * 3600 * 1000).toISOString().slice(0, 10); // a little slack for Central time
+    const ct = new Date(Date.now() - 6 * 3600 * 1000).toISOString().slice(0, 10); // today in Central time
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return json({ error: "date" });
-    if (d > ct) return json({ error: "future" });
     const name = clip(data.name, 60).trim();
     if (!name) return json({ error: "name" });
+    const isPast = d < ct;
+    if (data.kind === "past" && d > ct) return json({ error: "future" }); // older New Booking pages
     const list = await getList("bookings");
     const b = { name, date: d, time: clip(data.time, 30), beach: clip(data.beach, 40) };
     b.key = keyOf(b);
     if (list.some((x) => x.key === b.key && !x.cancelled)) return json({ duplicate: true });
     const test = isTestName(name) || isTestPhone(data.phone);
     const total = cents(cleanMoney(data.amount));
-    state.lastPast = (state.lastPast || 0) + 1;
     const who = clip(data.photographer, 60).trim(), split = who ? cleanSplit(data.split) : null;
+    if (!isPast) {
+      const sameShooter = (x) => String(x.photographer || "").toLowerCase() === who.toLowerCase();
+      const taken = list.find((x) => !x.cancelled && !x.past && !!x.test === test && sameShooter(x) && clash(x, b));
+      if (taken && !data.force) return json({ conflict: true, with: taken.num, withName: taken.name });
+    }
     const now = new Date().toISOString(), by = clip(data.by, 40);
-    Object.assign(b, { num: 700000 + state.lastPast, past: true, pkg: clip(data.pkg, 60), total, by, phone: digits(data.phone),
-      photographer: who, payout: split ? cents(total - shareOf(split, total)) : 0, ...(split ? { split } : {}), test, created: now });
-    if (data.paid && total > 0) b.paid = { amount: total, method: clip(data.method, 30), at: now, by };
+    let num;
+    if (isPast) { state.lastPast = (state.lastPast || 0) + 1; num = 700000 + state.lastPast; }
+    else if (test) { state.lastTest = (state.lastTest || 0) + 1; num = 900000 + state.lastTest; }
+    else { state.last += 1; num = state.last; }
+    const payout = split ? cents(total - shareOf(split, total)) : 0;
+    Object.assign(b, { num, ...(isPast ? { past: true } : { direct: true }), pkg: clip(data.pkg, 60), total, by, phone: digits(data.phone),
+      photographer: who, payout, ...(split ? { split } : {}), test, created: now });
+    const pay = data.pay || (data.paid ? "full" : "none");
+    if (pay === "full" && total > 0) b.paid = { amount: total, method: clip(data.method, 30), at: now, by };
+    else if (pay === "deposit") b.deposit = { amount: Math.min(total || 50, cleanMoney(data.deposit) || 50), method: clip(data.method, 30), at: now, by };
+    if (!isPast && !test) {
+      // Same running total and booking number as a Confirm-page booking; also remembered so that if the
+      // client later taps an old Confirm link for this same session it isn't counted twice.
+      state.count += 1; state.total = cents(state.total + total);
+      if (who) { state.contracted = (state.contracted || 0) + 1; state.payouts = cents((state.payouts || 0) + payout); }
+      state.recent = Array.isArray(state.recent) ? state.recent : [];
+      state.recent.push({ key: b.key, num, ...(who ? { photographer: who, payout } : {}) });
+      if (state.recent.length > 200) state.recent = state.recent.slice(-200);
+    }
     list.push(b);
     await store.setJSON("bookings", list.slice(-500));
     state.updated = now; await store.setJSON("state", state);
-    await logIt({ kind: "past", name, date: d, beach: b.beach, amount: total, by, detail: (who ? "Shot by " + who + " · " : "") + (b.paid ? "paid in full" : "still owes"), test });
-    return json({ ok: true, booking: b });
+    const payTxt = b.paid ? "paid in full" : b.deposit ? "deposit paid" : isPast ? "still owes" : "no deposit yet";
+    await logIt({ kind: isPast ? "past" : "added", num: isPast ? null : num, name, date: d, beach: b.beach, amount: total, by, detail: (who ? "Shot by " + who + " · " : "") + payTxt, test });
+    return json({ ok: true, past: isPast, booking: b });
   }
   // A "Check My Date" request from any page on the site (logged only, never counted)
   if (data.kind === "request") {
