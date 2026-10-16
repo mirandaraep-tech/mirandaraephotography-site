@@ -48,6 +48,10 @@ textarea{min-height:70px}
 .keep{margin-top:10px;font-size:15px}
 #whocard.mini{padding:12px 20px}#whocard.mini h2,#whocard.mini .chips,#whocard.mini #whoother{display:none}
 .locked{opacity:.35;pointer-events:none}
+/* Past session mode (Oct 16 2026) */
+.pastbar{position:sticky;top:0;z-index:5;background:#b45309;color:#fff;font-weight:bold;text-align:center;padding:10px 12px;font-size:15px}
+.btn.past{background:#b45309}
+.pastlink{display:block;text-align:center;font-size:14px;color:var(--muted);margin:18px 0 6px}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 @media(max-width:380px){.row2{grid-template-columns:1fr}}
 </style>
@@ -57,6 +61,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   <img src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae" width="42" height="42">
   <div class="brand"><b>Miranda Rae Photography</b><span>NEW BOOKING · PRIVATE</span></div>
 </div></div>
+<div class="pastbar" id="pastbar" hidden>PAST SESSION — no text will be sent · <a href="#" id="pastoff" style="color:#fff">Turn off</a></div>
 <main>
   <div class="card"><h1>New Booking</h1><p class="intro">Fill in what you agreed on, then text it to the client to confirm.</p></div>
 
@@ -126,12 +131,24 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   <div class="card">
     <h2>What the client will see</h2>
     <div class="total" id="tot"></div>
+    <div id="pastpaid" hidden>
+      <label>Already paid?</label>
+      <div class="chips" id="paidbtns"><button type="button" class="chip on" data-p="1">Paid in full</button><button type="button" class="chip" data-p="0">Still owes</button></div>
+    </div>
     <a class="btn" id="send" href="#">💬 Text to Client</a>
+    <a class="btn past" id="savepast" href="#" hidden>🗂️ Save Past Session</a>
     <a class="btn ghost" id="copy" href="#">📋 Copy Link</a>
     <a class="btn ghost" id="prev" href="#" target="_blank" rel="noopener">👀 Preview Client's Page</a>
     <p class="err" id="err" hidden>Please fill in the client's name and the date first.</p>
     <p class="small" id="copied" hidden style="text-align:center">Link copied!</p>
   </div>
+  <div class="card" id="pastdone" hidden style="text-align:center">
+    <h2>Saved ✓</h2>
+    <p id="pastmsg" style="margin:4px 0 0"></p>
+    <a class="btn past" id="pastmore" href="#">Enter another past session</a>
+    <a class="btn ghost" id="pastfin" href="#">Done</a>
+  </div>
+  <a class="pastlink" id="pastopen" href="#">Entering an old session?</a>
   </div>
 </main>
 <footer>Miranda Rae Photography · private page</footer>
@@ -186,7 +203,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     o.x.forEach(function(e){ h += '<div class="line"><span>+ ' + esc(e[0]) + '</span><span>' + money(e[1]) + '</span></div>'; });
     if (o.dc) h += '<div class="line minus"><span>− Discount' + (o.dr ? ': ' + esc(o.dr) : '') + '</span><span>−' + money(o.dc) + '</span></div>';
     h += '<div class="line big"><span>Total</span><span>' + money(o.total) + '</span></div>';
-    if (o.total > 50) h += '<div class="small">$50 deposit to confirm · ' + money(o.total - 50) + ' on session day</div>';
+    if (o.total > 50 && !PAST) h += '<div class="small">$50 deposit to confirm · ' + money(o.total - 50) + ' on session day</div>';
     $('tot').innerHTML = h;
     $('prev').href = link(o);
   }
@@ -252,7 +269,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     try { fetch('/api/booking-counter', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body }); } catch (e) {}
   }
 
-  function ready(){ if (!who()) { $('whocard').scrollIntoView({ behavior: 'smooth' }); return false; } var ok = $('n').value.trim() && $('d').value; $('err').hidden = !!ok; return ok; }
+  function ready(){ if (!who()) { $('whocard').scrollIntoView({ behavior: 'smooth' }); return false; } var ok = $('n').value.trim() && $('d').value; $('err').textContent = "Please fill in the client's name and the date first."; $('err').hidden = !!ok; return ok; }
   $('send').addEventListener('click', function(e){
     e.preventDefault(); if (!ready()) return;
     var o = data(), first = o.n.split(/\s+/)[0];
@@ -290,6 +307,62 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   $('whoother').addEventListener('change', function(){ if ($('whoother').value.trim()) setWho($('whoother').value); });
   $('whoother').addEventListener('keydown', function(e){ if (e.key === 'Enter' && $('whoother').value.trim()) setWho($('whoother').value); });
   $('whochg').addEventListener('click', function(e){ e.preventDefault(); WHO = ''; $('whoother').value = ''; $('whoother').hidden = true; showWho(); });
+  // Past session (Oct 16 2026): backlog a session that already happened. Tucked away at the bottom,
+  // asks first, shows a bright banner, only takes today or earlier, and turns itself off after each save.
+  var PAST = false, PAID = true;
+  function today(){ var t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }
+  function setPast(on){
+    PAST = on;
+    $('pastbar').hidden = !on; $('pastopen').hidden = on; $('pastpaid').hidden = !on; $('savepast').hidden = !on;
+    ['send', 'copy', 'prev'].forEach(function(id){ $(id).hidden = on; });
+    $('d').max = on ? today() : '';
+    document.querySelector('.intro').textContent = on ? 'Fill in a session that already happened. It goes straight to the Bookings page. Nothing is sent to the client.' : 'Fill in what you agreed on, then text it to the client to confirm.';
+    document.querySelector('#tot').previousElementSibling.textContent = on ? 'Session total' : "What the client will see";
+    $('err').hidden = true; update();
+  }
+  function clearForm(){
+    ['n', 'ph', 'd', 'note', 'dr', 'dc', 'x1', 'x1d', 'x2', 'x2d', 'x3', 'x3d', 'x4', 'x4d', 'x5', 'x5d'].forEach(function(id){ $(id).value = ''; });
+    $('t').selectedIndex = 0; $('b').selectedIndex = 0; $('pk').value = 0; touched = false; fillPkg();
+    if (!$('cobox').hidden) $('cooff').click();
+    setPaid(true);
+  }
+  function setPaid(v){ PAID = v; Array.prototype.forEach.call($('paidbtns').children, function(b){ b.classList.toggle('on', (b.getAttribute('data-p') === '1') === v); }); }
+  Array.prototype.forEach.call($('paidbtns').children, function(b){ b.addEventListener('click', function(){ setPaid(b.getAttribute('data-p') === '1'); }); });
+  $('pastopen').addEventListener('click', function(e){
+    e.preventDefault();
+    if (!confirm('This is for sessions that already happened. No text will be sent to the client. Continue?')) return;
+    setPast(true); window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  $('pastoff').addEventListener('click', function(e){ e.preventDefault(); setPast(false); });
+  var saving = false;
+  $('savepast').addEventListener('click', function(e){
+    e.preventDefault(); if (saving || !ready()) return;
+    var o = data();
+    if (o.d > today()) { $('err').textContent = "That date hasn't happened yet. Use the regular New Booking for future sessions."; $('err').hidden = false; return; }
+    var co = !$('cobox').hidden && $('coname').value.trim();
+    saving = true; $('savepast').textContent = 'Saving…';
+    fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      kind: 'past', by: who(), name: o.n, phone: $('ph').value, date: o.d, time: o.t, beach: o.b, pkg: o.pk + (o.x.length ? ' + extras' : ''),
+      amount: o.total, paid: PAID, photographer: co ? $('coname').value.trim() : '', split: co ? split() : null }) })
+      .then(function(r){ return r.json(); }).then(function(j){
+        if (j && j.ok) {
+          $('pastmsg').textContent = o.n + ' · ' + new Date(o.d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' · ' + money(o.total) + (PAID ? ' · paid in full' : ' · still owes');
+          setPast(false); clearForm();
+          Array.prototype.forEach.call(document.querySelectorAll('#formwrap > .card'), function(c){ c.hidden = c.id !== 'pastdone'; });
+          $('pastdone').hidden = false; $('pastopen').hidden = true; window.scrollTo({ top: 0 });
+        } else if (j && j.duplicate) alert(o.n + ' is already on the Bookings page for that date and beach.');
+        else if (j && j.error === 'future') alert("That date hasn't happened yet. Use the regular New Booking for future sessions.");
+        else alert("That didn't save. Please try again.");
+      }).catch(function(){ alert("That didn't save. Please check your connection."); })
+      .then(function(){ saving = false; $('savepast').textContent = '🗂️ Save Past Session'; });
+  });
+  function backToForm(past){
+    $('pastdone').hidden = true;
+    Array.prototype.forEach.call(document.querySelectorAll('#formwrap > .card'), function(c){ if (c.id !== 'pastdone') c.hidden = false; });
+    setPast(past); window.scrollTo({ top: 0 });
+  }
+  $('pastmore').addEventListener('click', function(e){ e.preventDefault(); backToForm(true); });
+  $('pastfin').addEventListener('click', function(e){ e.preventDefault(); backToForm(false); });
   fillPkg();
   showWho();
 })();

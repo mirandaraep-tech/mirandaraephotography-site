@@ -197,6 +197,34 @@ export default async (req) => {
     await logIt({ kind: "split-default", detail: "Usual split now " + state.splitDefault.pct + "% to Miranda", by: clip(data.by, 40) });
     return json({ ok: true, split: state.splitDefault });
   }
+  // Past session (Oct 16 2026): Miranda backlogs a session that already happened, from the New Booking
+  // page's "Entering an old session?" mode. No text goes out, no slot check, no booking number, and it
+  // never touches the running total; it's kept on the Bookings page under its own "Past" filter.
+  if (data.kind === "past") {
+    const d = day(data.date);
+    const ct = new Date(Date.now() - 6 * 3600 * 1000).toISOString().slice(0, 10); // a little slack for Central time
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return json({ error: "date" });
+    if (d > ct) return json({ error: "future" });
+    const name = clip(data.name, 60).trim();
+    if (!name) return json({ error: "name" });
+    const list = await getList("bookings");
+    const b = { name, date: d, time: clip(data.time, 30), beach: clip(data.beach, 40) };
+    b.key = keyOf(b);
+    if (list.some((x) => x.key === b.key && !x.cancelled)) return json({ duplicate: true });
+    const test = isTestName(name) || isTestPhone(data.phone);
+    const total = cents(cleanMoney(data.amount));
+    state.lastPast = (state.lastPast || 0) + 1;
+    const who = clip(data.photographer, 60).trim(), split = who ? cleanSplit(data.split) : null;
+    const now = new Date().toISOString(), by = clip(data.by, 40);
+    Object.assign(b, { num: 700000 + state.lastPast, past: true, pkg: clip(data.pkg, 60), total, by, phone: digits(data.phone),
+      photographer: who, payout: split ? cents(total - shareOf(split, total)) : 0, ...(split ? { split } : {}), test, created: now });
+    if (data.paid && total > 0) b.paid = { amount: total, method: clip(data.method, 30), at: now, by };
+    list.push(b);
+    await store.setJSON("bookings", list.slice(-500));
+    state.updated = now; await store.setJSON("state", state);
+    await logIt({ kind: "past", name, date: d, beach: b.beach, amount: total, by, detail: (who ? "Shot by " + who + " · " : "") + (b.paid ? "paid in full" : "still owes"), test });
+    return json({ ok: true, booking: b });
+  }
   // A "Check My Date" request from any page on the site (logged only, never counted)
   if (data.kind === "request") {
     await logIt({ kind: "request", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), detail: clip(data.detail), test: isTestName(data.name) || isTestPhone(data.phone) });
