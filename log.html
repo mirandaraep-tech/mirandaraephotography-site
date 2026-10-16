@@ -295,7 +295,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     pastAll.forEach(function(b){ pb += tot(b); po += due(b); });
     $('pastsum').hidden = !(FILTER === 'past' && !q && VIEW !== 'calendar');
     $('pastsum').innerHTML = 'Sessions entered from before the new system: <b>' + pastAll.length + '</b> · <b>' + money(pb) + '</b>' + (po ? ' · still owed <b>' + money(po) + '</b>' : '') + '<br>Not counted in the totals above.';
-    var EMPTY = { upcoming: 'No upcoming sessions.', completed: 'No completed sessions yet.', unpaid: 'Everyone is paid up.', needs: 'Nothing needs a look. 👍', past: 'No past sessions entered yet. Use "Entering an old session?" at the bottom of New Booking.', all: 'Nothing here yet.' };
+    var EMPTY = { upcoming: 'No upcoming sessions.', completed: 'No completed sessions yet.', unpaid: 'Everyone is paid up.', needs: 'Nothing needs a look. 👍', past: 'No past sessions entered yet. Use "Add without texting" at the bottom of New Booking.', all: 'Nothing here yet.' };
     $('list').innerHTML = VIEW === 'calendar' ? calendar(all.filter(function(b){ return (tests || !b.test) && !b.cancelled && b.date; })) :
       !rows.length ? '<p class="muted" style="margin-top:12px">' + (q ? 'No one by that name.' : EMPTY[FILTER] || 'Nothing here yet.') + '</p>' : VIEW === 'table' ? table(rows) : rows.map(function(b){ return card(b); }).join('');
 
@@ -312,7 +312,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (DONE[k] || (!e.date && DONE[nm(e) + '|*']) || SENT[k]) return false;
       SENT[k] = 1; return true;
     }).slice(0, 80);
-    var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added' };
+    var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)' };
     $('feed').innerHTML = feed.length ? feed.map(function(e){
       return '<div class="ev"><b>' + (LBL[e.kind] || esc(e.kind)) + '</b> ' + (e.num && e.num < 900000 ? '#' + e.num + ' ' : '') + esc(e.name || '') +
         (e.amount ? ' · ' + money(e.amount) : '') + (e.test ? ' <span class="tag t-gry">TEST</span>' : '') +
