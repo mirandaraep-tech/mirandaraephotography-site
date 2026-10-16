@@ -203,7 +203,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     o.x.forEach(function(e){ h += '<div class="line"><span>+ ' + esc(e[0]) + '</span><span>' + money(e[1]) + '</span></div>'; });
     if (o.dc) h += '<div class="line minus"><span>− Discount' + (o.dr ? ': ' + esc(o.dr) : '') + '</span><span>−' + money(o.dc) + '</span></div>';
     h += '<div class="line big"><span>Total</span><span>' + money(o.total) + '</span></div>';
-    if (o.total > 50) h += '<div class="small">$50 deposit to confirm · ' + money(o.total - 50) + ' on session day</div>';
+    if (o.total > 50 && !PAST) h += '<div class="small">$50 deposit to confirm · ' + money(o.total - 50) + ' on session day</div>';
     $('tot').innerHTML = h;
     $('prev').href = link(o);
   }
@@ -318,7 +318,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('d').max = on ? today() : '';
     document.querySelector('.intro').textContent = on ? 'Fill in a session that already happened. It goes straight to the Bookings page. Nothing is sent to the client.' : 'Fill in what you agreed on, then text it to the client to confirm.';
     document.querySelector('#tot').previousElementSibling.textContent = on ? 'Session total' : "What the client will see";
-    $('err').hidden = true;
+    $('err').hidden = true; update();
   }
   function clearForm(){
     ['n', 'ph', 'd', 'note', 'dr', 'dc', 'x1', 'x1d', 'x2', 'x2d', 'x3', 'x3d', 'x4', 'x4d', 'x5', 'x5d'].forEach(function(id){ $(id).value = ''; });
