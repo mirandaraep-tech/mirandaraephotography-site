@@ -223,7 +223,19 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('list').innerHTML = VIEW === 'calendar' ? calendar(all.filter(function(b){ return (tests || !b.test) && !b.cancelled && b.date; })) :
       !rows.length ? '<p class="muted">Nothing here yet.</p>' : VIEW === 'table' ? table(rows) : rows.map(card).join('');
 
-    var feed = (DATA.log || []).filter(function(e){ return tests || !e.test; }).slice(-80).reverse();
+    // "Link texted" lines disappear once that client confirms (same name + session date),
+    // and repeat taps for the same client show as one line. What's left = clients still waiting.
+    var LOGALL = DATA.log || [];
+    var nm = function(e){ return String(e.name || '').trim().toLowerCase(); };
+    var DONE = {};
+    LOGALL.forEach(function(e){ if (e.kind === 'confirm') { DONE[nm(e) + '|' + (e.date || '')] = 1; DONE[nm(e) + '|*'] = 1; } });
+    var SENT = {};
+    var feed = LOGALL.filter(function(e){ return tests || !e.test; }).slice().reverse().filter(function(e){
+      if (e.kind !== 'sent') return true;
+      var k = nm(e) + '|' + (e.date || '');
+      if (DONE[k] || (!e.date && DONE[nm(e) + '|*']) || SENT[k]) return false;
+      SENT[k] = 1; return true;
+    }).slice(0, 80);
     var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', 'split-default': '⚙️ Usual split changed' };
     $('feed').innerHTML = feed.length ? feed.map(function(e){
       return '<div class="ev"><b>' + (LBL[e.kind] || esc(e.kind)) + '</b> ' + (e.num && e.num < 900000 ? '#' + e.num + ' ' : '') + esc(e.name || '') +
