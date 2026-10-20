@@ -220,22 +220,27 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   // Miranda's share (Oct 15 2026): a % of the session (usual 25%, or $50 if that's more) or a $ amount.
   // The photographer gets the rest. Add-ons later are split the same way.
-  var SPLIT = { pct: 25, min: 50 }, MODE = 'pct', TOUCHED = false;
+  // Oct 20 2026: Miranda's usual share is a flat $50 on every session except weddings; weddings are 25% (at least $50).
+  // Either can still be changed per booking. MANUAL = she changed it herself, so package changes leave it alone.
+  var SPLIT = { pct: 25, min: 50 }, FLAT = 50, MODE = 'pct', TOUCHED = false, MANUAL = false;
+  function isWed(){ var p = PK[$('pk').value] || ['']; return $('t').value === 'Wedding' || /wedding/i.test(p[0]); }
+  function usual(){ if (MANUAL) return; TOUCHED = false; setMode(isWed() ? 'pct' : 'amt', true); }
   function split(){
     var v = $('coval').value === '' ? (MODE === 'pct' ? SPLIT.pct : 0) : num('coval');
     if (MODE === 'amt') return { mode: 'amt', val: v };
     var o = { mode: 'pct', val: v }; if (v === SPLIT.pct && SPLIT.min) o.min = SPLIT.min; return o;
   }
   function shareOf(sp, t){ var v = sp.mode === 'amt' ? sp.val : Math.max(t * sp.val / 100, sp.min || 0); return Math.round(Math.min(Math.max(0, t), v) * 100) / 100; }
-  function setMode(m){
+  function setMode(m, auto){
+    if (!auto) MANUAL = true;
     MODE = m; Array.prototype.forEach.call($('comode').children, function(b){ b.classList.toggle('on', b.getAttribute('data-m') === m); });
     $('cosym').textContent = m === 'pct' ? '%' : '$'; $('comoney').classList.toggle('pct', m === 'pct');
-    $('coval').value = m === 'pct' ? SPLIT.pct : ''; keep();
+    $('coval').value = m === 'pct' ? SPLIT.pct : (auto ? FLAT : ''); keep();
   }
   function keep(){
     if ($('cobox').hidden) return;
     var t = data().total, who = $('coname').value.trim() || 'the photographer', sp = split(), mine = shareOf(sp, t);
-    $('conote').textContent = MODE === 'pct' ? (sp.min ? 'Usual: ' + SPLIT.pct + '% or ' + money(SPLIT.min) + ', whichever is more' : sp.val + '% of the session') : 'Miranda keeps this dollar amount';
+    $('conote').textContent = MODE === 'pct' ? (sp.min ? 'Usual for weddings: ' + SPLIT.pct + '% or ' + money(SPLIT.min) + ', whichever is more' : sp.val + '% of the session') : (!MANUAL && sp.val === FLAT ? 'Usual: a flat ' + money(FLAT) + ' to Miranda (weddings are ' + SPLIT.pct + '%)' : 'Miranda keeps this dollar amount');
     $('cokeep').innerHTML = t ? esc(who) + "'s pay <b>" + money(Math.max(0, t - mine)) + "</b> · Miranda's share <b>" + money(mine) + '</b>' : '';
     var other = MODE === 'pct' && $('coval').value !== '' && num('coval') !== SPLIT.pct;
     $('cosave').hidden = !other; if (other) $('cosave').textContent = 'Make ' + num('coval') + '% the usual';
@@ -246,7 +251,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }).catch(function(){}); } catch (e) {}
   chips(); $('coval').value = SPLIT.pct;
   $('coname').addEventListener('input', function(){ chips(); keep(); });
-  $('coval').addEventListener('input', function(){ TOUCHED = true; keep(); });
+  $('coval').addEventListener('input', function(){ TOUCHED = true; MANUAL = true; keep(); });
+  $('pk').addEventListener('change', function(){ usual(); }); $('t').addEventListener('change', function(){ usual(); });
   Array.prototype.forEach.call($('comode').children, function(b){ b.addEventListener('click', function(){ TOUCHED = false; setMode(b.getAttribute('data-m')); if (MODE === 'amt') $('coval').focus(); }); });
   $('cosave').addEventListener('click', function(e){
     e.preventDefault(); var pct = num('coval');
@@ -256,8 +262,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       .catch(function(){ alert("That didn't save. Please check your connection."); });
   });
   document.addEventListener('input', keep); document.addEventListener('change', keep);
-  $('cotog').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = false; $('cotog').hidden = true; keep(); });
-  $('cooff').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = true; $('cotog').hidden = false; $('coname').value = ''; TOUCHED = false; setMode('pct'); chips(); });
+  $('cotog').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = false; $('cotog').hidden = true; MANUAL = false; usual(); });
+  $('cooff').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = true; $('cotog').hidden = false; $('coname').value = ''; TOUCHED = false; MANUAL = false; setMode('pct', true); chips(); });
 
   // Tell the site about this booking before the link goes out (client's phone for the test check, and who's shooting)
   function remember(o){

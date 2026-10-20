@@ -626,6 +626,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     return [f(Jt - w / 360), f(Jt + w / 360)];
   }
   function isWed(b){ return /wedding/i.test(b.time || '') || /wedding/i.test(b.pkg || ''); }
+  // Usual split (Oct 20 2026): a flat $50 to Miranda, except weddings at 25% (at least $50)
+  function usualSplit(b){ return isWed(b) ? { mode: 'pct', val: PH.split.pct, min: PH.split.min } : { mode: 'amt', val: 50 }; }
   function dotOf(b){ return b.inq ? 'c-inq' : b.photographer ? 'c-pur' : isWed(b) ? 'c-pnk' : (b.deposit || b.paid) ? 'c-grn' : 'c-yel'; }
   function calendar(){
     var by = {}, tests = MORE.tests;
@@ -861,7 +863,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   function shooterSheet(b){
     var cur = b.photographer || 'Miranda', names = ['Miranda'].concat(PH.names.filter(function(n){ return low(n) !== 'miranda'; }));
-    var sp = b.split || { mode: 'pct', val: PH.split.pct, min: PH.split.min };
+    var sp = b.split || usualSplit(b);
     var s = sheet('<h3>Who\'s shooting?</h3><p class="muted">' + esc(b.name) + ' · ' + esc(b.date ? nice(b.date) : '') + (b.time ? ' · ' + esc(b.time) : '') + '</p>' +
       '<div class="chips" data-who style="margin-top:6px">' + names.map(function(n){ return '<button class="chip' + (low(n) === low(cur) ? ' on' : '') + '" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '<button class="chip" type="button" data-n="">Other</button></div>' +
       '<input data-other placeholder="Photographer\'s name" hidden style="margin-top:8px">' +
@@ -972,7 +974,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<div class="row"><div><label class="l">Package</label><select data-f="pk">' + PK.map(function(p, i){ return '<option value="' + i + '"' + (i === pi ? ' selected' : '') + '>' + esc(p[0]) + '</option>'; }).join('') + '</select></div>' +
       '<div><label class="l">Price</label><div class="money"><b>$</b><input data-f="base" type="number" inputmode="decimal" value="' + (o.amount || PK[pi][1]) + '"></div></div></div>' +
       '<label class="l">Who\'s shooting</label><div class="chips" data-who><button class="chip on" type="button" data-n="">Miranda</button>' + PH.names.filter(function(n){ return low(n) !== 'miranda'; }).map(function(n){ return '<button class="chip" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>' +
-      '<p class="muted" style="margin:6px 0 0">A contracted session uses the usual split (' + PH.split.pct + '% or ' + money(PH.split.min) + '). Change it later with the Photographer button.</p>' +
+      '<p class="muted" style="margin:6px 0 0">A contracted session uses the usual split: $50 to Miranda, or ' + PH.split.pct + '% on a wedding. Change it later with the Photographer button.</p>' +
       '<p class="err" data-e hidden>Fill in the name and date first.</p>' +
       '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>' + (direct ? 'Book it' : 'Text Confirm link') + '</button></div>' +
       (direct ? '' : '<p style="text-align:center;margin:10px 0 0"><button class="lnk" data-alt>They already said yes? Book without texting</button></p>'),
@@ -986,7 +988,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         var p = PK[Number(g('pk'))], base = Math.round((parseFloat(g('base')) || 0) * 100) / 100, sh = (v.querySelector('[data-n].on') || {}).getAttribute ? v.querySelector('[data-n].on').getAttribute('data-n') : '';
         var lk = { v: 1, n: g('n'), d: g('d'), t: g('t'), b: g('b'), pk: p[0], base: base, len: p[2], ppl: p[3], ph: p[4], x: [], dc: 0, dr: '', note: '', by: WHO, total: base };
         if (sh) lk.sh = sh;
-        var sp = sh ? { mode: 'pct', val: PH.split.pct, min: PH.split.min } : null;
+        var sp = sh ? usualSplit({ time: lk.t, pkg: lk.pk }) : null;
         if (direct || alt) { close(); bookInquiry(o, { name: lk.n, date: lk.d, time: lk.t, beach: lk.b, pkg: lk.pk, amount: base, phone: g('ph'), photographer: sh, split: sp }); return; }
         var url = location.origin + '/confirm?s=' + b64(JSON.stringify(lk));
         // Same as New Booking: tell the site first (so the card shows "Link texted"), then open Messages
