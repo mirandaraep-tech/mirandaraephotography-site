@@ -32,6 +32,7 @@ h1{font:30px/1.15 Georgia,serif;text-align:center;margin:0}
 .intro{text-align:center;font-size:15px;margin:8px 0 14px;color:var(--muted)}
 label{display:block;font-size:13px;font-weight:bold;margin:12px 0 4px}
 label .opt{font-weight:normal;color:var(--muted)}
+.hint{font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.4}
 input,select,textarea{font:inherit;border:1px solid #d5dce0;border-radius:8px;padding:12px;width:100%;min-height:48px;background:#fbfcfd;font-size:16px;color:#23394a}
 textarea{min-height:70px;resize:vertical}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -82,10 +83,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         <input id="phone" name="phone" type="tel" autocomplete="tel" required>
       </div>
       <div>
-        <label for="date">Date <span class="opt">(approx.)</span></label>
-        <input id="date" name="date" type="date">
+        <label for="date">Date you'd like</label>
+        <input id="date" name="date" type="date" required>
       </div>
     </div>
+    <p class="hint">Not sure yet, or worried it's taken? Pick your best guess. If that date's booked, Miranda will text you open dates nearby.</p>
 
     <div class="row2">
       <div>
