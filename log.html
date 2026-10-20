@@ -152,7 +152,9 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .a-inq{background:#fff;color:#7a4f00;border:1.5px solid #f0d58f}
 .dep{border:1.5px solid var(--line);background:#fff;color:var(--teal);border-radius:12px;min-width:122px;min-height:40px;font-size:14px;cursor:pointer;padding:0 10px}
 .dep.in{background:#15603a;border-color:#15603a;color:#fff;font-weight:bold}
-.dep.na{background:#f6f7f8;color:#7b878c;border-color:#eceff1;cursor:default}
+.dep.na{background:#f6f7f8;color:#7b878c;border-color:#eceff1;cursor:default;max-width:122px;font-size:13px;line-height:1.2;padding:5px 8px}
+/* Oct 20 2026: small "Came in Oct 16" under an inquiry's status */
+.came{font-size:12px;color:var(--muted);margin-top:auto;padding-top:4px;max-width:122px;text-align:right;line-height:1.3}
 .pm{float:right;color:var(--teal);font-size:22px;line-height:1;font-weight:bold;margin:2px 4px 0 0;pointer-events:none}
 
 .det{display:grid;grid-template-columns:1fr auto;gap:12px;padding:12px 12px 14px 14px;border-top:1px solid var(--line)}
@@ -300,6 +302,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   var short = function(iso){ try { var d = new Date(iso); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
   var TODAY = ymd(new Date()), TOMORROW = ymd(new Date(Date.now() + 86400000));
   function refreshDay(){ TODAY = ymd(new Date()); TOMORROW = ymd(new Date(Date.now() + 86400000)); }
+  var shortDay = function(iso){ try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); } catch (e) { return ''; } };
+  // How old an inquiry is, counted in calendar days: "today", "yesterday", "4 days ago"
+  var ago = function(iso){ try { var d = new Date(iso), a = new Date(d.getFullYear(), d.getMonth(), d.getDate()), n = new Date(), b = new Date(n.getFullYear(), n.getMonth(), n.getDate()); var k = Math.round((b - a) / 86400000); return k <= 0 ? 'today' : k === 1 ? 'yesterday' : k + ' days ago'; } catch (e) { return ''; } };
   var first = function(n){ return String(n || '').trim().split(/\s+/)[0] || ''; };
   var low = function(s){ return String(s || '').trim().toLowerCase(); };
   var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && 'ontouchend' in document);
@@ -582,7 +587,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<div class="nm">' + esc(o.name) + '</div>' +
       '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' +
       '</div><div class="rt">' + (o.time ? sessBtn(o, true) : '') + (o.amount ? '<span class="amt a-inq">' + money(o.amount) + '</span>' : '') +
-      '<button class="dep na" type="button" tabindex="-1">' + (sent ? 'Waiting to confirm' : 'Needs a reply') + '</button></div></div>';
+      '<button class="dep na" type="button" tabindex="-1">' + (sent ? 'Waiting on customer to confirm' : 'Needs reply from Miranda') + '</button>' +
+      (o.asked ? '<span class="came">' + (o.request ? 'Came in ' : 'Added ') + esc(shortDay(o.asked)) + '<br>' + ago(o.asked) + '</span>' : '') + '</div></div>';
     if (!open) return h + '</div>';
     var L = '';
     if (o.request) L += '<div class="ln">Asked ' + esc(short(o.request.at)) + '</div>' + (o.detail ? '<div class="ln mut">' + esc(o.detail) + '</div>' : '');
