@@ -335,7 +335,9 @@ export default async (req) => {
   }
   // A "Check My Date" request from any page on the site (logged only, never counted)
   if (data.kind === "request") {
-    await logIt({ kind: "request", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), detail: clip(data.detail), test: isTestName(data.name) || isTestPhone(data.phone) });
+    // Oct 20 2026: the phone is kept too, so the request shows on the Bookings page as an Inquiry card
+    // Miranda can build and text a Confirm link from
+    await logIt({ kind: "request", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), detail: clip(data.detail), phone: digits(data.phone), test: isTestName(data.name) || isTestPhone(data.phone) });
     return json({ ok: true });
   }
   const kinds = ["confirm", "addon", "deposit", "pending"];
