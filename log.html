@@ -467,7 +467,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (CON === 'no') return true;
       if (!fitsPeriod(o)) return false;
       return fitsMore(o);
-    }).sort(function(a, b){ return (b.last || '').localeCompare(a.last || ''); });
+    }).sort(function(a, b){
+      // Oct 20 2026: inquiries in session-date order (soonest first), like the bookings; no date goes last
+      if (a.date !== b.date) return !a.date ? 1 : !b.date ? -1 : a.date.localeCompare(b.date);
+      return (b.last || '').localeCompare(a.last || '');
+    });
 
     $('listLbl').textContent = q ? 'Search' : DAY ? nice(DAY) : CON === 'no' ? 'Inquiries' : PERIODS[PI][1];
     $('dayHd').innerHTML = '';
