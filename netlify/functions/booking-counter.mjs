@@ -188,6 +188,17 @@ export default async (req) => {
         ...(!keep && (cleanMoney(data.amount) || dep) ? { returned: cents(cleanMoney(data.amount) || dep) } : {}) };
     }
     else if (a === "undo-cancel") delete b.cancelled;
+    // Photographer owes Miranda (Oct 20 2026): on a contracted session the photographer collects the balance;
+    // "Kallie paid me" records Miranda's part of it being handed over
+    else if (a === "shooter-paid") {
+      const amt = cents(cleanMoney(data.amount));
+      if (!(amt > 0) || !b.photographer) return json({ error: "amount" });
+      b.shooterPaid = (b.shooterPaid || []).concat({ amount: amt, at: now, by: who });
+      data.detail = b.photographer + " paid Miranda";
+    } else if (a === "undo-shooter-paid") {
+      if (!(b.shooterPaid && b.shooterPaid.length)) return json({ error: "nothing" });
+      b.shooterPaid.pop(); if (!b.shooterPaid.length) delete b.shooterPaid;
+    }
     else if (a === "edit") {
       // Edit button (Oct 20 2026): change the details on a booking. The booking keeps its original
       // matching key, so an old Confirm link tapped later still isn't counted twice.
@@ -268,11 +279,11 @@ export default async (req) => {
     } else return json({ error: "action" });
     await store.setJSON("bookings", list);
     if (a === "edit" && data.fields && data.fields.total != null) { state.updated = now; await store.setJSON("state", state); }
-    const amt = a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : a === "deduct" ? b.deducts[b.deducts.length - 1].amount : 0;
+    const amt = a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : a === "deduct" ? b.deducts[b.deducts.length - 1].amount : a === "shooter-paid" ? b.shooterPaid[b.shooterPaid.length - 1].amount : 0;
     const cxd = a === "cancel" && b.cancelled.deposit ? (b.cancelled.deposit === "kept" ? "Deposit kept" + (b.cancelled.kept ? " $" + b.cancelled.kept : "") : "Deposit returned" + (b.cancelled.returned ? " $" + b.cancelled.returned : "")) : "";
     await logIt({ kind: a === "move" ? "moved" : a, num: b.num, name: b.name, amount: amt, by: who, test: !!b.test,
       ...(a === "move" ? { date: b.date, detail: "Moved from " + b.movedFrom } : a === "deduct" ? { detail: b.deducts[b.deducts.length - 1].why }
-        : a === "edit" || a === "photographer" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
+        : a === "edit" || a === "photographer" || a === "shooter-paid" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
     return json({ ok: true, booking: b });
   }
   // Master page "Clear all tests" button (Oct 15 2026): removes test bookings and test entries from
