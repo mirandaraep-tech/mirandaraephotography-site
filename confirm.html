@@ -149,16 +149,16 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <div class="sum" id="sum"></div>
     <!-- DEPOSIT (added Oct 7 2026): Venmo @miranda-hughes-69889, $50, comes off session price -->
     <div class="deposit">
-      <b>Pay your $50 deposit to hold your date.</b><br>
+      <b>Pay your <span class="depamt">$50</span> deposit to hold your date.</b><br>
       <span id="depline">It comes off your session price, so you'll pay the rest on session day.</span>
-      <a class="btn" id="venmo" href="https://venmo.com/miranda-hughes-69889?txn=pay&amp;amount=50&amp;note=Photo%20session%20deposit" target="_blank" rel="noopener" onclick="try{gtag('event','deposit_click',{send_to:'G-DXQ60XNC8Y',method:'venmo'})}catch(e){}">Pay $50 with Venmo</a>
+      <a class="btn" id="venmo" href="https://venmo.com/miranda-hughes-69889?txn=pay&amp;amount=50&amp;note=Photo%20session%20deposit" target="_blank" rel="noopener" onclick="try{gtag('event','deposit_click',{send_to:'G-DXQ60XNC8Y',method:'venmo'})}catch(e){}">Pay <span class="depamt">$50</span> with Venmo</a>
       <p style="margin:8px 0 0;font-size:13px;opacity:.75;text-align:center">Opens Venmo to Miranda Hughes (@miranda-hughes-69889)</p>
       <!-- More pay buttons (Cash App, PayPal) go here, above "Prefer another way" -->
       <div style="margin:14px 0 0;padding:12px 0 0;border-top:1px dashed #e0c99f">
         <b>Prefer another way to pay?</b>
         <a class="btn ghost" id="otherpay" style="margin-top:8px" href="sms:+14482196539?&amp;body=Hi%20Miranda!%20I%20just%20confirmed%20my%20session%20and%20I'd%20like%20to%20pay%20my%20deposit%20another%20way." onclick="try{gtag('event','deposit_click',{send_to:'G-DXQ60XNC8Y',method:'text_other'})}catch(e){}">💬 Text Miranda</a>
       </div>
-      <p style="margin:14px 0 0;font-size:13px;opacity:.8">Your $50 deposit saves your date just for you and comes off your session price. Since Miranda turns other families away once your date is held, deposits aren't refundable. If the weather doesn't cooperate or something comes up, just reach out. Miranda will do her best to find a new date that works for you.</p>
+      <p style="margin:14px 0 0;font-size:13px;opacity:.8">Your <span class="depamt">$50</span> deposit saves your date just for you and comes off your session price. Since Miranda turns other families away once your date is held, deposits aren't refundable. If the weather doesn't cooperate or something comes up, just reach out. Miranda will do her best to find a new date that works for you.</p>
     </div>
     <p class="fine" style="margin-top:16px">Questions? <a id="qtext" href="sms:+14482196539" style="color:inherit;text-decoration:underline" onclick="try{gtag('event','text_message_click',{link_page:'/confirm'})}catch(e){}">Text Miranda</a></p>
   </div>
@@ -179,6 +179,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   x.forEach(function(e){ tot += Number(e[1]) || 0; });
   o.total = Math.max(0, Math.round((tot - (Number(o.dc) || 0)) * 100) / 100);
   window.mrpPkg = o;
+  // Deposit (Oct 20 2026): $50 unless Miranda set a different amount on New Booking (e.g. a wedding another photographer shoots)
+  if (Number(o.dep) > 0) window.mrpDep = Math.min(Number(o.dep), o.total || Number(o.dep));
   // Line items, used on this page and on the "You're Confirmed" screen
   window.mrpPkgLines = function(k){
     var row = function(a, b, cls){ return '<div style="display:flex;justify-content:space-between;gap:10px' + (cls || '') + '"><span>' + a + '</span><span>' + b + '</span></div>'; };
@@ -187,7 +189,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     (k.x || []).forEach(function(e){ h += row('+ ' + esc(e[0]), money(e[1])); });
     if (k.dc) h += row('− Discount' + (k.dr ? ': ' + esc(k.dr) : ''), '−' + money(k.dc), ';color:#2f8a4e');
     h += row('<strong style="color:#112b39">Total</strong>', '<strong style="color:#112b39">' + money(k.total) + '</strong>', ';border-top:1px solid #e6ddd2;margin-top:6px;padding-top:8px;font-size:20px');
-    if (k.total > 50) h += '<div style="font-size:13px;color:#556770">$50 deposit to hold your date · ' + money(k.total - 50) + ' on session day</div>';
+    var dp = window.mrpDep || 50;
+    if (k.total > dp) h += '<div style="font-size:13px;color:#556770">' + money(dp) + ' deposit to hold your date · ' + money(k.total - dp) + ' on session day</div>';
     return h;
   };
   var $ = function(id){ return document.getElementById(id); };
@@ -212,6 +215,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   var $ = function(id){ return document.getElementById(id); };
   var F = ['name','date','beach','session','heard-from'];
   var LIVE = /(^|\.)mirandaraephotography\.com$/.test(location.hostname);
+  var DEP = function(){ return window.mrpDep || 50; };
 
   // Pre-fill from Miranda's link, e.g. /confirm?name=Jessica&date=2026-10-18&beach=Mexico%20Beach&session=Sunset&price=150
   var q = new URLSearchParams(location.search);
@@ -242,7 +246,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (window.mrpPkg) { b.hidden = true; return; } // details card already shows the total
     if (!p.amount) { b.hidden = true; return; }
     $('pbamt').textContent = money(p.amount);
-    $('pbline').textContent = p.amount > 50 ? '$50 deposit to hold your date · ' + money(p.amount - 50) + ' on session day' : '';
+    $('pbline').textContent = p.amount > DEP() ? money(DEP()) + ' deposit to hold your date · ' + money(p.amount - DEP()) + ' on session day' : '';
     b.hidden = false;
   }
   ['beach', 'session'].forEach(function(id){ $(id).addEventListener('change', showPrice); });
@@ -267,7 +271,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (got) return Promise.resolve(got);
     var ctl = window.AbortController ? new AbortController() : null;
     var t = setTimeout(function(){ if (ctl) ctl.abort(); }, 6000);
-    return fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'confirm', amount: amount, name: $('name').value, date: $('date').value, beach: $('beach').value, time: $('session').value, pkg: window.mrpPkg ? window.mrpPkg.pk : '', by: window.mrpPkg && window.mrpPkg.by || '' }), signal: ctl ? ctl.signal : undefined })
+    return fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'confirm', amount: amount, dep: DEP(), name: $('name').value, date: $('date').value, beach: $('beach').value, time: $('session').value, pkg: window.mrpPkg ? window.mrpPkg.pk : '', by: window.mrpPkg && window.mrpPkg.by || '' }), signal: ctl ? ctl.signal : undefined })
       .then(function(r){ clearTimeout(t); return r.ok ? r.json() : null; })
       .then(function(c){ if (c) got = c; return c; })
       .catch(function(){ clearTimeout(t); return null; });
@@ -321,6 +325,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   });
 
   showPrice();
+  // Show the right deposit amount everywhere on the page (Oct 20 2026)
+  if (DEP() !== 50) {
+    Array.prototype.forEach.call(document.querySelectorAll('.depamt'), function(e){ e.textContent = money(DEP()); });
+    $('venmo').href = $('venmo').href.replace('amount=50', 'amount=' + DEP());
+  }
 
   // Deposit tap alert (added Oct 12 2026): emails "💳 DEPOSIT TAPPED: #101 · Smith · $50" when the client taps Venmo.
   // Venmo can't tell us if they finished paying; Miranda marks that on the Deposit Received page.
@@ -329,10 +338,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (tapped) return; tapped = true;
     try {
       var bk = window.mrpBookNum ? '#' + window.mrpBookNum : '';
-      var d = { _captcha: 'false', _template: 'table', 'booking-number': bk || 'not available', name: $('name').value.trim(), amount: '$50', method: 'Venmo',
+      var d = { _captcha: 'false', _template: 'table', 'booking-number': bk || 'not available', name: $('name').value.trim(), amount: money(DEP()), method: 'Venmo',
         note: 'Client tapped the Venmo deposit button. Watch for the payment in Venmo, then mark it on the Deposit Received page.' };
       if (LIVE) d._cc = 'bookmirandarae@gmail.com';
-      d._subject = '💳 DEPOSIT TAPPED: ' + [bk, d.name, '$50'].filter(Boolean).join(' · ');
+      d._subject = '💳 DEPOSIT TAPPED: ' + [bk, d.name, money(DEP())].filter(Boolean).join(' · ');
       fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(d) });
     } catch (e) {}
   });
@@ -361,13 +370,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (window.mrpPkg) $('sum').innerHTML += '<div style="margin-top:8px;line-height:1.6">' + window.mrpPkgLines(window.mrpPkg) + '</div>';
     if (window.mrpPkg && window.mrpPkg.sh) $('sum').innerHTML += '<div style="margin-top:8px"><b>Photographer</b> ' + esc(window.mrpPkg.sh) + '</div>';
     window.mrpBookNum = num || '';
-    if (pn.amount > 50) $('depline').textContent = 'It comes off your ' + money(pn.amount) + ' session, so you\'ll pay the remaining ' + money(pn.amount - 50) + ' on session day.';
+    if (pn.amount > DEP()) $('depline').textContent = 'It comes off your ' + money(pn.amount) + ' session, so you\'ll pay the remaining ' + money(pn.amount - DEP()) + ' on session day.';
     var ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
     var otherMsg = 'Hi Miranda! I just confirmed ' + (num ? 'booking #' + num : 'my session') + " and I'd like to pay my deposit another way. What else do you take?";
     $('otherpay').href = 'sms:+14482196539' + (ios ? '&' : '?') + 'body=' + encodeURIComponent(otherMsg);
     if (num) {
       var last = $('name').value.trim().split(/\s+/).pop() || '';
-      $('venmo').href = 'https://venmo.com/miranda-hughes-69889?txn=pay&amount=50&note=' + encodeURIComponent('Deposit #' + num + (last ? ' – ' + last : ''));
+      $('venmo').href = 'https://venmo.com/miranda-hughes-69889?txn=pay&amount=' + DEP() + '&note=' + encodeURIComponent('Deposit #' + num + (last ? ' – ' + last : ''));
       $('booknum').textContent = 'Your booking number is #' + num + '. Keep it handy if you need to reach Miranda.';
       $('booknum').hidden = false;
     }

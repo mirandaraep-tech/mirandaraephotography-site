@@ -73,7 +73,33 @@ function summary(state, live) {
   };
 }
 
+// Oct 20 2026: AffordableBeachPhotographer.com and MirandaRaePhotos.com may send a copy of each
+// "Check My Date" request here too, so it shows on the Bookings page. Only that one kind of entry
+// is accepted from them; nothing on the Bookings page can be read or changed from those sites.
+const SISTER_SITES = { "affordablebeachphotographer.com": "AffordableBeachPhotographer.com", "mirandaraephotos.com": "MirandaRaePhotos.com" };
+const sisterOf = (req) => {
+  try { const o = req.headers.get("origin") || ""; const h = new URL(o).hostname.replace(/^www\./, "").toLowerCase(); return SISTER_SITES[h] ? { origin: o, name: SISTER_SITES[h] } : null; }
+  catch (e) { return null; }
+};
+
 export default async (req) => {
+  const sister = sisterOf(req);
+  if (sister) {
+    const cors = { "Access-Control-Allow-Origin": sister.origin, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type", "Vary": "Origin", "Cache-Control": "no-store" };
+    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+    let d = {};
+    try { d = JSON.parse(await req.text()); } catch (e) {}
+    if (req.method !== "POST" || d.kind !== "request") return new Response(JSON.stringify({ error: "not allowed" }), { status: 403, headers: cors });
+    const host0 = new URL(req.url).hostname.replace(/^www\./, "");
+    const st = getStore({ name: host0 === "mirandaraephotography.com" ? "booking-counter" : "booking-counter-test", consistency: "strong" });
+    const log = (await st.get("log", { type: "json" })) || [];
+    const c = (v, n = 120) => String(v == null ? "" : v).slice(0, n);
+    log.push({ at: new Date().toISOString(), kind: "request", name: c(d.name, 60), date: String(d.date || "").slice(0, 10), beach: c(d.beach, 40),
+      detail: [sister.name, c(d.detail)].filter(Boolean).join(" · "), phone: String(d.phone || "").replace(/\D/g, "").slice(-10), site: sister.name,
+      test: /\btest\b/i.test(String(d.name || "")) || TEST_PHONES.includes(String(d.phone || "").replace(/\D/g, "").slice(-10)) });
+    await st.setJSON("log", log.slice(-1000));
+    return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, "Content-Type": "application/json" } });
+  }
   const host = new URL(req.url).hostname.replace(/^www\./, "");
   const live = host === "mirandaraephotography.com";
   // "strong" = always read the very latest numbers, so two quick entries can't overwrite each other
@@ -152,8 +178,87 @@ export default async (req) => {
     else if (a === "undo-deposit") delete b.deposit;
     else if (a === "paid") b.paid = { amount: cents(Math.max(0, totOf(b) - ((b.deposit && b.deposit.amount) || 0))), method: clip(data.method, 30), at: now, by: who };
     else if (a === "undo-paid") delete b.paid;
-    else if (a === "cancel") b.cancelled = { at: now, by: who };
+    else if (a === "cancel") {
+      // Oct 20 2026: Cancel asks whether Miranda keeps the deposit or gives it back. A kept deposit
+      // still counts as money collected; a returned one doesn't.
+      const dep = (b.deposit && b.deposit.amount) || 0;
+      const keep = data.deposit === "keep";
+      const kept = keep ? cents(cleanMoney(data.amount) || dep) : 0;
+      b.cancelled = { at: now, by: who, ...(data.deposit ? { deposit: keep ? "kept" : "returned" } : {}), ...(kept ? { kept } : {}),
+        ...(!keep && (cleanMoney(data.amount) || dep) ? { returned: cents(cleanMoney(data.amount) || dep) } : {}) };
+    }
     else if (a === "undo-cancel") delete b.cancelled;
+    // Photographer owes Miranda (Oct 20 2026): on a contracted session the photographer collects the balance;
+    // "Kallie paid me" records Miranda's part of it being handed over
+    else if (a === "shooter-paid") {
+      const amt = cents(cleanMoney(data.amount));
+      if (!(amt > 0) || !b.photographer) return json({ error: "amount" });
+      b.shooterPaid = (b.shooterPaid || []).concat({ amount: amt, at: now, by: who });
+      data.detail = b.photographer + " paid Miranda";
+    } else if (a === "undo-shooter-paid") {
+      if (!(b.shooterPaid && b.shooterPaid.length)) return json({ error: "nothing" });
+      b.shooterPaid.pop(); if (!b.shooterPaid.length) delete b.shooterPaid;
+    }
+    else if (a === "edit") {
+      // Edit button (Oct 20 2026): change the details on a booking. The booking keeps its original
+      // matching key, so an old Confirm link tapped later still isn't counted twice.
+      const f = data.fields || {}, before = { ...b }, changed = [];
+      const nb = { date: f.date != null ? day(f.date) : b.date, time: f.time != null ? clip(f.time, 30) : b.time };
+      if (f.date != null && !/^\d{4}-\d{2}-\d{2}$/.test(nb.date)) return json({ error: "date" });
+      if ((nb.date !== b.date || nb.time !== b.time) && !b.past && !data.force) {
+        const same = (x) => String(x.photographer || "").toLowerCase() === String(b.photographer || "").toLowerCase();
+        const other = list.find((x) => x !== b && !x.cancelled && !x.past && !!x.test === !!b.test && same(x) && clash(x, nb));
+        if (other) return json({ conflict: true, with: other.num, name: other.name });
+      }
+      const set = (k, v, n) => { if (v != null && String(v) !== String(b[k] == null ? "" : b[k])) { b[k] = v; changed.push(n); } };
+      if (f.name != null && clip(f.name, 60).trim()) set("name", clip(f.name, 60).trim(), "name");
+      if (f.phone != null) set("phone", digits(f.phone), "phone");
+      set("date", f.date != null ? nb.date : null, "date");
+      set("time", f.time != null ? nb.time : null, "time");
+      if (f.beach != null) set("beach", clip(f.beach, 40), "beach");
+      if (f.pkg != null) set("pkg", clip(f.pkg, 60), "package");
+      if (f.notes != null) set("notes", clip(f.notes, 300), "notes");
+      if (f.dep != null) { const dp = cents(cleanMoney(f.dep)); if (dp !== (b.dep || 50)) { if (dp && dp !== 50) b.dep = dp; else delete b.dep; changed.push("deposit"); } }
+      if (f.total != null) {
+        const t = cents(cleanMoney(f.total));
+        if (t !== (b.total || 0)) {
+          // Keep the running total in the emails in step with a corrected price
+          if (!b.past && !b.test && b.num > START && b.num < 700000) state.total = cents(state.total + t - (b.total || 0));
+          b.total = t; changed.push("price"); resplit(b);
+        }
+      }
+      if (before.date !== b.date && !b.movedFrom) b.movedFrom = before.date;
+      if (!changed.length) return json({ ok: true, booking: b, unchanged: true });
+      data.detail = "Changed " + changed.join(", ");
+      b.edited = { at: now, by: who };
+    }
+    else if (a === "photographer") {
+      // Photographer button (Oct 20 2026): hand a session to Kallie (or anyone), or back to Miranda.
+      // The new photographer's same-time sessions are checked so nobody is double-booked.
+      const name = clip(data.photographer, 60).trim();
+      const nameIsMiranda = /^miranda$/i.test(name);
+      const shooter = nameIsMiranda ? "" : name;
+      const same = (x) => String(x.photographer || "").toLowerCase() === shooter.toLowerCase();
+      if (!b.past && !data.force) {
+        const other = list.find((x) => x !== b && !x.cancelled && !x.past && !!x.test === !!b.test && same(x) && clash(x, b));
+        if (other) return json({ conflict: true, with: other.num, name: other.name });
+      }
+      const counted = !b.past && !b.test && b.num > START && b.num < 700000;
+      if (counted && b.photographer) { state.contracted = Math.max(0, (state.contracted || 0) - 1); state.payouts = cents((state.payouts || 0) - (b.payout || 0)); }
+      b.photographer = shooter;
+      if (shooter) {
+        // Usual split (Oct 20 2026): flat $50 to Miranda, weddings 25% (at least $50)
+        const wed = /wedding/i.test(b.time || "") || /wedding/i.test(b.pkg || "");
+        b.split = cleanSplit(data.split) || (wed ? { mode: "pct", val: (state.splitDefault || DEFAULT_SPLIT).pct, min: (state.splitDefault || DEFAULT_SPLIT).min } : { mode: "amt", val: 50 });
+        resplit(b);
+        const names = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS.slice();
+        if (!names.some((n) => n.toLowerCase() === shooter.toLowerCase())) names.push(shooter);
+        state.photographers = names.slice(-12);
+        if (counted) { state.contracted = (state.contracted || 0) + 1; state.payouts = cents((state.payouts || 0) + (b.payout || 0)); }
+      } else { delete b.split; b.payout = 0; }
+      data.detail = shooter ? "Now shot by " + shooter + " · their pay $" + (b.payout || 0) : "Back to Miranda";
+      state.updated = now; await store.setJSON("state", state);
+    }
     else if (a === "deduct") {
       const amt = cents(cleanMoney(data.amount));
       if (!(amt > 0) || amt > totOf(b)) return json({ error: "amount" });
@@ -173,9 +278,12 @@ export default async (req) => {
       b.movedFrom = b.date; b.date = nd;
     } else return json({ error: "action" });
     await store.setJSON("bookings", list);
-    const amt = a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : a === "deduct" ? b.deducts[b.deducts.length - 1].amount : 0;
+    if (a === "edit" && data.fields && data.fields.total != null) { state.updated = now; await store.setJSON("state", state); }
+    const amt = a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : a === "deduct" ? b.deducts[b.deducts.length - 1].amount : a === "shooter-paid" ? b.shooterPaid[b.shooterPaid.length - 1].amount : 0;
+    const cxd = a === "cancel" && b.cancelled.deposit ? (b.cancelled.deposit === "kept" ? "Deposit kept" + (b.cancelled.kept ? " $" + b.cancelled.kept : "") : "Deposit returned" + (b.cancelled.returned ? " $" + b.cancelled.returned : "")) : "";
     await logIt({ kind: a === "move" ? "moved" : a, num: b.num, name: b.name, amount: amt, by: who, test: !!b.test,
-      ...(a === "move" ? { date: b.date, detail: "Moved from " + b.movedFrom } : a === "deduct" ? { detail: b.deducts[b.deducts.length - 1].why } : {}) });
+      ...(a === "move" ? { date: b.date, detail: "Moved from " + b.movedFrom } : a === "deduct" ? { detail: b.deducts[b.deducts.length - 1].why }
+        : a === "edit" || a === "photographer" || a === "shooter-paid" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
     return json({ ok: true, booking: b });
   }
   // Master page "Clear all tests" button (Oct 15 2026): removes test bookings and test entries from
@@ -187,6 +295,18 @@ export default async (req) => {
     await store.setJSON("bookings", keepB);
     await store.setJSON("log", keepL);
     return json({ ok: true, removed: (list.length - keepB.length) + (log.length - keepL.length) });
+  }
+  // Bookings page (Oct 20 2026): take a texted client off the Inquiry list without booking them
+  // (they said no, or never answered). Only the master page list changes.
+  if (data.kind === "dismiss") {
+    if (!(await okPass(req, data))) return json({ error: "passcode" });
+    // One client, or several at once ("Clear all old inquiries"). Hidden from the cards only; the
+    // original request stays in "Everything that came in".
+    const items = Array.isArray(data.items) ? data.items.slice(0, 300) : [data];
+    const log = await getList("log"), at = new Date().toISOString();
+    items.forEach((it) => log.push({ at, kind: "dismiss", name: clip(it.name, 60), date: day(it.date), beach: clip(it.beach, 40), by: clip(data.by, 40), test: !!it.test, ...(items.length > 1 ? { bulk: true } : {}) }));
+    await store.setJSON("log", log.slice(-1000));
+    return json({ ok: true, cleared: items.length });
   }
   // New Booking page "Make this the usual" (Oct 15 2026): saves Miranda's usual percentage
   if (data.kind === "split-default") {
@@ -215,7 +335,15 @@ export default async (req) => {
     const b = { name, date: d, time: clip(data.time, 30), beach: clip(data.beach, 40) };
     b.key = keyOf(b);
     if (list.some((x) => x.key === b.key && !x.cancelled)) return json({ duplicate: true });
-    const test = isTestName(name) || isTestPhone(data.phone);
+    // Confirmed from the Bookings page's Inquiry list (Oct 20 2026): use who's shooting and the
+    // client's phone that were saved when the Confirm link was texted
+    const pend = data.fromInquiry ? (state.pending || []).find((p) => p.key === b.key) : null;
+    if (pend) {
+      if (!data.phone && pend.phone) data.phone = pend.phone;
+      if (!data.photographer && pend.photographer) { data.photographer = pend.photographer; data.split = pend.split; }
+      if (pend.testPhone) data.testPhone = true;
+    }
+    const test = isTestName(name) || isTestPhone(data.phone) || !!data.testPhone;
     const total = cents(cleanMoney(data.amount));
     const who = clip(data.photographer, 60).trim(), split = who ? cleanSplit(data.split) : null;
     if (!isPast) {
@@ -229,7 +357,7 @@ export default async (req) => {
     else if (test) { state.lastTest = (state.lastTest || 0) + 1; num = 900000 + state.lastTest; }
     else { state.last += 1; num = state.last; }
     const payout = split ? cents(total - shareOf(split, total)) : 0;
-    Object.assign(b, { num, ...(isPast ? { past: true } : { direct: true }), pkg: clip(data.pkg, 60), total, by, phone: digits(data.phone),
+    Object.assign(b, { num, ...(isPast ? { past: true } : { direct: true }), ...(pend ? { fromInquiry: true } : {}), pkg: clip(data.pkg, 60), total, ...(cleanMoney(data.dep) && cleanMoney(data.dep) !== 50 ? { dep: cleanMoney(data.dep) } : {}), by, phone: digits(data.phone),
       photographer: who, payout, ...(split ? { split } : {}), test, created: now });
     const pay = data.pay || (data.paid ? "full" : "none");
     if (pay === "full" && total > 0) b.paid = { amount: total, method: clip(data.method, 30), at: now, by };
@@ -252,7 +380,9 @@ export default async (req) => {
   }
   // A "Check My Date" request from any page on the site (logged only, never counted)
   if (data.kind === "request") {
-    await logIt({ kind: "request", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), detail: clip(data.detail), test: isTestName(data.name) || isTestPhone(data.phone) });
+    // Oct 20 2026: the phone is kept too, so the request shows on the Bookings page as an Inquiry card
+    // Miranda can build and text a Confirm link from
+    await logIt({ kind: "request", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), detail: clip(data.detail), phone: digits(data.phone), test: isTestName(data.name) || isTestPhone(data.phone) });
     return json({ ok: true });
   }
   const kinds = ["confirm", "addon", "deposit", "pending"];
@@ -282,7 +412,10 @@ export default async (req) => {
       state.pending.push(p);
       if (state.pending.length > 200) state.pending = state.pending.slice(-200);
       await save();
-      await logIt({ kind: "sent", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), by: p.by, detail: p.photographer ? "Shot by " + p.photographer : "", test: !!(p.testPhone || isTestName(data.name)) });
+      // Oct 20 2026: the texted details are kept with the entry so the Bookings page can show the client
+      // as an Inquiry card (Text again, Confirmed, Not booking) until they confirm
+      await logIt({ kind: "sent", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), by: p.by, detail: p.photographer ? "Shot by " + p.photographer : "", test: !!(p.testPhone || isTestName(data.name)),
+        time: clip(data.time, 30), pkg: clip(data.pkg, 60), amount: cleanMoney(data.amount), dep: cleanMoney(data.dep) || 50, phone: p.phone, ...(p.photographer ? { photographer: p.photographer } : {}), link: clip(data.link, 3000) });
     }
     return json({ ok: true });
   }
@@ -342,7 +475,7 @@ export default async (req) => {
   const keepBooking = async (num) => {
     if (bookings.some((b) => b.key === key && !b.cancelled)) return;
     bookings.push({ key, num, name: clip(data.name, 60), date: day(data.date), time: me.time, beach: clip(data.beach, 40),
-      pkg: clip(data.pkg, 60), total: amount, by: clip((pend && pend.by) || data.by, 40), phone: pend && pend.phone || "",
+      pkg: clip(data.pkg, 60), total: amount, ...(cleanMoney(data.dep) && cleanMoney(data.dep) !== 50 ? { dep: cleanMoney(data.dep) } : {}), by: clip((pend && pend.by) || data.by, 40), phone: pend && pend.phone || "",
       photographer: pend && pend.photographer || "", payout: pend && pend.payout || 0, ...(pend && pend.photographer && pend.split ? { split: pend.split } : {}), test: isTest, created: new Date().toISOString() });
     await store.setJSON("bookings", bookings.slice(-500));
     await logIt({ kind: "confirm", num, name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), amount, by: (pend && pend.by) || "", detail: headsUp, test: isTest });

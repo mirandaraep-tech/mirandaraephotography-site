@@ -2,126 +2,208 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bookings | Miranda Rae Photography</title>
-<!-- Private master page (added Oct 15 2026): every booking, deposit, add-on and request in one place,
-     behind a passcode each phone remembers. Not linked anywhere, not for search. -->
+<!-- Private master page (added Oct 15 2026; new booking-app design Oct 20 2026): every booking, inquiry,
+     deposit and payment in one place, behind a passcode each phone remembers. Not linked anywhere, not for search. -->
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/favicon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="Bookings">
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#112b39;--teal:#16677a;--cream:#fff9f1;--line:#e6ddd2;--muted:#556770;--ok:#2f8a4e;--warn:#b7791f;--bad:#a33}
+:root{--ink:#112b39;--teal:#16677a;--cream:#f7f1e8;--line:#e6ddd2;--muted:#5d6b72;--ok:#1f6b3a;--bad:#a3202c;--sun:#362f4a;--rise:#ffd23f}
 *{box-sizing:border-box}
-body{margin:0;color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.45;background:var(--cream)}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.4;background:var(--cream)}
+button{font-family:inherit}
+[hidden]{display:none!important}
 .topbar{background:#fff;border-bottom:1px solid var(--line)}
-.topbar .in{width:min(640px,92%);margin:auto;display:flex;align-items:center;gap:10px;padding:10px 0}
-.topbar img{width:42px;height:42px;border-radius:50%;object-fit:cover;object-position:50% 22%;border:2px solid var(--teal)}
-.brand b{display:block;font:normal 28px/1 'Great Vibes','Brush Script MT',Georgia,serif}
-.brand span{display:block;font-size:9px;letter-spacing:3px;margin-top:3px}
-main{width:min(640px,92%);margin:18px auto 40px}
-.card{background:#fff;padding:18px;border-radius:16px;box-shadow:0 12px 40px #26394118;margin-bottom:14px}
-h1{font:26px/1.15 Georgia,serif;margin:0 0 4px}
-h2{font:bold 12px Arial,sans-serif;letter-spacing:2px;color:var(--teal);margin:0 0 10px;text-transform:uppercase}
-input,select{font:inherit;border:1px solid #d5dce0;border-radius:8px;padding:10px;min-height:44px;background:#fbfcfd;font-size:16px;width:100%}
-.btn{border:0;border-radius:10px;background:var(--teal);color:#fff;font-weight:bold;font-size:15px;min-height:42px;padding:0 14px;cursor:pointer}
+.topbar .in{width:min(600px,100%);margin:auto;padding:14px 16px 12px}
+.brand b{display:block;font:italic 30px/1.05 Georgia,'Times New Roman',serif;letter-spacing:-.3px}
+.brand span{display:block;font-size:12px;font-weight:bold;letter-spacing:4px;margin-top:8px}
+main{width:min(600px,100%);margin:0 auto;padding:12px 12px 40px}
+.card{background:#fff;padding:16px;border-radius:20px;box-shadow:0 8px 30px #26394112;margin-bottom:12px}
+h1{font:24px/1.15 Georgia,serif;margin:0 0 4px}
+h2{font:bold 13px Arial,sans-serif;letter-spacing:3px;color:var(--teal);margin:0;text-transform:uppercase}
+input,select,textarea{font:inherit;font-size:16px;border:1px solid #d5dce0;border-radius:10px;padding:10px;min-height:44px;background:#fbfcfd;width:100%;color:var(--ink)}
+textarea{min-height:120px;resize:vertical}
+label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:10px 0 4px}
+.btn{border:0;border-radius:12px;background:var(--teal);color:#fff;font-weight:bold;font-size:15px;min-height:44px;padding:0 14px;cursor:pointer}
 .btn.ghost{background:#fff;color:var(--teal);border:2px solid var(--teal)}
 .btn.red{background:#fff;color:var(--bad);border:2px solid #e3b5b5}
 .btn.big{width:100%;min-height:52px;font-size:17px;margin-top:10px}
-.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.tile{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
-.tile b{display:block;font:bold 24px Georgia,serif}
-.tile span{font-size:12px;color:var(--muted)}
-.bk{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
-.bk.cx{opacity:.55}
-.bk .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.bk .nm{font-weight:bold;font-size:17px}
-.bk .meta{font-size:14px;color:var(--muted)}
-.tag{display:inline-block;font-size:12px;font-weight:bold;border-radius:999px;padding:2px 9px;margin:6px 4px 0 0}
-.t-yel{background:#fff1cf;color:#8a5a00}.t-grn{background:#dcf3e3;color:#1f6b3a}.t-red{background:#f7dede;color:var(--bad)}.t-gry{background:#eceff1;color:#455a64}.t-blu{background:#e1f0f3;color:var(--teal)}
-.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.acts select{width:auto;min-height:42px;padding:6px 8px}
+.btn:disabled{opacity:.5}
+.muted{color:var(--muted);font-size:14px}
+.err{color:var(--bad);font-size:14px;margin:6px 0 0}
+
+/* ---------- Sticky top: updated line, money boxes, filters ---------- */
+.head{position:sticky;top:0;z-index:20;background:var(--cream);padding:8px 0 10px;margin:0 -12px;padding-left:12px;padding-right:12px}
+.head .card{margin-bottom:10px;padding:12px;max-height:420px;overflow:hidden;transition:max-height .3s ease,opacity .2s ease,margin .3s ease,padding .3s ease}
+/* Oct 20 2026: while a card is open, the money boxes slide up out of the way; they come back when it closes */
+.head.compact .card{max-height:0;opacity:0;margin-bottom:0;padding-top:0;padding-bottom:0;box-shadow:none}
+.asof{font-size:14px;color:var(--muted);margin:0 2px 8px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{border:1px solid var(--line);border-radius:14px;padding:8px 12px;background:#fff;text-align:left;font:inherit;color:inherit;cursor:pointer;min-height:84px}
+.tile b{display:block;font:bold 25px/1.1 Georgia,serif;margin:2px 0}
+.tile .lb{font-size:13px;color:var(--muted)}
+.tile .hd{font-size:13px;font-weight:bold;color:var(--teal)}
+.tile .nx{font-size:13px;color:var(--teal);margin-top:1px}
+.tile.bk1{border:2px solid var(--teal)}
+.tile.grn{background:#eef8f1;border-color:#bfe3cb;cursor:default}.tile.grn b{color:var(--ok)}
+.tile.dueT{cursor:default}
+.tile.blu{background:#e9f4f6;border-color:#bcdce3}.tile.blu b{color:var(--teal)}
+.frow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.fb{border:2px solid var(--line);background:#fff;color:var(--teal);border-radius:14px;min-height:46px;padding:4px 6px;font-size:15px;cursor:pointer;line-height:1.15}
+.fb.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:bold}
+.fb .ct{display:inline-block;background:#fff;color:var(--teal);border-radius:999px;font-size:12px;padding:0 6px;margin-left:4px;font-weight:bold}
+.crow{display:flex;gap:8px;margin-top:8px;align-items:stretch;position:relative}
+.cbtn{display:flex;align-items:center;gap:10px;border:2px solid var(--line);background:#fff;border-radius:14px;padding:4px 12px 4px 4px;color:var(--teal);font-size:15px;cursor:pointer;min-height:46px}
+.cbtn.on{border-color:var(--teal)}
+.mini{display:flex;border:1px solid #c9d3d6;border-radius:7px;overflow:hidden;line-height:1}
+.mini i{font-style:normal;background:var(--teal);color:#fff;font-size:11px;font-weight:bold;letter-spacing:1px;padding:9px 6px}
+.mini u{text-decoration:none;font:bold 19px Georgia,serif;color:var(--ink);padding:5px 7px;background:#fff}
+.sbtn{border:2px solid var(--line);background:#fff;border-radius:14px;padding:0 14px;color:var(--teal);font-size:15px;cursor:pointer;min-height:46px}
+.sbtn.on{border-color:var(--teal)}
+#q{flex:1;min-width:0;min-height:46px;border-radius:14px}
+.daychip{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;background:#e9f4f6;border-radius:12px;padding:7px 10px;font-size:14px}
+.daychip b{color:var(--teal)}
+.daychip button{border:0;background:none;color:var(--teal);font-size:14px;font-weight:bold;cursor:pointer;padding:4px}
+
+/* Calendar opens upward above its button */
+.calpop{position:absolute;left:0;right:0;bottom:calc(100% + 8px);background:#fff;border-radius:18px;box-shadow:0 10px 40px #1d2b3340;padding:10px 12px 12px;z-index:30;border:1px solid var(--line)}
+.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.cal-nav b{font:bold 18px Georgia,serif}
+.cal-nav button{border:0;background:#f3f6f7;color:var(--teal);font-size:22px;width:42px;height:38px;cursor:pointer;border-radius:10px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center}
+.cal .h{font-size:12px;color:var(--muted);padding:2px 0}
+.cal .d{border:0;background:#fff;font:inherit;font-size:15px;color:var(--ink);padding:5px 0 3px;border-radius:10px;min-height:42px;cursor:pointer}
+.cal .d.past{color:#9aa7ad}
+.cal .d.today{box-shadow:inset 0 0 0 2px var(--teal)}
+.cal .d.sel{background:var(--teal);color:#fff}
+.cal .dots{display:flex;justify-content:center;gap:2px;height:6px;margin-top:2px}
+.cal .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.c-yel{background:#e0a32b}.c-grn{background:#3f9a5c}.c-pur{background:#7f77dd}.c-pnk{background:#d4537e}.c-inq{background:#fff;box-shadow:inset 0 0 0 1.5px #b7791f}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--muted);margin-top:6px}
+.legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:0}
+
+/* More filters panel */
+.panel{background:#fff;border-radius:18px;padding:12px;margin-top:8px;border:1px solid var(--line);max-height:46vh;overflow:auto}
+.panel .grp{font-size:12px;font-weight:bold;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin:10px 0 6px}
+.panel .grp:first-child{margin-top:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1.5px solid #cfdde1;background:#fff;color:var(--ink);border-radius:999px;padding:6px 12px;font-size:14px;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.panel .foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px}
+.lnk{border:0;background:none;color:var(--teal);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:4px 0}
+
+/* ---------- List ---------- */
+.listhd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:2px 4px 10px}
+.listhd .pl{color:var(--teal);font-size:15px}
+.dayhd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:4px 4px 8px;font-size:14px;color:var(--muted)}
+.dayhd b{font:bold 17px Georgia,serif;color:var(--ink)}
+
+/* Inquiries strip */
+.inqbar{width:100%;display:flex;justify-content:space-between;align-items:center;border:2px solid #f0d58f;background:#fff8e6;color:#7a4f00;border-radius:16px;padding:12px 14px;font-size:16px;font-weight:bold;cursor:pointer;margin-bottom:10px;text-align:left}
+.inqbar span:last-child{font-size:14px;font-weight:normal}
+.inqwrap{border-left:3px solid #f0d58f;padding-left:8px;margin-bottom:14px}
+
+/* Booking cards */
+.bk{background:#fff;border:1.5px solid var(--line);border-radius:18px;margin-bottom:10px;overflow:hidden}
+.bk.open{border-color:#cfdde1}
+.bk.fl{border:2px solid #e0a32b}
+.bk.cx{opacity:.6}
+.bk.inq{border-style:dashed;border-color:#e6c46a}
+.sum{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px 12px 12px 14px;cursor:pointer;position:relative}
+.bk.open .sum{background:#f0f7f9}
+.sum .lt{min-width:0}
+.st{display:inline-block;font-size:13px;border-radius:7px;padding:3px 9px;border:1px solid}
+.s-inq{background:#fff3d6;color:#7a4f00;border-color:#f0d58f}
+.s-con{background:#e1f0f3;color:var(--teal);border-color:#bcdce3}
+.s-com{background:#eceff1;color:#455a64;border-color:#d5dce0}
+.s-paid{background:#dcf3e3;color:var(--ok);border-color:#bfe3cb}
+.s-cx{background:#f7dede;color:var(--bad);border-color:#ebc0c0}
+.s-past{background:#eceff1;color:#455a64;border-color:#d5dce0}
+.tg{display:inline-block;font-size:12px;font-weight:bold;border-radius:999px;padding:3px 8px;margin-left:4px;vertical-align:1px}
+.tg.k{background:#eeedfe;color:#4b42b8}
+.tg.t{background:#eceff1;color:#455a64}
+.tg.w{background:#e1f0f3;color:var(--teal)}
+.nm{font-weight:bold;font-size:19px;margin-top:8px;overflow-wrap:anywhere}
+.sub{font-size:15px;color:var(--muted);margin-top:3px}
+.flag.owes{background:#eeedfe;color:#4b42b8}
+.owebox{background:#f4f2fe;border:1.5px solid #c9c3f3;border-radius:12px;padding:10px;margin:8px 0;font-size:14px}
+.flag{background:#fff1cf;color:#8a5a00;font-size:13px;font-weight:bold;border-radius:8px;padding:4px 9px;display:inline-block;margin-top:6px}
+.rt{display:flex;flex-direction:column;align-items:flex-end;gap:7px;min-width:122px}
+.sess{border:0;border-radius:14px;min-width:116px;min-height:40px;padding:0 12px;font-size:15px;cursor:pointer;white-space:nowrap}
+.sess.sunset{background:var(--sun);color:#fff}
+.sess.sunrise{background:var(--rise);color:#3b2a00;font-weight:bold}
+.sess.wedding{background:#f9d9e5;color:#8c2350}
+.sess.other{background:#eceff1;color:#37474f}
+.sess.blank{background:#fff;color:#8b979c;border:1.5px dashed #cfd8dc}
+.sess.fixed{cursor:default}
+.amt{border-radius:999px;padding:5px 12px;font-size:15px;font-weight:bold;white-space:nowrap}
+.a-red{background:var(--bad);color:#ffe066}
+.a-yel{background:#ffd84d;color:#111}
+.a-grn{background:#bfe8cb;color:#123f8c}
+.a-gry{background:#eceff1;color:#455a64}
+.a-inq{background:#fff;color:#7a4f00;border:1.5px solid #f0d58f}
+.dep{border:1.5px solid var(--line);background:#fff;color:var(--teal);border-radius:12px;min-width:122px;min-height:40px;font-size:14px;cursor:pointer;padding:0 10px}
+.dep.in{background:#15603a;border-color:#15603a;color:#fff;font-weight:bold}
+.dep.na{background:#f6f7f8;color:#7b878c;border-color:#eceff1;cursor:default}
+.pm{float:right;color:var(--teal);font-size:22px;line-height:1;font-weight:bold;margin:2px 4px 0 0;pointer-events:none}
+
+.det{display:grid;grid-template-columns:1fr auto;gap:12px;padding:12px 12px 14px 14px;border-top:1px solid var(--line)}
+.bk:not(.open) .det{display:none}
+.det .lt{min-width:0;font-size:15px}
+.det .ln{margin-bottom:6px}
+.det .ln.mut{color:var(--muted)}
+.det hr{border:0;border-top:1px solid var(--line);margin:10px 0}
+.kv{margin:0 0 8px;color:var(--muted)}
+.kv b{color:var(--ink)}
+.rc{margin:8px 0;padding:8px 10px;background:#f4f2fe;border-radius:10px;font-size:14px}
+.rc div{display:flex;justify-content:space-between;gap:8px}
+.rc div:last-child{border-top:1px solid #d9d5f5;margin-top:4px;padding-top:4px;font-weight:bold}
+.smb{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.smb .btn{min-height:38px;font-size:14px;padding:0 10px}
+.acol{display:flex;flex-direction:column;gap:8px;min-width:122px}
+.acol .btn{min-height:44px;font-size:15px;padding:0 8px;width:122px}
+.acol .b-inq{background:#fff3d6;color:#7a4f00;border:1.5px solid #f0d58f}
+.acol .b-con{background:#e1f0f3;color:var(--teal);border:1.5px solid #bcdce3}
+.acol .b-paid{background:#fff;color:#1f6b3a;border:2px solid #1f6b3a}
+.acol .b-rem{background:#fff;color:#7a4f00;border:2px solid #e0a32b}
+.cxb{margin-top:12px}
+
+/* Bottom sheets (forms that slide up) */
+.veil{position:fixed;inset:0;background:#0f1d2466;z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:min(600px,100%);max-height:88vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.sheet h3{font:bold 20px Georgia,serif;margin:0 0 4px}
+.sheet .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet .acts{display:flex;gap:10px;margin-top:14px}
+.sheet .acts .btn{flex:1;min-height:50px}
+.money{display:flex;align-items:center;gap:6px}
+.money b{font-size:20px}
+.choice{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.choice .btn{min-height:50px;width:100%}
+.note{background:#f3f6f7;border-radius:10px;padding:8px 10px;font-size:13px;color:var(--muted);margin-top:10px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:12px;padding:10px 16px;font-size:15px;z-index:60;box-shadow:0 8px 24px #0004}
+
+/* Lower cards (unchanged features) */
 .ev{font-size:14px;border-top:1px solid #f0ebe4;padding:7px 0}
 .ev small{color:var(--muted)}
-.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:14px}
-.chip{border:2px solid var(--teal);background:#fff;color:var(--teal);border-radius:999px;padding:6px 13px;font-size:14px;font-weight:bold;cursor:pointer}
-.chip.on{background:var(--teal);color:#fff}
-.err{color:var(--bad);font-size:14px}
 .tbl{overflow-x:auto;margin-top:10px;-webkit-overflow-scrolling:touch}
 .tbl table{border-collapse:collapse;font-size:13px;min-width:760px;width:100%}
 .tbl th,.tbl td{border:1px solid var(--line);padding:6px 8px;text-align:left;white-space:nowrap}
-.tbl th{background:#eef7f8;color:var(--teal);font-size:12px;position:sticky;top:0}
+.tbl th{background:#eef7f8;color:var(--teal);font-size:12px}
 .tbl tr.cx td{opacity:.5;text-decoration:line-through}
 .tbl tr.tst td{background:#f6f6f6}
-.muted{color:var(--muted);font-size:14px}
-/* Calendar view (Oct 15 2026) */
-.cal-nav{display:flex;justify-content:space-between;align-items:center;margin:12px 0 6px}
-.cal-nav b{font:bold 18px Georgia,serif}
-.cal-nav button{border:0;background:#fff;color:var(--teal);font-size:24px;width:44px;height:40px;cursor:pointer;border-radius:10px}
-.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}
-.cal .h{font-size:12px;color:var(--muted);padding:2px 0}
-.cal .d{border:0;background:#fff;font:inherit;font-size:15px;color:var(--ink);padding:6px 0 4px;border-radius:10px;min-height:46px;cursor:pointer}
-.cal .d.past{color:#9aa7ad}
-.cal .d.today{border:2px solid var(--teal)}
-.cal .d.sel{background:var(--teal);color:#fff}
-.cal .dots{display:flex;justify-content:center;gap:3px;height:7px;margin-top:3px;flex-wrap:wrap}
-.cal .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
-.c-yel{background:#e0a32b}.c-grn{background:#3f9a5c}.c-pur{background:#7f77dd}.c-pnk{background:#d4537e}
-.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin:10px 0 4px}
-.legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:-1px}
-.dayhd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
-.dayhd b{font:bold 18px Georgia,serif}
-.sunline{font-size:14px;color:var(--muted);white-space:nowrap}
-.grp{font-size:12px;font-weight:bold;letter-spacing:2px;color:var(--teal);text-transform:uppercase;margin:12px 0 0}
-.bk.k{background:#eeedfe;border:1px solid #afa9ec;padding:0;overflow:hidden}
-.bk.w{background:#fbeaf0;border:1px solid #ed93b1;padding:0;overflow:hidden}
-.bk .bar{color:#fff;font-weight:bold;font-size:15px;padding:7px 12px}
-.bk.k .bar{background:#7f77dd}.bk.w .bar{background:#d4537e}
-.bk .inner{padding:12px}
-.xf{margin-top:10px;padding:10px;border:1px dashed #c9d6da;border-radius:10px;background:#fbfcfd}
-.headsup{background:#fff1cf;color:#8a5a00;font-size:14px;border-radius:10px;padding:8px 10px;margin-top:10px}
-/* Oct 16 2026: simpler cards, filters that stay on screen, search */
-.tile.grn{background:#eef8f1;border-color:#bfe3cb}.tile.grn b{color:#1f6b3a}
-.tile.blu{background:#e9f4f6;border-color:#bcdce3;cursor:pointer}.tile.blu b{color:var(--teal)}
-.sticky{position:sticky;top:0;z-index:5;background:#fff;padding:10px 0 8px;border-bottom:1px solid #f0ebe4}
-.sticky .filters{flex-wrap:wrap;gap:6px}
-.bkhd{display:flex;justify-content:space-between;align-items:center}
-.views{display:flex;gap:4px}
-.vb{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:8px;width:38px;height:34px;font-size:16px;cursor:pointer;padding:0}
-.vb.on{background:var(--teal);color:#fff;border-color:var(--teal)}
-.fc{border:1px solid #cfdde1;background:#fff;color:var(--ink);border-radius:999px;padding:5px 11px;font-size:13px;cursor:pointer;white-space:nowrap}
-.fc .n{color:var(--muted);margin-left:2px}
-.fc.on{background:var(--teal);border-color:var(--teal);color:#fff}.fc.on .n{color:#cfe6ea}
-.fc.warn .n{color:#b7791f;font-weight:bold}.fc.on.warn .n{color:#ffe2a8}
-/* Folding rows: one line per booking, tap to open */
-.bk{padding:0;overflow:hidden}
-.bk .sum{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 12px;cursor:pointer}
-.bk .sum .nm{font-size:16px}
-.bk .sum .sub{font-size:13px;color:var(--muted);margin-top:1px}
-.bk .det{padding:0 12px 12px}
-.bk:not(.open) .det{display:none}
-.bk.open .sum{background:#f6fafb}
-.pill{font-size:12px;font-weight:bold;border-radius:999px;padding:3px 9px;white-space:nowrap}
-.p-y{background:#fff1cf;color:#8a5a00}.p-g{background:#dcf3e3;color:#1f6b3a}.p-b{background:#e1f0f3;color:var(--teal)}.p-x{background:#eceff1;color:#455a64}
-.bk .who{color:var(--teal);font-size:13px;font-weight:normal}
-.bk.k .inner,.bk.w .inner{padding:0}
-.chip{white-space:nowrap}
-.pay{margin-top:8px;font-size:14px;border-top:1px solid #f0ebe4;padding-top:6px}
-.pay .r{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
-.pay .r>span:first-child{color:var(--muted)}
-.pay .r>span:last-child{text-align:right}
-.ok{color:var(--ok);font-weight:bold}.wn{color:var(--warn);font-weight:bold}
-.flag{background:#fff1cf;color:#8a5a00;font-size:13px;font-weight:bold;border-radius:8px;padding:4px 9px;display:inline-block;margin-top:8px}
-.bk.fl{border:2px solid #e0a32b}
-.lnk{border:0;background:none;color:var(--teal);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:0 0 0 6px}
-[hidden]{display:none!important}
+.tline{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #f0ebe4}
+.tline.big{font-weight:bold;font-size:18px}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
+.who-card .chips .chip{font-size:16px;padding:10px 18px}
+@media (max-width:370px){.rt,.acol{min-width:108px}.acol .btn{width:108px}.sess,.dep{min-width:104px}.tile b{font-size:22px}}
 </style>
 </head>
 <body>
 <div class="topbar"><div class="in">
-  <img src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae" width="42" height="42">
   <div class="brand"><b>Miranda Rae Photography</b><span>BOOKINGS · PRIVATE</span></div>
 </div></div>
 <main>
@@ -133,450 +215,862 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <p class="err" id="perr" hidden>That passcode didn't work.</p>
   </div>
 
+  <!-- Who's using this phone (Oct 20 2026): same three buttons as New Booking, asked once per phone.
+       Shared with New Booking, so a phone that already picked there isn't asked again. -->
+  <div class="card who-card" id="whoCard" hidden>
+    <h1>Who's using this phone?</h1>
+    <p class="muted">So the page can show who made each change. You only pick once.</p>
+    <div class="chips" id="whoBtns" style="margin-top:10px"><button class="chip">Miranda</button><button class="chip">Bradyn</button><button class="chip">Other</button></div>
+    <input id="whoOther" placeholder="Type your name" hidden style="margin-top:10px">
+    <button class="btn big" id="whoOk" hidden>Done</button>
+  </div>
+
   <div id="app" hidden>
-    <div class="card">
-      <h1>Bookings</h1>
-      <div class="muted" id="asof"></div>
-      <div class="tiles" style="margin-top:12px">
-        <div class="tile"><b id="tBooked">–</b><span>Booked <span id="tBookedN"></span></span></div>
-        <div class="tile grn"><b id="tCollected">–</b><span>Collected · Miranda keeps</span></div>
-        <div class="tile"><b id="tDue">–</b><span>Still to collect</span></div>
-        <div class="tile blu" id="tUpTile" role="button" tabindex="0"><b id="tUp">–</b><span>Upcoming sessions</span></div>
-      </div>
-      <p class="muted" style="margin:10px 0 0">Collected is only what Miranda keeps. On a session shot by someone else, the photographer collects the rest. Tests and cancelled bookings are left out.</p>
-    </div>
-
-    <div class="card" id="bkCard">
-      <!-- Oct 16 2026 cleanup: views as small icons, one slim sticky filter strip with counts, folding rows -->
-      <div class="bkhd">
-        <h2 style="margin:0">Bookings</h2>
-        <div class="views">
-          <button class="vb" data-v="calendar" aria-label="Calendar" title="Calendar">📅</button>
-          <button class="vb on" data-v="cards" aria-label="List" title="List">☰</button>
-          <button class="vb" data-v="table" aria-label="Table" title="Table">▦</button>
+    <div class="head" id="head">
+      <div class="card">
+        <div class="asof" id="asof"></div>
+        <div class="tiles">
+          <button class="tile bk1" id="tBookedTile" type="button">
+            <span class="hd" id="tPer">Current bookings ↻</span>
+            <b id="tBooked">–</b>
+            <span class="lb" id="tBookedN">Booked</span>
+            <div class="nx" id="tNext"></div>
+          </button>
+          <div class="tile grn"><b id="tCollected">–</b><span class="lb">Collected</span></div>
+          <div class="tile dueT"><b id="tDue">–</b><span class="lb">Still to collect</span></div>
+          <button class="tile blu" id="tUpTile" type="button"><b id="tUp">–</b><span class="lb">Upcoming sessions</span></button>
         </div>
       </div>
-      <div class="sticky" id="fBox">
-        <div class="filters" id="fRow">
-          <button class="fc" data-f="all">All <span class="n"></span></button>
-          <button class="fc on" data-f="upcoming">Upcoming <span class="n"></span></button>
-          <button class="fc" data-f="completed">Completed <span class="n"></span></button>
-          <button class="fc" data-f="unpaid">Unpaid <span class="n"></span></button>
-          <button class="fc" data-f="needs">Needs a look <span class="n"></span></button>
-          <button class="fc" data-f="past">Past <span class="n"></span></button>
-        </div>
+      <div class="frow">
+        <button class="fb" id="fCon" type="button">Confirmed ↻</button>
+        <button class="fb" id="fDep" type="button">Deposit ↻</button>
+        <button class="fb" id="fMore" type="button">More filters</button>
       </div>
-      <input id="q" type="search" autocomplete="off" placeholder="Search a name (or Kallie)" style="margin-top:10px">
-      <div id="pastsum" class="muted" hidden style="margin-top:10px"></div>
-      <div id="list"></div>
+      <div class="panel" id="morePanel" hidden></div>
+      <div class="crow" id="crow">
+        <div class="calpop" id="calPop" hidden></div>
+        <button class="cbtn" id="calBtn" type="button"><span class="mini"><i id="calMon">OCT</i><u id="calDay">19</u></span>Calendar</button>
+        <button class="sbtn" id="srchBtn" type="button">Search</button>
+        <input id="q" type="search" autocomplete="off" placeholder="Name (or Kallie)" hidden>
+      </div>
+      <div class="daychip" id="dayChip" hidden><span id="dayTxt"></span><button id="dayClr" type="button">✕ Show all</button></div>
     </div>
 
+    <div class="listhd"><h2>Bookings</h2><span class="pl" id="listLbl"></span></div>
+    <div id="dayHd"></div>
+    <div id="inqBox"></div>
+    <div id="list"></div>
+    <p style="text-align:center;margin:4px 0 18px"><button class="lnk" id="tblTog">Spreadsheet view</button></p>
+
     <div class="card">
-      <h2>Miranda's totals</h2>
-      <div class="filters">
-        <button class="chip on" data-p="month">This month</button>
-        <button class="chip" data-p="year">This year</button>
-        <button class="chip" data-p="all">All time</button>
-      </div>
-      <div class="filters" style="margin-top:8px">
-        <button class="chip on" data-k="booked">Booked</button>
-        <button class="chip" data-k="collected">Collected</button>
-      </div>
+      <h2 style="margin-bottom:10px">Miranda's totals</h2>
+      <div class="chips"><button class="chip on" data-p="month">This month</button><button class="chip" data-p="year">This year</button><button class="chip" data-p="all">All time</button></div>
+      <div class="chips" style="margin-top:8px"><button class="chip on" data-k="booked">Booked</button><button class="chip" data-k="collected">Collected</button></div>
       <div id="mt" style="margin-top:12px"></div>
     </div>
 
     <div class="card">
-      <h2>Everything that came in</h2>
+      <h2 style="margin-bottom:10px">Everything that came in</h2>
       <div id="feed"></div>
     </div>
-    <div class="filters" id="tRow" style="justify-content:center;gap:16px;margin:4px 0 10px">
-      <label class="muted"><input type="checkbox" id="showTests" style="width:auto;min-height:0;vertical-align:-2px"> Show tests</label>
-      <button class="lnk" id="clearTests" style="color:var(--bad)">Clear all tests</button>
-    </div>
+    <p style="text-align:center" class="muted"><span id="whoLine"></span> · <button class="lnk" id="whoChg">Change</button></p>
+    <p style="text-align:center"><button class="lnk" id="clearTests" style="color:var(--bad)">Clear all tests</button></p>
     <p style="text-align:center"><a href="#" id="forget" class="muted">Lock this phone</a></p>
   </div>
 </main>
+<div id="sheetHost"></div>
 <footer>Miranda Rae Photography · private page</footer>
 <script>
 (function(){
   var $ = function(id){ return document.getElementById(id); };
   var LIVE = /(^|\.)mirandaraephotography\.com$/.test(location.hostname);
-  var API = '/api/booking-counter', PASS = '', WHO = '', DATA = null, FILTER = 'upcoming', VIEW = 'cards';
-  try { VIEW = localStorage.getItem('mrp-log-view') || 'cards'; } catch (e) {}
+  var API = '/api/booking-counter', PASS = '', WHO = '', DATA = null;
+  var VENMO = '@miranda-hughes-69889';
   try { PASS = localStorage.getItem('mrp-log-pass') || ''; WHO = localStorage.getItem('mrp-who') || ''; } catch (e) {}
   var money = function(n){ n = Number(n) || 0; return '$' + n.toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }); };
-  var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); };
-  var nice = function(d){ try { return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); } catch (e) { return d; } };
-  var when = function(iso){ try { var d = new Date(iso); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
-  var today = new Date(); today = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+  var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
+  var ymd = function(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  var dt = function(s){ return new Date(s + 'T12:00:00'); };
+  var nice = function(d){ try { return dt(d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); } catch (e) { return d; } };
+  var longDay = function(d){ try { return dt(d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); } catch (e) { return d; } };
+  var when = function(iso){ try { var d = new Date(iso); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
+  var short = function(iso){ try { var d = new Date(iso); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
+  var TODAY = ymd(new Date()), TOMORROW = ymd(new Date(Date.now() + 86400000));
+  function refreshDay(){ TODAY = ymd(new Date()); TOMORROW = ymd(new Date(Date.now() + 86400000)); }
+  var first = function(n){ return String(n || '').trim().split(/\s+/)[0] || ''; };
+  var low = function(s){ return String(s || '').trim().toLowerCase(); };
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && 'ontouchend' in document);
 
-  function load(){
-    return fetch(API + '?log=1', { headers: { 'x-pass': PASS }, cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(j){
-      if (j.error) { $('app').hidden = true; $('lock').hidden = false; if (PASS) $('perr').hidden = false; return; }
-      try { localStorage.setItem('mrp-log-pass', PASS); } catch (e) {}
-      DATA = j; $('lock').hidden = true; $('app').hidden = false; draw();
-    }).catch(function(){ $('asof').textContent = "Couldn't load. Pull down to refresh."; });
-  }
-  // Contracted sessions (Oct 15 2026): Miranda's share is a % (with a $ minimum) or a $ amount;
-  // the photographer gets the rest of the session total, add-ons included.
-  // Deductions (Oct 16 2026) come off the booking total
+  // ---------- Money math (same rules as before) ----------
   function less(b){ return (b.deducts || []).reduce(function(s, x){ return s + (x.amount || 0); }, 0); }
   function tot(b){ return Math.round(((b.total || 0) + (b.addons || 0) - less(b)) * 100) / 100; }
   function shareOf(sp, t){ var v = sp.mode === 'amt' ? sp.val : Math.max(t * sp.val / 100, sp.min || 0); return Math.round(Math.min(Math.max(0, t), v) * 100) / 100; }
   function payOf(b){ if (!b.photographer) return 0; return b.split ? Math.round((tot(b) - shareOf(b.split, tot(b))) * 100) / 100 : (b.payout || 0); }
   function mineOf(b){ return Math.max(0, tot(b) - payOf(b)); }
   function collOf(b){ return Math.min(tot(b), ((b.deposit && b.deposit.amount) || 0) + ((b.paid && b.paid.amount) || 0)); }
-  // What Miranda actually keeps of the money collected (Oct 16 2026): all of it on her own sessions;
-  // on a contracted session only her share (the photographer collects the rest)
-  function keepOf(b){ return b.photographer ? Math.min(mineOf(b), collOf(b)) : collOf(b); }
-  // Past the session date and still owed money: shot (mark paid) or moved (change the date)?
-  function flagged(b){ return !b.cancelled && b.date && b.date < today && due(b) > 0; }
-  var PERIOD = 'month', KIND = 'booked';
-  function inPeriod(b){
-    if (PERIOD === 'all' || !b.date) return PERIOD === 'all';
-    return PERIOD === 'year' ? b.date.slice(0, 4) === today.slice(0, 4) : b.date.slice(0, 7) === today.slice(0, 7);
+  // What Miranda keeps of the money collected: all of it on her own sessions, only her share on contracted ones
+  // On a contracted session Miranda gets the deposit; the photographer collects the balance and hands over
+  // whatever else is Miranda's ("Kallie paid me")
+  function handed(b){ return (b.shooterPaid || []).reduce(function(s, x){ return s + (x.amount || 0); }, 0); }
+  function keepOf(b){
+    // Cancelled with the deposit kept: Miranda keeps all of it, even on a contracted session (nobody else worked)
+    if (b.cancelled) return b.cancelled.kept || 0;
+    return b.photographer ? Math.min(mineOf(b), ((b.deposit && b.deposit.amount) || 0) + handed(b)) : collOf(b);
   }
-  function mirandaTotals(real){
-    var own = 0, share = 0, n = 0, per = {}, paidOut = 0;
-    real.filter(inPeriod).forEach(function(b){
-      var c = KIND === 'collected';
-      if (!b.photographer) { own += c ? collOf(b) : tot(b); return; }
-      n++;
-      var mine = mineOf(b), got = c ? Math.min(mine, collOf(b)) : mine, theirs = c ? Math.max(0, collOf(b) - mine) : payOf(b);
-      share += got; paidOut += theirs; per[b.photographer] = (per[b.photographer] || 0) + theirs;
-    });
-    var who = Object.keys(per).map(function(k){ return esc(k) + ' ' + money(per[k]); }).join(' · ');
-    var line = function(l, v, big){ return '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #f0ebe4' + (big ? ';font-weight:bold;font-size:18px' : '') + '"><span>' + l + '</span><span>' + money(v) + '</span></div>'; };
-    $('mt').innerHTML = line('📸 From her own sessions', own) +
-      line('📷 Her share from contracted sessions' + (n ? ' <span class="muted">(' + n + ')</span>' : ''), share) +
-      line('Total to Miranda', own + share, true) +
-      '<p class="muted" style="margin:10px 0 0">Paid to photographers: <b>' + money(paidOut) + '</b>' + (who ? ' (' + who + ')' : '') + '</p>' +
-      (KIND === 'collected' ? '<p class="muted" style="margin:6px 0 0">Collected = deposits and Paid in Full marked on this page. On a contracted session, the first money in counts toward Miranda\'s share.</p>' : '');
+  // The photographer owes Miranda once they've collected the balance (Paid in Full) and her share isn't covered yet
+  function shooterOwes(b){
+    if (!b.photographer || b.cancelled || !b.paid) return 0;
+    return Math.max(0, Math.round((mineOf(b) - keepOf(b)) * 100) / 100);
   }
   function due(b){ return Math.max(0, Math.round((tot(b) - ((b.deposit && b.deposit.amount) || 0) - ((b.paid && b.paid.amount) || 0)) * 100) / 100); }
+  function flagged(b){ return !b.inq && !b.cancelled && !b.past && b.date && b.date < TODAY && due(b) > 0; }
+  function real(b){ return !b.inq && !b.test && !b.past; }
+
+  // ---------- Loading ----------
+  function load(){
+    return fetch(API + '?log=1', { headers: { 'x-pass': PASS }, cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(j){
+      if (j.error) { $('app').hidden = true; $('whoCard').hidden = true; $('lock').hidden = false; if (PASS) $('perr').hidden = false; return; }
+      try { localStorage.setItem('mrp-log-pass', PASS); } catch (e) {}
+      DATA = j; $('lock').hidden = true;
+      if (!WHO) { $('whoCard').hidden = false; $('app').hidden = true; return; }
+      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw();
+    }).catch(function(){ $('asof').textContent = "Couldn't load. Pull down to refresh."; });
+  }
+  var PH = { names: ['Kallie'], split: { pct: 25, min: 50 } };
+  try { fetch(API).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ if (j && j.photographers && j.photographers.length) PH.names = j.photographers; if (j && j.split && isFinite(j.split.pct)) PH.split = j.split; }).catch(function(){}); } catch (e) {}
+
+  // ---------- Inquiries: website requests and texted Confirm links nobody has confirmed yet ----------
+  // A client leaves the Inquiry list when they confirm, when Miranda books them here, or taps "Not booking".
+  // They also drop off on their own once their date passes, or 30 days after they asked if they gave no date.
+  function inquiries(){
+    var log = (DATA && DATA.log) || [], gone = {}, map = {};
+    var key = function(e){ return low(e.name) + '|' + (e.date || ''); };
+    (DATA.bookings || []).forEach(function(b){ gone[low(b.name) + '|' + (b.date || '')] = 1; });
+    log.forEach(function(e){ if (e.kind === 'confirm' || e.kind === 'added' || e.kind === 'dismiss') gone[key(e)] = 1; });
+    log.forEach(function(e){
+      if (e.kind !== 'request' && e.kind !== 'sent') return;
+      if (!String(e.name || '').trim()) return;
+      var k = key(e); if (gone[k]) return;
+      var o = map[k] || { inq: true, key: k, name: e.name, date: e.date || '', asked: e.at };
+      if (e.kind === 'request') { o.request = e; o.asked = o.asked || e.at; if (!o.phone && e.phone) o.phone = e.phone; if (!o.beach && e.beach) o.beach = e.beach; o.detail = e.detail; o.site = e.site; }
+      else { o.sent = e; o.time = e.time || o.time; o.pkg = e.pkg || o.pkg; o.amount = e.amount || o.amount; o.dep = e.dep || o.dep; o.link = e.link || o.link; o.by = e.by || o.by; o.photographer = e.photographer || o.photographer; if (e.phone) o.phone = e.phone; if (e.beach) o.beach = e.beach; }
+      o.test = !!(o.test || e.test); o.last = e.at;
+      map[k] = o;
+    });
+    var cut = new Date(Date.now() - 30 * 86400000).toISOString();
+    return Object.keys(map).map(function(k){ var o = map[k]; o.old = o.date ? o.date < TODAY : (o.asked || '') < cut; return o; });
+  }
+
+  // ---------- Filters ----------
+  var PERIODS = [['current', 'Current bookings'], ['today', 'Today'], ['tomorrow', 'Tomorrow'], ['week', 'This week'], ['month', 'This month'], ['year', 'This year'], ['lastyear', 'Last year'], ['all', 'All']];
+  var PI = 0, CON = '', DEP = '', MORE = { bal: '', status: '', type: '', loc: '', shooter: '', tests: false }, DAY = '', Q = '', INQOPEN = false, TABLE = false, OPEN = null;
+  function inPeriod(d, per){
+    if (per === 'all') return true;
+    if (!d) return per === 'current';
+    var t = dt(TODAY);
+    if (per === 'today') return d === TODAY;
+    if (per === 'tomorrow') return d === TOMORROW;
+    if (per === 'week') { var s = new Date(t); s.setDate(t.getDate() - t.getDay()); var e = new Date(s); e.setDate(s.getDate() + 6); return d >= ymd(s) && d <= ymd(e); }
+    if (per === 'month') return d.slice(0, 7) === TODAY.slice(0, 7);
+    if (per === 'year') return d.slice(0, 4) === TODAY.slice(0, 4);
+    if (per === 'lastyear') return d.slice(0, 4) === String(Number(TODAY.slice(0, 4)) - 1);
+    return false;
+  }
+  // Current = today and later, plus anything past that still needs a look (owes money)
+  function fitsPeriod(b){
+    var per = PERIODS[PI][0];
+    if (per === 'current') return b.inq ? !b.old : (!b.past && ((b.date || '') >= TODAY || !b.date || flagged(b)));
+    return inPeriod(b.date, per);
+  }
+  function sessType(b){ var t = low(b.time); return t === 'sunrise' || t === 'sunset' || t === 'wedding' ? t : t ? 'other' : 'blank'; }
+  function fitsMore(b){
+    if (MORE.bal === 'owes' && (b.inq || due(b) <= 0)) return false;
+    if (MORE.bal === 'paid' && (b.inq || due(b) > 0)) return false;
+    if (MORE.bal === 'shooter' && (b.inq || !shooterOwes(b))) return false;
+    if (MORE.status === 'upcoming' && !((b.date || '') >= TODAY)) return false;
+    if (MORE.status === 'completed' && (b.inq || !(b.date && b.date < TODAY))) return false;
+    if (MORE.status === 'needs' && !flagged(b)) return false;
+    if (MORE.type && sessType(b) !== MORE.type) return false;
+    if (MORE.loc && low(b.beach) !== low(MORE.loc)) return false;
+    if (MORE.shooter && low(b.photographer || 'Miranda') !== low(MORE.shooter)) return false;
+    return true;
+  }
+  function moreCount(){ var n = 0; ['bal', 'status', 'type', 'loc', 'shooter'].forEach(function(k){ if (MORE[k]) n++; }); if (MORE.tests) n++; return n; }
+
+  // ---------- Draw ----------
+  var ORDER = { sunrise: 1, midday: 2, engagement: 3, wedding: 4, other: 5, '': 6, sunset: 7 };
+  function ord(b){ var t = low(b.time); return ORDER[t] != null ? ORDER[t] : 5; }
+  function sorter(back){ return function(a, b){ var c = (a.date || '9999').localeCompare(b.date || '9999'); if (back) c = -c; return c || ord(a) - ord(b) || (a.num || 0) - (b.num || 0); }; }
 
   function draw(){
-    var tests = $('showTests').checked, all = DATA.bookings || [];
-    var real = all.filter(function(b){ return !b.test && !b.cancelled && !b.past; });
-    // Past sessions (Oct 16 2026, entered from New Booking) stay out of every total; the Past filter has its own
-    var booked = 0, keep = 0, owe = 0, up = 0;
-    real.forEach(function(b){ booked += tot(b); keep += keepOf(b); owe += due(b); if (b.date && b.date >= today) up++; });
-    mirandaTotals(real);
-    $('tBooked').textContent = money(booked); $('tBookedN').textContent = '· ' + real.length + ' session' + (real.length === 1 ? '' : 's');
-    $('tCollected').textContent = money(keep); $('tDue').textContent = money(owe);
-    $('tUp').textContent = up;
-    $('asof').textContent = (DATA.test ? 'TEST COPY · ' : '') + 'Updated ' + when(new Date().toISOString());
+    var all = (DATA.bookings || []).slice(), tests = MORE.tests, per = PERIODS[PI][0];
+    var INQ = inquiries().filter(function(o){ return tests || !o.test; });
 
-    // Search finds anyone (cancelled too) by client or photographer name; otherwise cancelled ones stay hidden
-    var q = ($('q').value || '').trim().toLowerCase();
-    var fits = function(b, f){
-      if (f === 'past') return !!b.past;
-      if (b.past) return false;
-      if (f === 'upcoming') return !b.date || b.date >= today;
-      if (f === 'completed') return b.date && b.date < today;
-      if (f === 'unpaid') return due(b) > 0;
-      if (f === 'needs') return flagged(b);
-      return true;
-    };
-    var shown = all.filter(function(b){ return (tests || !b.test) && !b.cancelled; });
-    // A count on each filter button; "Needs a look" turns amber when something's waiting
-    Array.prototype.forEach.call(document.querySelectorAll('.fc[data-f]'), function(x){
-      var f = x.getAttribute('data-f'), n = shown.filter(function(b){ return fits(b, f); }).length;
-      x.querySelector('.n').textContent = n; x.classList.toggle('warn', f === 'needs' && n > 0);
-    });
+    // Money boxes follow the Booked box's period (Current, Today, Tomorrow...). Tests, past entries and inquiries never count.
+    var pool = all.filter(function(b){ return real(b) && (DAY ? b.date === DAY : fitsPeriod(b)); });
+    var booked = 0, keep = 0, owe = 0, n = 0;
+    // On a contracted session only Miranda's share counts in the boxes (the photographer keeps the rest),
+    // so Booked = Collected + Still to collect always adds up
+    pool.forEach(function(b){ keep += keepOf(b); if (b.cancelled) return; n++;
+      if (b.photographer) { booked += mineOf(b); owe += Math.max(0, mineOf(b) - keepOf(b)); } else { booked += tot(b); owe += due(b); } });
+    var up = all.filter(function(b){ return real(b) && !b.cancelled && (b.date || '') >= TODAY; }).length;
+    $('tPer').textContent = (DAY ? nice(DAY) : PERIODS[PI][1]) + ' ↻';
+    $('tBooked').textContent = money(booked);
+    $('tBookedN').textContent = 'Booked · ' + n + ' session' + (n === 1 ? '' : 's');
+    $('tNext').textContent = DAY ? 'Tap for Current →' : 'Tap for ' + PERIODS[(PI + 1) % PERIODS.length][1] + ' →';
+    $('tCollected').textContent = money(keep); $('tDue').textContent = money(owe); $('tUp').textContent = up;
+
+    // Updated line: the last change anyone made, and who made it
+    var log = DATA.log || [], last = log[log.length - 1];
+    var whoMade = last ? (last.kind === 'confirm' ? 'Client confirmed' : last.kind === 'request' ? 'Website request' : last.by || '') : '';
+    $('asof').textContent = (DATA.test ? 'TEST COPY · ' : '') + 'Updated: ' + (last ? when(last.at) : '—') + (whoMade ? ' · ' + whoMade : '');
+
+    // Filter buttons show what they're set to
+    var fc = $('fCon'), fd = $('fDep'), fm = $('fMore');
+    fc.classList.toggle('on', !!CON); fc.innerHTML = CON === 'yes' ? 'Confirmed ✓' : CON === 'no' ? 'Not confirmed ✓' : 'Confirmed ↻';
+    fd.classList.toggle('on', !!DEP); fd.innerHTML = DEP === 'in' ? 'Deposit in ✓' : DEP === 'none' ? 'No deposit ✓' : 'Deposit ↻';
+    var mc = moreCount(); fm.classList.toggle('on', mc > 0); fm.innerHTML = 'More filters' + (mc ? '<span class="ct">' + mc + '</span>' : '');
+    var cm = dt(DAY || TODAY); $('calMon').textContent = cm.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(); $('calDay').textContent = cm.getDate();
+    $('calBtn').classList.toggle('on', !!DAY);
+    $('dayChip').hidden = !DAY;
+    if (DAY) { var sn = sun(DAY); $('dayTxt').innerHTML = 'Showing <b>' + esc(longDay(DAY)) + '</b><br><span class="muted">🌅 ' + sn[0] + ' · 🌇 ' + sn[1] + ' (Mexico Beach)</span>'; }
+
+    // Which bookings show
+    var q = low(Q);
     var rows = all.filter(function(b){
       if (b.test && !tests) return false;
-      if (q) return (String(b.name || '') + ' ' + String(b.photographer || '')).toLowerCase().indexOf(q) >= 0;
+      if (q) return low(b.name + ' ' + (b.photographer || '')).indexOf(q) >= 0;
+      if (DAY) return b.date === DAY && !b.cancelled;
+      if (MORE.status === 'cancelled') return !!b.cancelled && fitsPeriodAny(b);
+      if (MORE.status === 'pastentries') return !!b.past;
       if (b.cancelled) return false;
-      return fits(b, FILTER);
-    }).sort(function(a, b){ var back = !q && (FILTER === 'completed' || FILTER === 'needs'); return back ? (b.date || '').localeCompare(a.date || '') : (a.date || '').localeCompare(b.date || ''); });
-    $('fBox').hidden = $('q').hidden = VIEW === 'calendar';
-    var pastAll = all.filter(function(b){ return b.past && !b.cancelled && (tests || !b.test); }), pb = 0, po = 0;
-    pastAll.forEach(function(b){ pb += tot(b); po += due(b); });
-    $('pastsum').hidden = !(FILTER === 'past' && !q && VIEW !== 'calendar');
-    $('pastsum').innerHTML = 'Sessions entered from before the new system: <b>' + pastAll.length + '</b> · <b>' + money(pb) + '</b>' + (po ? ' · still owed <b>' + money(po) + '</b>' : '') + '<br>Not counted in the totals above.';
-    var EMPTY = { upcoming: 'No upcoming sessions.', completed: 'No completed sessions yet.', unpaid: 'Everyone is paid up.', needs: 'Nothing needs a look. 👍', past: 'No past sessions entered yet. Use "Add without texting" at the bottom of New Booking.', all: 'Nothing here yet.' };
-    $('list').innerHTML = VIEW === 'calendar' ? calendar(all.filter(function(b){ return (tests || !b.test) && !b.cancelled && b.date; })) :
-      !rows.length ? '<p class="muted" style="margin-top:12px">' + (q ? 'No one by that name.' : EMPTY[FILTER] || 'Nothing here yet.') + '</p>' : VIEW === 'table' ? table(rows) : rows.map(function(b){ return card(b); }).join('');
+      if (!fitsPeriod(b)) return false;
+      if (CON === 'no') return false;
+      if (DEP === 'in' && !(b.deposit || b.paid)) return false;
+      if (DEP === 'none' && (b.deposit || b.paid)) return false;
+      return fitsMore(b);
+    });
+    var back = !q && !DAY && (MORE.status === 'completed' || MORE.status === 'needs' || per === 'lastyear');
+    rows.sort(sorter(back));
 
-    // "Link texted" lines disappear once that client confirms (same name + session date),
-    // and repeat taps for the same client show as one line. What's left = clients still waiting.
-    var LOGALL = DATA.log || [];
-    var nm = function(e){ return String(e.name || '').trim().toLowerCase(); };
-    var DONE = {};
-    LOGALL.forEach(function(e){ if (e.kind === 'confirm') { DONE[nm(e) + '|' + (e.date || '')] = 1; DONE[nm(e) + '|*'] = 1; } });
-    var SENT = {};
-    var feed = LOGALL.filter(function(e){ return tests || !e.test; }).slice().reverse().filter(function(e){
-      if (e.kind !== 'sent') return true;
-      var k = nm(e) + '|' + (e.date || '');
-      if (DONE[k] || (!e.date && DONE[nm(e) + '|*']) || SENT[k]) return false;
-      SENT[k] = 1; return true;
-    }).slice(0, 80);
-    var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)' };
-    $('feed').innerHTML = feed.length ? feed.map(function(e){
-      return '<div class="ev"><b>' + (LBL[e.kind] || esc(e.kind)) + '</b> ' + (e.num && e.num < 900000 ? '#' + e.num + ' ' : '') + esc(e.name || '') +
-        (e.amount ? ' · ' + money(e.amount) : '') + (e.test ? ' <span class="tag t-gry">TEST</span>' : '') +
-        '<br><small>' + esc([when(e.at), e.date ? nice(e.date) : '', e.beach, e.detail, e.by ? 'by ' + e.by : ''].filter(Boolean).join(' · ')) + '</small></div>';
-    }).join('') : '<p class="muted">Nothing yet.</p>';
-  }
+    // Inquiries: their own folded strip at the top (or the whole list when "Not confirmed" is on)
+    var inq = INQ.filter(function(o){
+      if (q) return low(o.name).indexOf(q) >= 0;
+      if (DAY) return o.date === DAY;
+      if (CON === 'yes' || DEP || MORE.bal || (MORE.status && MORE.status !== 'upcoming') || MORE.shooter) return false;
+      if (CON === 'no') return true;
+      if (!fitsPeriod(o)) return false;
+      return fitsMore(o);
+    }).sort(function(a, b){ return (b.last || '').localeCompare(a.last || ''); });
 
-  // Calendar view (Oct 15 2026): month grid with a dot per booking, tap a day for its sessions.
-  // Sunrise/sunset worked out right here for Mexico Beach (Central time); no outside service.
-  var CALM = today.slice(0, 7), SEL = today;
-  try { var cs = sessionStorage.getItem('mrp-cal'); if (cs) { CALM = cs.slice(0, 7); SEL = cs; } } catch (e) {}
-  function sun(ds){
-    var p = ds.split('-').map(Number), r = Math.PI / 180, lat = 29.948, lng = -85.42;
-    var J = Date.UTC(p[0], p[1] - 1, p[2]) / 86400000 + 2440587.5;
-    var Js = Math.ceil(J - 2451545.0 + 0.0008) - lng / 360;
-    var M = (357.5291 + 0.98560028 * Js) % 360;
-    var L = (M + 1.9148 * Math.sin(M * r) + 0.02 * Math.sin(2 * M * r) + 0.0003 * Math.sin(3 * M * r) + 282.9372) % 360;
-    var Jt = 2451545.0 + Js + 0.0053 * Math.sin(M * r) - 0.0069 * Math.sin(2 * L * r);
-    var sd = Math.sin(L * r) * Math.sin(23.4397 * r), cd = Math.cos(Math.asin(sd));
-    var w = Math.acos((Math.sin(-0.833 * r) - Math.sin(lat * r) * sd) / (Math.cos(lat * r) * cd)) / r;
-    var f = function(j){ try { return new Date((j - 2440587.5) * 86400000).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' }).replace(/ (AM|PM)/, ''); } catch (e) { return ''; } };
-    return [f(Jt - w / 360), f(Jt + w / 360)];
-  }
-  var ORDER = { sunrise: 1, midday: 2, wedding: 3, engagement: 4, sunset: 6 };
-  var GROUP = { sunrise: 'Morning', midday: 'Midday', wedding: 'Wedding', sunset: 'Evening' };
-  function ord(b){ return ORDER[String(b.time || '').toLowerCase()] || 5; }
-  function grp(b){ return GROUP[String(b.time || '').toLowerCase()] || 'Other times'; }
-  function isWed(b){ return /wedding/i.test(b.time || '') || /wedding/i.test(b.pkg || ''); }
-  function dotOf(b){ return b.photographer ? 'c-pur' : isWed(b) ? 'c-pnk' : (b.deposit || b.paid) ? 'c-grn' : 'c-yel'; }
-  function calCard(b){
-    if (!b.photographer && !isWed(b)) return card(b, true);
-    var c = card(b, true), bar = b.photographer ? '📷 ' + esc(b.photographer) + "'s session" : '💍 Wedding';
-    return c.replace('<div class="bk', '<div class="bk ' + (b.photographer ? 'k' : 'w')).replace('">', '"><div class="bar">' + bar + '</div><div class="inner">') + '</div>';
-  }
-  function calendar(list){
-    var by = {};
-    list.forEach(function(b){ (by[b.date] = by[b.date] || []).push(b); });
-    var y = Number(CALM.slice(0, 4)), m = Number(CALM.slice(5, 7)), first = new Date(y, m - 1, 1).getDay(), days = new Date(y, m, 0).getDate();
-    var h = '<div class="cal-nav"><button data-cal="-1" aria-label="Previous month">‹</button><b>' + new Date(y, m - 1, 15).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) + '</b><button data-cal="1" aria-label="Next month">›</button></div><div class="cal">';
-    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(function(x){ h += '<div class="h">' + x + '</div>'; });
-    for (var i = 0; i < first; i++) h += '<div></div>';
-    for (var d = 1; d <= days; d++) {
-      var ds = CALM + '-' + String(d).padStart(2, '0'), bs = (by[ds] || []).sort(function(a, b){ return ord(a) - ord(b); });
-      h += '<button class="d' + (ds < today ? ' past' : '') + (ds === today ? ' today' : '') + (ds === SEL ? ' sel' : '') + '" data-day="' + ds + '">' + d +
-        '<div class="dots">' + bs.map(function(b){ return '<span class="dot ' + dotOf(b) + '"></span>'; }).join('') + '</div></button>';
+    $('listLbl').textContent = q ? 'Search' : DAY ? nice(DAY) : CON === 'no' ? 'Inquiries' : PERIODS[PI][1];
+    $('dayHd').innerHTML = '';
+    var ih = '';
+    if (CON === 'no' || q || DAY) {
+      ih = inq.map(function(o){ return inqCard(o); }).join('');
+      if (CON === 'no' && !q) {
+        var oldOnes = INQ.filter(function(o){ return o.old; });
+        ih = (inq.length ? '' : '<p class="muted" style="margin:0 4px 12px">No inquiries right now.</p>') + ih +
+          (oldOnes.length || inq.length ? '<p style="text-align:center;margin:6px 0 16px"><button class="lnk" id="clrInq" style="color:var(--bad)">Clear all old inquiries (' + oldOnes.length + ')</button></p>' : '');
+      }
+    } else if (inq.length) {
+      ih = '<button class="inqbar" id="inqTog" type="button"><span>📩 ' + inq.length + ' inquir' + (inq.length === 1 ? 'y' : 'ies') + '</span><span>' + (INQOPEN ? 'Hide ▴' : 'Show ▾') + '</span></button>' +
+        (INQOPEN ? '<div class="inqwrap">' + inq.map(function(o){ return inqCard(o); }).join('') + '</div>' : '');
     }
-    h += '</div><div class="legend"><span><span class="dot c-yel"></span>No deposit yet</span><span><span class="dot c-grn"></span>Deposit in</span><span><span class="dot c-pur"></span>Contracted out</span><span><span class="dot c-pnk"></span>Wedding</span></div>';
-    var st = sun(SEL), mine = (by[SEL] || []).slice().sort(function(a, b){ return ord(a) - ord(b) || (a.num - b.num); });
-    h += '<div class="dayhd"><b>' + nice(SEL) + '</b><span class="sunline">🌅 ' + st[0] + ' · 🌇 ' + st[1] + '</span></div>' +
-      '<div class="muted" style="font-size:12px">Sunrise · sunset at Mexico Beach (Central time). Port St. Joe, Cape San Blas and St. George Island clocks run 1 hour ahead.</div>';
-    if (!mine.length) h += '<p class="muted">Nothing booked this day.</p>';
-    var last = '';
-    mine.forEach(function(b){ var g = grp(b); if (g !== last) { h += '<div class="grp">' + g + '</div>'; last = g; } h += calCard(b); });
-    var shooters = {};
-    mine.forEach(function(b){ var s = b.photographer || 'Miranda'; (shooters[s] = shooters[s] || []).push(b); });
-    Object.keys(shooters).forEach(function(s){ var a = shooters[s];
-      if (a.some(isWed) && a.length > 1) h += '<div class="headsup">⚠️ ' + (s === 'Miranda' ? 'Miranda has' : esc(s) + ' has') + ' a wedding and another session this day. Double-check the timing and travel.</div>'; });
-    return h;
+    $('inqBox').innerHTML = ih;
+    var EMPTY = DAY ? 'Nothing booked this day.' : q ? 'No one by that name.' : CON === 'no' ? '' : 'Nothing here with these filters.';
+    $('list').innerHTML = TABLE ? table(rows) : rows.length ? rows.map(function(b){ return card(b); }).join('') : (EMPTY ? '<p class="muted" style="margin:6px 4px 14px">' + EMPTY + '</p>' : '');
+    $('tblTog').textContent = TABLE ? 'Back to cards' : 'Spreadsheet view';
+    $('head').classList.toggle('compact', !!document.querySelector('#app .bk.open'));
+    if (!$('morePanel').hidden) morePanel();
+    if (!$('calPop').hidden) $('calPop').innerHTML = calendar();
+    mirandaTotals(all.filter(function(b){ return real(b); }));
+    feed(tests);
+    $('whoLine').textContent = 'Using this phone: ' + WHO;
   }
-  $('list').addEventListener('click', function(e){
-    var nav = e.target.closest('button[data-cal]'), dy = e.target.closest('button[data-day]');
-    if (nav) { var y = Number(CALM.slice(0, 4)), m = Number(CALM.slice(5, 7)) + Number(nav.getAttribute('data-cal'));
-      if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } CALM = y + '-' + String(m).padStart(2, '0'); SEL = CALM === today.slice(0, 7) ? today : CALM + '-01'; }
-    else if (dy) SEL = dy.getAttribute('data-day');
-    else return;
-    try { sessionStorage.setItem('mrp-cal', SEL); } catch (x) {}
-    draw();
-  });
+  function fitsPeriodAny(b){ return PERIODS[PI][0] === 'current' ? true : inPeriod(b.date, PERIODS[PI][0]); }
 
-  // Table view (Oct 15 2026): one row per booking, spreadsheet style; scrolls sideways on a phone
+  // ---------- Cards ----------
+  function statusOf(b){
+    if (b.inq) return ['Inquiry', 's-inq'];
+    if (b.cancelled) return ['Cancelled', 's-cx'];
+    if (b.past) return ['Past entry', 's-past'];
+    if (tot(b) > 0 && due(b) <= 0) return ['Paid in full', 's-paid'];
+    if (b.date && b.date < TODAY) return ['Completed', 's-com'];
+    return ['Confirmed', 's-con'];
+  }
+  var SESS_LBL = { sunset: 'Sunset', sunrise: 'Sunrise', wedding: '♥ Wedding', other: 'Other', blank: 'No time' };
+  function sessBtn(b, fixed){
+    var t = sessType(b), lbl = t === 'other' && b.time ? b.time : SESS_LBL[t];
+    return '<button class="sess ' + t + (fixed ? ' fixed' : '') + '" type="button"' + (fixed ? ' tabindex="-1"' : ' data-a="sess"') + '>' + esc(lbl) + (fixed ? '' : ' ↻') + '</button>';
+  }
+  function amtBadge(b){
+    if (b.cancelled) return '<span class="amt a-gry">Cancelled</span>';
+    var o = due(b);
+    if (o <= 0) return '<span class="amt a-grn">Paid ✓ ' + money(tot(b)) + '</span>';
+    return '<span class="amt ' + (b.deposit ? 'a-yel' : 'a-red') + '">Owes ' + money(o) + '</span>';
+  }
+  function depBtn(b){
+    if (b.cancelled) return '<button class="dep na" type="button" tabindex="-1">' + (b.cancelled.deposit === 'kept' ? 'Deposit kept' : b.cancelled.deposit === 'returned' ? 'Deposit returned' : 'Cancelled') + '</button>';
+    if (b.paid && !b.deposit) return '<button class="dep in" type="button" data-a="undo-paid-ask">Paid all at once</button>';
+    return b.deposit ? '<button class="dep in" type="button" data-a="dep-undo">Deposit received</button>' : '<button class="dep" type="button" data-a="dep">No Deposit</button>';
+  }
+  function card(b){
+    var s = statusOf(b), open = OPEN === 'b' + b.num, fl = flagged(b), total = tot(b), owed = due(b);
+    var so = shooterOwes(b);
+    var tags = (b.photographer ? '<span class="tg k">📷 ' + esc(b.photographer) + '</span>' : '') + (b.test ? '<span class="tg t">TEST</span>' : '');
+    var h = '<div class="bk' + (open ? ' open' : '') + (fl ? ' fl' : '') + (b.cancelled ? ' cx' : '') + '" data-num="' + b.num + '">' +
+      '<div class="sum" data-tog role="button" tabindex="0" aria-expanded="' + open + '"><div class="lt">' +
+      '<span class="pm">' + (open ? '−' : '+') + '</span><span class="st ' + s[1] + '">' + s[0] + '</span>' + tags +
+      '<div class="nm">' + esc(b.name) + '</div>' +
+      '<div class="sub">' + esc([b.date ? nice(b.date) : 'No date', b.beach].filter(Boolean).join(' · ')) + '</div>' +
+      (fl ? '<div class="flag">⚠️ Date passed — shot or moved?</div>' : '') +
+      (so ? '<div class="flag owes">💸 ' + esc(b.photographer) + ' owes Miranda ' + money(so) + '</div>' : '') +
+      '</div><div class="rt">' + sessBtn(b, b.cancelled || b.past) + amtBadge(b) + (b.past ? '' : depBtn(b)) + '</div></div>';
+    if (!open) return h + '</div>';
+    // Details: only what isn't already on the card's top half
+    var L = '<div class="ln">' + esc(b.pkg || 'Session') + ' · ' + money(b.total || 0) + ' · ' + (b.past ? 'past entry' : b.num < 101 ? 'early booking' : b.num < 900000 ? '#' + b.num : 'test') + '</div>';
+    if (b.by) L += '<div class="ln mut">Set up by ' + esc(b.by) + '</div>';
+    if (b.phone) L += '<div class="ln mut">📱 ' + esc(fmtPhone(b.phone)) + '</div>';
+    L += '<hr>';
+    if (b.photographer) {
+      var how = b.split ? (b.split.mode === 'amt' ? '' : ' (' + b.split.val + '%' + (b.split.min ? ' or ' + money(b.split.min) : '') + ')') : '';
+      L += '<div class="rc"><div><span>Session total</span><span>' + money(total) + '</span></div><div><span>' + esc(b.photographer) + "'s pay</span><span>−" + money(payOf(b)) + '</span></div><div><span>Miranda\'s share' + how + '</span><span>' + money(mineOf(b)) + '</span></div></div>';
+      (b.shooterPaid || []).forEach(function(x, i, arr){ L += '<div class="kv">' + esc(b.photographer) + ' paid Miranda – <b>' + money(x.amount) + '</b> · ' + esc(short(x.at)) + (i === arr.length - 1 ? ' <button class="lnk" data-a="undo-shooter-paid">undo</button>' : '') + '</div>'; });
+      if (so) L += '<div class="owebox">💸 <b>' + esc(b.photographer) + ' owes Miranda ' + money(so) + '</b><br><span class="muted">' + esc(b.photographer) + ' collected the balance. This is the rest of Miranda\'s share.</span>' +
+        '<button class="btn" data-a="shooter-paid" style="width:100%;margin-top:8px">' + esc(b.photographer) + ' paid me ' + money(so) + '</button></div>';
+    }
+    if (b.addons) L += '<div class="kv">Extras – <b>+' + money(b.addons) + '</b></div>';
+    (b.deducts || []).forEach(function(x, i, arr){ L += '<div class="kv">Deducted – <b>−' + money(x.amount) + '</b>' + (x.why ? ' · ' + esc(x.why) : '') + (i === arr.length - 1 && !b.cancelled ? ' <button class="lnk" data-a="undo-deduct">undo</button>' : '') + '</div>'; });
+    if (b.photographer && b.deposit && due(b) > 0 && !b.cancelled) L += '<div class="kv">Balance – <b>' + esc(b.photographer) + ' collects ' + money(due(b)) + '</b> at the session</div>';
+    if (b.deposit) L += '<div class="kv">Deposit – <b>' + money(b.deposit.amount) + '</b>' + (b.deposit.method ? ' · ' + esc(b.deposit.method) : '') + '</div>';
+    if (b.paid) L += '<div class="kv">Paid in full – <b>' + money(b.paid.amount) + '</b>' + (b.paid.method ? ' · ' + esc(b.paid.method) : '') + ' · ' + esc(short(b.paid.at)) + '</div>';
+    if (b.cancelled) L += '<div class="kv">Cancelled ' + esc(short(b.cancelled.at)) + (b.cancelled.by ? ' by ' + esc(b.cancelled.by) : '') + (b.cancelled.kept ? ' · kept ' + money(b.cancelled.kept) : b.cancelled.returned ? ' · returned ' + money(b.cancelled.returned) : '') + '</div>';
+    if (b.notes) L += '<div class="kv">Notes – <b>' + esc(b.notes) + '</b></div>';
+    if (b.movedFrom) L += '<div class="kv">Moved from ' + esc(nice(b.movedFrom)) + '</div>';
+    if (!b.cancelled) L += '<div class="smb"><button class="btn ghost" data-a="extra">+ Extra</button><button class="btn ghost" data-a="deduct">− Deduct</button></div>' +
+      '<button class="btn red cxb" data-a="cancel">Cancel booking</button>';
+    var R = '';
+    if (b.cancelled) R = '<button class="btn ghost" data-a="undo-cancel">Undo cancel</button>';
+    else {
+      R += '<button class="btn b-con" data-a="confirmed">Confirmed ✓</button>';
+      R += '<button class="btn ghost" data-a="text">Text</button>';
+      if (b.date === TOMORROW) R += '<button class="btn b-rem" data-a="remind">Text reminder</button>';
+      if (owed > 0) R += '<button class="btn b-paid" data-a="paid">' + (b.paid ? 'Mark ' + money(owed) + ' paid' : 'Paid in Full') + '</button>';
+      if (b.paid) R += '<button class="btn ghost" data-a="undo-paid-ask">Undo paid</button>';
+      if (!b.past) R += '<button class="btn ghost" data-a="move">Move date</button>';
+      R += '<button class="btn ghost" data-a="edit">Edit</button>';
+      R += '<button class="btn ghost" data-a="shooter">Photographer</button>';
+    }
+    return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
+  }
+  function inqCard(o){
+    var open = OPEN === 'i' + o.key, sent = !!o.sent;
+    var h = '<div class="bk inq' + (open ? ' open' : '') + '" data-inq="' + esc(o.key) + '">' +
+      '<div class="sum" data-tog role="button" tabindex="0" aria-expanded="' + open + '"><div class="lt">' +
+      '<span class="pm">' + (open ? '−' : '+') + '</span><span class="st s-inq">Inquiry</span>' + (o.test ? '<span class="tg t">TEST</span>' : '') +
+      '<span class="tg w">' + (sent ? '💬 Link texted' : '📩 New request') + '</span>' +
+      '<div class="nm">' + esc(o.name) + '</div>' +
+      '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' +
+      '</div><div class="rt">' + (o.time ? sessBtn(o, true) : '') + (o.amount ? '<span class="amt a-inq">' + money(o.amount) + '</span>' : '') +
+      '<button class="dep na" type="button" tabindex="-1">' + (sent ? 'Waiting to confirm' : 'Needs a reply') + '</button></div></div>';
+    if (!open) return h + '</div>';
+    var L = '';
+    if (o.request) L += '<div class="ln">Asked ' + esc(short(o.request.at)) + '</div>' + (o.detail ? '<div class="ln mut">' + esc(o.detail) + '</div>' : '');
+    if (sent) L += '<div class="ln">' + esc(o.pkg || 'Session') + (o.amount ? ' · ' + money(o.amount) : '') + '</div><div class="ln mut">Link texted ' + esc(short(o.sent.at)) + (o.by ? ' by ' + esc(o.by) : '') + '</div>';
+    if (o.photographer) L += '<div class="ln mut">📷 Shot by ' + esc(o.photographer) + '</div>';
+    L += '<div class="ln mut">📱 ' + (o.phone ? esc(fmtPhone(o.phone)) : 'No phone saved') + '</div>';
+    L += '<button class="btn red cxb" data-a="dismiss">Not booking</button>';
+    var R = '<button class="btn b-paid" data-a="build">' + (sent ? 'New link' : 'Send Confirm link') + '</button>';
+    if (sent && o.link) R += '<button class="btn ghost" data-a="resend">Text link again</button>';
+    R += '<button class="btn b-con" data-a="iconfirm">Confirmed</button>';
+    R += '<button class="btn ghost" data-a="itext">Text</button>';
+    return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
+  }
+  function fmtPhone(p){ var d = String(p || '').replace(/\D/g, '').slice(-10); return d.length === 10 ? '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6) : p; }
+
+  // ---------- Spreadsheet view ----------
   function table(rows){
-    var h = '<div class="tbl"><table><tr><th>#</th><th>Date</th><th>Time</th><th>Client</th><th>Beach</th><th>Package</th><th>Total</th><th>Deposit</th><th>Paid in full</th><th>Still due</th><th>Photographer</th><th>Their pay</th><th>Miranda&#39;s share</th><th>Set up by</th><th>Status</th></tr>';
+    var h = '<div class="card" style="padding:10px"><div class="tbl"><table><tr><th>#</th><th>Date</th><th>Time</th><th>Client</th><th>Beach</th><th>Package</th><th>Total</th><th>Deposit</th><th>Paid in full</th><th>Still due</th><th>Photographer</th><th>Their pay</th><th>Miranda&#39;s share</th><th>Set up by</th><th>Status</th></tr>';
     rows.forEach(function(b){
-      var st = b.cancelled ? 'Cancelled' : b.paid ? 'Paid' : b.deposit ? 'Deposit in' : 'No deposit';
       h += '<tr class="' + (b.cancelled ? 'cx' : '') + (b.test ? ' tst' : '') + '"><td>' + (b.past ? 'past' : b.num < 101 ? 'early' : b.num < 900000 ? b.num : 'test') + '</td><td>' + esc(b.date ? nice(b.date) : '') + '</td><td>' + esc(b.time || '') +
         '</td><td>' + esc(b.name) + '</td><td>' + esc(b.beach || '') + '</td><td>' + esc(b.pkg || '') + '</td><td>' + money(tot(b)) +
         '</td><td>' + (b.deposit ? money(b.deposit.amount) + ' ' + esc(b.deposit.method || '') : '') + '</td><td>' + (b.paid ? money(b.paid.amount) : '') +
         '</td><td>' + (b.cancelled ? '' : money(due(b))) + '</td><td>' + esc(b.photographer || 'Miranda') +
-        '</td><td>' + (b.photographer ? money(payOf(b)) : '') + '</td><td>' + money(mineOf(b)) + '</td><td>' + esc(b.by || '') + '</td><td>' + st + '</td></tr>';
+        '</td><td>' + (b.photographer ? money(payOf(b)) : '') + '</td><td>' + money(mineOf(b)) + '</td><td>' + esc(b.by || '') + '</td><td>' + statusOf(b)[0] + '</td></tr>';
     });
-    return h + '</table></div><p class="muted" style="margin:6px 0 0">Switch to Cards to use the Deposit / Paid / Cancel buttons.</p>';
+    return h + '</table></div></div>';
   }
 
-  var OPEN = null; // the one booking row that's open (stays open after a button saves)
-  function card(b, open){
-    var tags = '';
-    if (b.photographer) tags += '<span class="tag t-blu">📷 Shot by ' + esc(b.photographer) + ' (contracted out)</span>';
-    var rc = '';
-    if (b.photographer) {
-      var rl = function(l, v, x){ return '<div style="display:flex;justify-content:space-between;' + (x || '') + '"><span>' + l + '</span><span>' + v + '</span></div>'; };
-      var how = b.split ? (b.split.mode === 'amt' ? '' : ' <span class="muted">(' + b.split.val + '%' + (b.split.min ? ' or ' + money(b.split.min) : '') + ')</span>') : '';
-      rc = '<div style="margin-top:8px;padding:8px 10px;background:#f6fafb;border-radius:10px;font-size:14px">' +
-        rl('Session total', money(tot(b))) + rl(esc(b.photographer) + "'s pay", '−' + money(payOf(b))) +
-        rl("<b>Miranda's share</b>" + how, '<b>' + money(mineOf(b)) + '</b>', 'border-top:1px solid var(--line);margin-top:4px;padding-top:4px') + '</div>';
+  // ---------- Miranda's totals and the feed (same as before) ----------
+  var TP = 'month', TK = 'booked';
+  function mirandaTotals(list){
+    var own = 0, share = 0, n = 0, per = {}, paidOut = 0, c = TK === 'collected';
+    list.filter(function(b){ return TP === 'all' || (b.date && (TP === 'year' ? b.date.slice(0, 4) === TODAY.slice(0, 4) : b.date.slice(0, 7) === TODAY.slice(0, 7))); }).forEach(function(b){
+      if (b.cancelled) { if (c) { if (b.photographer && keepOf(b)) { share += keepOf(b); n++; } else own += keepOf(b); } return; }
+      if (!b.photographer) { own += c ? collOf(b) : tot(b); return; }
+      n++;
+      var mine = mineOf(b), got = c ? keepOf(b) : mine, theirs = c ? Math.max(0, collOf(b) - got) : payOf(b);
+      share += got; paidOut += theirs; per[b.photographer] = (per[b.photographer] || 0) + theirs;
+    });
+    var who = Object.keys(per).map(function(k){ return esc(k) + ' ' + money(per[k]); }).join(' · ');
+    var line = function(l, v, big){ return '<div class="tline' + (big ? ' big' : '') + '"><span>' + l + '</span><span>' + money(v) + '</span></div>'; };
+    $('mt').innerHTML = line('📸 From her own sessions', own) + line('📷 Her share from contracted sessions' + (n ? ' <span class="muted">(' + n + ')</span>' : ''), share) +
+      line('Total to Miranda', own + share, true) + '<p class="muted" style="margin:10px 0 0">Paid to photographers: <b>' + money(paidOut) + '</b>' + (who ? ' (' + who + ')' : '') + '</p>';
+  }
+  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', 'shooter-paid': '💸 Photographer paid Miranda', 'undo-shooter-paid': '↩️ Photographer payment undone' };
+  function feed(tests){
+    var log = DATA.log || [], done = {};
+    log.forEach(function(e){ if (e.kind === 'confirm' || e.kind === 'added') done[low(e.name) + '|' + (e.date || '')] = 1; });
+    var seen = {};
+    var f = log.filter(function(e){ return (tests || !e.test) && !e.bulk; }).slice().reverse().filter(function(e){
+      if (e.kind !== 'sent') return true;
+      var k = low(e.name) + '|' + (e.date || ''); if (done[k] || seen[k]) return false; seen[k] = 1; return true;
+    }).slice(0, 80);
+    $('feed').innerHTML = f.length ? f.map(function(e){
+      return '<div class="ev"><b>' + (LBL[e.kind] || esc(e.kind)) + '</b> ' + (e.num && e.num < 900000 ? '#' + e.num + ' ' : '') + esc(e.name || '') + (e.amount ? ' · ' + money(e.amount) : '') +
+        (e.test ? ' <span class="tg t">TEST</span>' : '') + '<br><small>' + esc([short(e.at), e.date ? nice(e.date) : '', e.beach, e.detail, e.by ? 'by ' + e.by : ''].filter(Boolean).join(' · ')) + '</small></div>';
+    }).join('') : '<p class="muted">Nothing yet.</p>';
+  }
+
+  // ---------- Calendar (opens upward) ----------
+  var CALM = TODAY.slice(0, 7);
+  function sun(ds){
+    var p = ds.split('-').map(Number), r = Math.PI / 180, lat = 29.948, lng = -85.42;
+    var J = Date.UTC(p[0], p[1] - 1, p[2]) / 86400000 + 2440587.5, Js = Math.ceil(J - 2451545.0 + 0.0008) - lng / 360;
+    var M = (357.5291 + 0.98560028 * Js) % 360, L = (M + 1.9148 * Math.sin(M * r) + 0.02 * Math.sin(2 * M * r) + 0.0003 * Math.sin(3 * M * r) + 282.9372) % 360;
+    var Jt = 2451545.0 + Js + 0.0053 * Math.sin(M * r) - 0.0069 * Math.sin(2 * L * r), sd = Math.sin(L * r) * Math.sin(23.4397 * r), cd = Math.cos(Math.asin(sd));
+    var w = Math.acos((Math.sin(-0.833 * r) - Math.sin(lat * r) * sd) / (Math.cos(lat * r) * cd)) / r;
+    var f = function(j){ try { return new Date((j - 2440587.5) * 86400000).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
+    return [f(Jt - w / 360), f(Jt + w / 360)];
+  }
+  function isWed(b){ return /wedding/i.test(b.time || '') || /wedding/i.test(b.pkg || ''); }
+  // Usual split (Oct 20 2026): a flat $50 to Miranda, except weddings at 25% (at least $50)
+  function usualSplit(b){ return isWed(b) ? { mode: 'pct', val: PH.split.pct, min: PH.split.min } : { mode: 'amt', val: 50 }; }
+  function dotOf(b){ return b.inq ? 'c-inq' : b.photographer ? 'c-pur' : isWed(b) ? 'c-pnk' : (b.deposit || b.paid) ? 'c-grn' : 'c-yel'; }
+  function calendar(){
+    var by = {}, tests = MORE.tests;
+    (DATA.bookings || []).filter(function(b){ return (tests || !b.test) && !b.cancelled && b.date; }).forEach(function(b){ (by[b.date] = by[b.date] || []).push(b); });
+    inquiries().filter(function(o){ return (tests || !o.test) && o.date && !o.old; }).forEach(function(o){ (by[o.date] = by[o.date] || []).push(o); });
+    var y = Number(CALM.slice(0, 4)), m = Number(CALM.slice(5, 7)), fd = new Date(y, m - 1, 1).getDay(), days = new Date(y, m, 0).getDate();
+    var h = '<div class="cal-nav"><button data-cal="-1" aria-label="Previous month">‹</button><b>' + new Date(y, m - 1, 15).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) + '</b><button data-cal="1" aria-label="Next month">›</button></div><div class="cal">';
+    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(function(x){ h += '<div class="h">' + x + '</div>'; });
+    for (var i = 0; i < fd; i++) h += '<div></div>';
+    for (var d = 1; d <= days; d++) {
+      var ds = CALM + '-' + String(d).padStart(2, '0'), bs = (by[ds] || []).sort(function(a, b){ return ord(a) - ord(b); }).slice(0, 5);
+      h += '<button class="d' + (ds < TODAY ? ' past' : '') + (ds === TODAY ? ' today' : '') + (ds === DAY ? ' sel' : '') + '" data-day="' + ds + '">' + d +
+        '<div class="dots">' + bs.map(function(b){ return '<span class="dot ' + dotOf(b) + '"></span>'; }).join('') + '</div></button>';
     }
-    var total = tot(b), owed = due(b), fl = flagged(b), acts = '', xf = '', pay = '';
-    // Every card shows the money the same way (Oct 16 2026): Deposit, any extras/deductions, Balance
-    var row = function(l, v, c){ return '<div class="r"><span>' + l + '</span><span' + (c ? ' class="' + c + '"' : '') + '>' + v + '</span></div>'; };
-    if (!b.cancelled) {
-      pay += b.deposit ? row('Deposit', money(b.deposit.amount) + ' received' + (b.deposit.method ? ' · ' + esc(b.deposit.method) : ''), 'ok') :
-        b.paid ? row('Deposit', 'None · paid all at once') : row('Deposit', 'Not received yet', 'wn');
-      if (b.addons) pay += row('Extras', '+' + money(b.addons));
-      (b.deducts || []).forEach(function(x, i, arr){
-        pay += row('Deducted', '−' + money(x.amount) + (x.why ? ' · ' + esc(x.why) : '') + (i === arr.length - 1 ? '<button class="lnk" data-a="undo-deduct">undo</button>' : ''));
+    return h + '</div><div class="legend"><span><span class="dot c-yel"></span>No deposit</span><span><span class="dot c-grn"></span>Deposit in</span><span><span class="dot c-pur"></span>Contracted</span><span><span class="dot c-pnk"></span>Wedding</span><span><span class="dot c-inq"></span>Inquiry</span></div>';
+  }
+  $('calBtn').addEventListener('click', function(){
+    var p = $('calPop'); $('morePanel').hidden = true;
+    if (p.hidden) { CALM = (DAY || TODAY).slice(0, 7); p.innerHTML = calendar(); p.hidden = false; } else p.hidden = true;
+  });
+  $('calPop').addEventListener('click', function(e){
+    var nav = e.target.closest('button[data-cal]'), dy = e.target.closest('button[data-day]');
+    if (nav) { var y = Number(CALM.slice(0, 4)), m = Number(CALM.slice(5, 7)) + Number(nav.getAttribute('data-cal')); if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } CALM = y + '-' + String(m).padStart(2, '0'); $('calPop').innerHTML = calendar(); return; }
+    if (!dy) return;
+    // Picking a day shows only that day's clients and clears the other filters
+    DAY = dy.getAttribute('data-day'); CON = ''; DEP = ''; MORE = { bal: '', status: '', type: '', loc: '', shooter: '', tests: MORE.tests }; Q = ''; $('q').value = ''; $('q').hidden = true; $('srchBtn').classList.remove('on');
+    $('calPop').hidden = true; OPEN = null; draw(); window.scrollTo({ top: 0 });
+  });
+  $('dayClr').addEventListener('click', function(){ DAY = ''; draw(); });
+  document.addEventListener('click', function(e){
+    if (!$('calPop').hidden && !e.target.closest('#calPop') && !e.target.closest('#calBtn')) $('calPop').hidden = true;
+  });
+
+  // ---------- Top buttons ----------
+  $('tBookedTile').addEventListener('click', function(){ if (DAY) { DAY = ''; PI = 0; } else PI = (PI + 1) % PERIODS.length; OPEN = null; draw(); });
+  $('tUpTile').addEventListener('click', function(){ DAY = ''; PI = 0; CON = ''; DEP = ''; MORE.status = 'upcoming'; Q = ''; $('q').value = ''; draw(); });
+  $('fCon').addEventListener('click', function(){ CON = CON === '' ? 'yes' : CON === 'yes' ? 'no' : ''; DAY = ''; draw(); });
+  $('fDep').addEventListener('click', function(){ DEP = DEP === '' ? 'in' : DEP === 'in' ? 'none' : ''; DAY = ''; draw(); });
+  $('fMore').addEventListener('click', function(){ var p = $('morePanel'); $('calPop').hidden = true; p.hidden = !p.hidden; if (!p.hidden) morePanel(); });
+  function morePanel(){
+    var beaches = {}, shooters = { Miranda: 1 };
+    (DATA.bookings || []).forEach(function(b){ if (b.beach) beaches[b.beach] = 1; if (b.photographer) shooters[b.photographer] = 1; });
+    var g = function(title, key, opts){ return '<div class="grp">' + title + '</div><div class="chips">' + opts.map(function(o){ return '<button class="chip' + (MORE[key] === o[0] ? ' on' : '') + '" data-mk="' + key + '" data-mv="' + esc(o[0]) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div>'; };
+    $('morePanel').innerHTML =
+      g('Balance', 'bal', [['', 'Any'], ['owes', 'Still owes'], ['paid', 'Paid in full'], ['shooter', 'Photographer owes Miranda']]) +
+      g('Session status', 'status', [['', 'Any'], ['upcoming', 'Upcoming'], ['completed', 'Completed'], ['needs', 'Needs a look'], ['cancelled', 'Cancelled'], ['pastentries', 'Past entries']]) +
+      g('Session type', 'type', [['', 'Any'], ['sunrise', 'Sunrise'], ['sunset', 'Sunset'], ['wedding', 'Wedding'], ['other', 'Other']]) +
+      g('Location', 'loc', [['', 'Any']].concat(Object.keys(beaches).sort().map(function(x){ return [x, x]; }))) +
+      g('Photographer', 'shooter', [['', 'Any']].concat(Object.keys(shooters).map(function(x){ return [x, x]; }))) +
+      '<div class="foot"><label class="muted"><input type="checkbox" id="showTests" style="width:auto;min-height:0;vertical-align:-2px"' + (MORE.tests ? ' checked' : '') + '> Show tests</label><button class="btn" id="moreDone" style="min-height:40px">Done</button></div>';
+  }
+  $('morePanel').addEventListener('click', function(e){
+    var c = e.target.closest('[data-mk]');
+    if (c) { MORE[c.getAttribute('data-mk')] = c.getAttribute('data-mv'); DAY = ''; draw(); return; }
+    if (e.target.id === 'moreDone') { $('morePanel').hidden = true; draw(); }
+  });
+  $('morePanel').addEventListener('change', function(e){ if (e.target.id === 'showTests') { MORE.tests = e.target.checked; draw(); } });
+  $('srchBtn').addEventListener('click', function(){
+    var q = $('q'); if (q.hidden) { q.hidden = false; $('srchBtn').classList.add('on'); q.focus(); }
+    else { q.value = ''; Q = ''; q.hidden = true; $('srchBtn').classList.remove('on'); draw(); }
+  });
+  $('q').addEventListener('input', function(){ Q = $('q').value; draw(); });
+  $('tblTog').addEventListener('click', function(){ TABLE = !TABLE; draw(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-p]'), function(c){ c.addEventListener('click', function(){ TP = c.getAttribute('data-p'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-p]'), function(x){ x.classList.toggle('on', x === c); }); draw(); }); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-k]'), function(c){ c.addEventListener('click', function(){ TK = c.getAttribute('data-k'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-k]'), function(x){ x.classList.toggle('on', x === c); }); draw(); }); });
+
+  // ---------- Sheets (small forms that slide up) ----------
+  function sheet(html, onClick){
+    var v = document.createElement('div'); v.className = 'veil';
+    v.innerHTML = '<div class="sheet" role="dialog">' + html + '</div>';
+    $('sheetHost').appendChild(v);
+    var close = function(){ if (v.parentNode) v.parentNode.removeChild(v); };
+    v.addEventListener('click', function(e){
+      if (e.target === v || e.target.closest('[data-x]')) { close(); return; }
+      if (onClick) onClick(e, v, close);
+    });
+    var f = v.querySelector('[autofocus]'); if (f) setTimeout(function(){ f.focus(); }, 50);
+    return { el: v, close: close };
+  }
+  function toast(t){ var d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 2600); }
+  function ask(title, text, yes, no, cb){
+    sheet('<h3>' + title + '</h3>' + (text ? '<p class="muted">' + text + '</p>' : '') + '<div class="acts"><button class="btn ghost" data-x>' + (no || 'No') + '</button><button class="btn" data-yes>' + (yes || 'Yes') + '</button></div>',
+      function(e, v, close){ if (e.target.closest('[data-yes]')) { close(); cb(); } });
+  }
+  // Text composer: nothing sends by itself; it opens Messages with the text filled in
+  function compose(b, title, msg){
+    var ph = b.phone || '';
+    sheet('<h3>' + esc(title) + '</h3><label class="l">To</label><input data-to type="tel" value="' + esc(fmtPhone(ph)) + '" placeholder="Client\'s cell">' +
+      '<label class="l">Message (you can change it)</label><textarea data-msg>' + esc(msg) + '</textarea>' +
+      '<div class="note">This opens your texting app with the message ready. Nothing sends until you press Send there.</div>' +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>Open in Messages</button></div>',
+      function(e, v, close){
+        if (!e.target.closest('[data-go]')) return;
+        var to = v.querySelector('[data-to]').value.replace(/[^\d+]/g, ''), body = v.querySelector('[data-msg]').value;
+        close(); location.href = 'sms:' + to + (isIOS ? '&' : '?') + 'body=' + encodeURIComponent(body);
       });
-      pay += owed ? row('Balance', '<b>' + (b.photographer && b.deposit ? esc(b.photographer) + ' collects ' + money(owed) : 'Owes ' + money(owed)) + '</b>') :
-        row('Balance', b.paid ? 'Paid in full ✓' : 'Nothing owed', 'ok');
-      pay = '<div class="pay">' + pay + '</div>';
-    }
-    if (b.cancelled) acts = '<button class="btn ghost" data-a="undo-cancel">Undo cancel</button>';
-    else {
-      if (!b.deposit && !b.paid) acts += '<select data-m><option>Venmo</option><option>Cash App</option><option>PayPal</option><option>Pixieset</option><option>Cash</option><option>Other</option></select><button class="btn" data-a="deposit">Deposit Received</button>';
-      // Paid in Full shows whenever money is owed; an extra added after Paid in Full gets "Mark $X paid"
-      if (owed) acts += '<button class="btn" data-a="paid">' + (b.paid ? 'Mark ' + money(owed) + ' paid' : 'Paid in Full') + '</button>';
-      if (b.paid) acts += '<button class="btn ghost" data-a="undo-paid">Undo paid</button>';
-      else if (b.deposit) acts += '<button class="btn ghost" data-a="undo-deposit">Undo deposit</button>';
-      acts += '<button class="btn ghost" data-a="extra">+ Add extra</button>';
-      acts += '<button class="btn ghost" data-a="deduct">− Deduct</button>';
-      if (!b.paid) acts += '<button class="btn ghost" data-a="move">Move date</button>';
-      acts += '<button class="btn red" data-a="cancel">Cancel</button>';
-      // − Deduct (Oct 16 2026): takes money off this booking, shown as its own line
-      xf += '<div class="xf df" hidden><div style="font-weight:bold;margin-bottom:6px">Take money off ' + esc(b.name) + '\'s booking</div>' +
-        '<input data-dw type="text" maxlength="80" placeholder="Why (like 2 fewer people)">' +
-        '<div style="display:flex;align-items:center;gap:6px;margin-top:8px"><b style="font-size:20px">$</b><input data-dx type="number" inputmode="decimal" min="1" step="any" placeholder="25"></div>' +
-        '<p class="err" data-de hidden>Enter an amount up to ' + money(total) + '.</p>' +
-        '<div class="acts"><button class="btn" data-a="deduct-save">Save</button><button class="btn ghost" data-a="deduct-cancel">Never mind</button></div></div>';
-      // Move date (Oct 16 2026): same time of day, new date
-      if (!b.paid) xf += '<div class="xf mf" hidden><div style="font-weight:bold;margin-bottom:6px">New date for ' + esc(b.name) + (b.time ? ' (' + esc(b.time) + ')' : '') + '</div>' +
-        '<input data-md type="date" value="' + esc(b.date || '') + '">' +
-        '<p class="err" data-me hidden>Pick the new date.</p>' +
-        '<div class="acts"><button class="btn" data-a="move-save">Save new date</button><button class="btn ghost" data-a="move-cancel">Never mind</button></div></div>';
-      // Add extra (Oct 15 2026): replaces the separate Add-On page; no booking number to look up
-      xf += '<div class="xf af" hidden><div style="font-weight:bold;margin-bottom:6px">Add an extra for ' + esc(b.name) + '</div>' +
-        '<input data-w type="text" maxlength="120" placeholder="What was added (like 10 more photos)">' +
-        '<div style="display:flex;align-items:center;gap:6px;margin-top:8px"><b style="font-size:20px">$</b><input data-x type="number" inputmode="decimal" min="1" step="any" placeholder="40"></div>' +
-        '<p class="err" data-xe hidden>Enter the extra amount.</p>' +
-        '<div class="acts"><button class="btn" data-a="extra-save">Save extra</button><button class="btn ghost" data-a="extra-cancel">Never mind</button></div></div>';
-    }
-    // Folding row (Oct 16 2026): name, date and one colored money pill; tap to open the details and buttons
-    var pill = b.cancelled ? '<span class="pill p-x">Cancelled</span>' :
-      owed ? (b.photographer && b.deposit ? '<span class="pill p-b">' + esc(b.photographer) + ' collects ' + money(owed) + '</span>' : '<span class="pill p-y">Owes ' + money(owed) + '</span>') :
-      '<span class="pill p-g">Paid ✓</span>';
-    var isOpen = open || OPEN === b.num;
-    return '<div class="bk' + (b.cancelled ? ' cx' : '') + (fl ? ' fl' : '') + (isOpen ? ' open' : '') + '" data-num="' + b.num + '">' +
-      '<div class="sum" data-tog role="button" tabindex="0" aria-expanded="' + isOpen + '"><div><div class="nm">' + esc(b.name) + (b.photographer ? ' <span class="who">· ' + esc(b.photographer) + '</span>' : '') + (b.past ? ' <span class="tag t-gry" style="margin:0">PAST</span>' : '') + (b.test ? ' <span class="tag t-gry" style="margin:0">TEST</span>' : '') + '</div>' +
-      '<div class="sub">' + (fl ? '⚠️ ' : '') + esc([b.date ? nice(b.date) : '', b.time, b.beach].filter(Boolean).join(' · ')) + '</div></div>' + pill + '</div>' +
-      '<div class="det">' +
-      '<div class="meta">' + esc(b.pkg || 'Session') + ' · ' + money(total) + ' · ' + (b.past ? 'past session' : b.num < 101 ? 'early booking' : b.num < 900000 ? '#' + b.num : 'test') + '</div>' +
-      (b.by ? '<div class="meta">Set up by ' + esc(b.by) + '</div>' : '') +
-      (fl ? '<div class="flag">⚠️ Date passed — shot or moved?</div>' : '') +
-      (tags ? '<div>' + tags + '</div>' : '') + rc + pay + '<div class="acts">' + acts + '</div>' + xf + '</div></div>';
   }
+  var tWord = function(b){ var t = low(b.time); return t && t !== 'other' ? t + ' ' : ''; };
+  var at = function(b){ return b.beach && b.beach !== 'Other' ? ' at ' + b.beach : ''; };
+  function msgConfirm(b){
+    var d = b.deposit ? 'Your ' + money(b.deposit.amount) + ' deposit is received' + (due(b) ? ', and ' + money(due(b)) + ' is due on session day.' : '.') :
+      b.paid ? 'You\'re all paid up.' : 'To hold your date, please send the ' + money(b.dep || 50) + ' deposit by Venmo (' + VENMO + ').';
+    return 'Hi ' + first(b.name) + '! You\'re all set for your ' + tWord(b) + 'session' + at(b) + ' on ' + longDay(b.date) + '. ' + d + ' Can\'t wait to see you!';
+  }
+  function msgReceipt(b, amt){ return 'Hi ' + first(b.name) + '! Thank you, I received your payment of ' + money(amt) + '. You\'re paid in full for your ' + (b.date ? nice(b.date) + ' ' : '') + 'session. Thank you so much!'; }
+  function msgMoved(b){ return 'Hi ' + first(b.name) + '! Your ' + tWord(b) + 'session' + at(b) + ' is now on ' + longDay(b.date) + '. See you then!'; }
+  function msgRemind(b){ return 'Hi ' + first(b.name) + '! Just a reminder about your ' + tWord(b) + 'session tomorrow (' + longDay(b.date) + ')' + at(b) + '. Text me if anything changes. See you then!'; }
 
-  function act(num, a, method, extra, btn){
-    var b = (DATA.bookings || []).filter(function(x){ return x.num === num; })[0]; if (!b) return;
-    var back = function(){ if (btn) btn.disabled = false; };
-    if (a === 'cancel' && !confirm('Cancel ' + b.name + "'s booking? It comes off the totals and frees up that time.")) return back();
-    if (a === 'paid' && !confirm('Mark ' + b.name + ' as paid in full (' + money(due(b)) + ' more)?')) return back();
-    if (a === 'undo-deduct' && !confirm('Undo the last deduction on ' + b.name + "'s booking?")) return back();
-    var who = WHO || 'Miranda', body = { kind: 'status', num: num, action: a, method: method || '', by: who, pass: PASS };
-    for (var k in (extra || {})) body[k] = extra[k];
-    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify(body) })
-      .then(function(r){ return r.json(); }).then(function(j){
-        if (j.conflict) { back(); alert('#' + j.with + ' ' + j.name + ' already has that time on that date. Pick another date.'); return; }
-        if (!j.ok) { back(); alert("That didn't save. Please try again."); return; }
-        // Same email format as the other entries, so Gmail searches by name still find everything
-        if (a === 'deduct' && !b.test) {
-          var o = { _captcha: 'false', _template: 'table', name: b.name, 'booking-number': '#' + num, 'amount-off': '−' + money(extra.amount), why: extra.why || 'not filled in', 'session-date': b.date ? nice(b.date) : '', 'new-total': money(tot(j.booking)), 'taken-off-by': who, page: 'Bookings page' };
-          if (LIVE) o._cc = 'bookmirandarae@gmail.com';
-          o._subject = '➖ DEDUCTED: ' + [b.name, '#' + num, '−' + money(extra.amount)].join(' · ');
-          fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) }).catch(function(){});
-        }
-        // Same "DEPOSIT RECEIVED" email as the Deposit Received page
-        if (a === 'deposit' && !b.test) {
-          var o = { _captcha: 'false', _template: 'table', 'booking-number': '#' + num, name: b.name, amount: money(j.booking.deposit.amount), 'paid-with': j.booking.deposit.method, 'marked-by': who, page: 'Bookings page' };
-          if (LIVE) o._cc = 'bookmirandarae@gmail.com';
-          o._subject = '✅ DEPOSIT RECEIVED: ' + ['#' + num, b.name, money(j.booking.deposit.amount)].join(' · ');
-          fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) }).catch(function(){});
-        }
-        load();
-      }).catch(function(){ back(); alert("That didn't save. Please check your connection and try again."); });
+  // ---------- Saving changes ----------
+  function post(body){ body.pass = PASS; return fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify(body) }).then(function(r){ return r.json(); }); }
+  function act(b, action, extra){
+    var body = { kind: 'status', num: b.num, action: action, by: WHO }; for (var k in (extra || {})) body[k] = extra[k];
+    return post(body).then(function(j){
+      if (j.conflict) { alert('#' + j.with + ' ' + j.name + ' already has that time on that date. Pick another date or time.'); return null; }
+      if (!j.ok) { alert("That didn't save. Please try again."); return null; }
+      emailFor(b, action, extra || {}, j.booking);
+      return load().then(function(){ return j.booking; });
+    }).catch(function(){ alert("That didn't save. Please check your connection and try again."); return null; });
   }
+  function mail(o, subject){
+    o._captcha = 'false'; o._template = 'table'; o.page = 'Bookings page'; if (LIVE) o._cc = 'bookmirandarae@gmail.com'; o._subject = subject;
+    try { fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) }).catch(function(){}); } catch (e) {}
+  }
+  // Same emails as before for deposits, extras and deductions (Gmail name searches still find everything)
+  function emailFor(b, a, x, nb){
+    if (b.test || !nb) return;
+    if (a === 'deposit') mail({ 'booking-number': '#' + b.num, name: b.name, amount: money(nb.deposit.amount), 'paid-with': nb.deposit.method, 'marked-by': WHO }, '✅ DEPOSIT RECEIVED: ' + ['#' + b.num, b.name, money(nb.deposit.amount)].join(' · '));
+    if (a === 'deduct') mail({ name: b.name, 'booking-number': '#' + b.num, 'amount-off': '−' + money(x.amount), why: x.why || 'not filled in', 'session-date': b.date ? nice(b.date) : '', 'new-total': money(tot(nb)), 'taken-off-by': WHO }, '➖ DEDUCTED: ' + [b.name, '#' + b.num, '−' + money(x.amount)].join(' · '));
+  }
+  function findB(num){ return (DATA.bookings || []).filter(function(x){ return x.num === num; })[0]; }
+  function findI(key){ return inquiries().filter(function(o){ return o.key === key; })[0]; }
 
-  function saveExtra(box, btn){
-    var num = Number(box.getAttribute('data-num')), b = (DATA.bookings || []).filter(function(x){ return x.num === num; })[0]; if (!b) return;
-    var what = box.querySelector('[data-w]').value.trim(), amt = Math.round(parseFloat(box.querySelector('[data-x]').value) * 100) / 100;
-    if (!(amt > 0)) { box.querySelector('[data-xe]').hidden = false; return; }
-    box.querySelector('[data-xe]').hidden = true; btn.disabled = true;
-    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify({ kind: 'addon', amount: amt, ref: num, name: b.name, what: what }) })
-      .then(function(r){ return r.json(); }).then(function(j){
-        if (j.error) { btn.disabled = false; alert("That didn't save. Please try again."); return; }
-        // Same "ADD-ON" email the Add-On page sent
-        if (!b.test) {
-          var d = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          var o = { _captcha: 'false', _template: 'table', name: b.name, 'booking-number': '#' + num, 'extra-amount': '+' + money(amt), 'what-was-added': what || 'not filled in', 'session-date': b.date ? nice(b.date) : '', 'added-by': WHO || 'Miranda', page: 'Bookings page' };
-          if (LIVE) o._cc = 'bookmirandarae@gmail.com';
-          o._subject = '➕ ADD-ON: ' + [b.name, '#' + num, d, '+' + money(amt)].join(' · ');
-          fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) }).catch(function(){});
-        }
-        load();
-      }).catch(function(){ btn.disabled = false; alert("That didn't save. Please check your connection and try again."); });
-  }
-  $('list').addEventListener('click', function(e){
-    // Tap a booking row to open it; tapping it again (or another row) closes it
-    var tg = e.target.closest('[data-tog]');
-    if (tg && VIEW !== 'calendar') {
-      var bx = tg.closest('.bk'), n = Number(bx.getAttribute('data-num')), was = bx.classList.contains('open');
-      Array.prototype.forEach.call($('list').querySelectorAll('.bk.open'), function(x){ x.classList.remove('open'); x.querySelector('[data-tog]').setAttribute('aria-expanded', 'false'); });
-      if (!was) { bx.classList.add('open'); tg.setAttribute('aria-expanded', 'true'); }
-      OPEN = was ? null : n; return;
-    }
-    var btn = e.target.closest('button[data-a]'); if (!btn) return;
-    var box = btn.closest('.bk'), m = box.querySelector('select[data-m]'), a = btn.getAttribute('data-a'), num = Number(box.getAttribute('data-num'));
-    // One little form open at a time: + Add extra, − Deduct, Move date
-    var FORMS = { extra: '.af', deduct: '.df', move: '.mf' }, FOCUS = { extra: '[data-w]', deduct: '[data-dx]', move: '[data-md]' };
-    var base = a.replace(/-cancel$/, '');
-    if (FORMS[base] && (a === base || a === base + '-cancel')) {
-      Array.prototype.forEach.call(box.querySelectorAll('.xf'), function(f){ f.hidden = true; });
-      if (a === base) { box.querySelector(FORMS[base]).hidden = false; box.querySelector(FOCUS[base]).focus(); }
+  // ---------- Card taps ----------
+  $('app').addEventListener('click', function(e){
+    if (e.target.id === 'inqTog' || e.target.closest('#inqTog')) { INQOPEN = !INQOPEN; draw(); return; }
+    if (e.target.id === 'clrInq') { clearOld(); return; }
+    var box = e.target.closest('.bk'); if (!box) return;
+    var btn = e.target.closest('[data-a]');
+    var num = box.getAttribute('data-num'), ik = box.getAttribute('data-inq');
+    if (!btn) {
+      if (!e.target.closest('[data-tog]')) return;
+      var id = num ? 'b' + num : 'i' + ik; OPEN = OPEN === id ? null : id; draw();
+      // Bring the card up under the top bar (after the boxes slide away or back) so it stays in view
+      setTimeout(function(){
+        var el = document.querySelector(num ? '.bk[data-num="' + num + '"]' : '.bk[data-inq="' + ik.replace(/"/g, '\\"') + '"]'); if (!el) return;
+        window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - $('head').offsetHeight - 8, behavior: 'smooth' });
+      }, 320);
       return;
     }
-    if (a === 'extra-save') { saveExtra(box, btn); return; }
-    if (a === 'deduct-save') {
-      var b = (DATA.bookings || []).filter(function(x){ return x.num === num; })[0];
-      var amt = Math.round(parseFloat(box.querySelector('[data-dx]').value) * 100) / 100;
-      if (!(amt > 0) || !b || amt > tot(b)) { box.querySelector('[data-de]').hidden = false; return; }
-      box.querySelector('[data-de]').hidden = true; btn.disabled = true;
-      act(num, 'deduct', '', { amount: amt, why: box.querySelector('[data-dw]').value.trim() }, btn); return;
-    }
-    if (a === 'move-save') {
-      var nd = box.querySelector('[data-md]').value;
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(nd)) { box.querySelector('[data-me]').hidden = false; return; }
-      box.querySelector('[data-me]').hidden = true; btn.disabled = true;
-      act(num, 'move', '', { date: nd }, btn); return;
-    }
-    btn.disabled = true; act(num, a, m ? m.value : '', null, btn);
+    e.stopPropagation();
+    var a = btn.getAttribute('data-a');
+    if (ik) return inqAction(findI(ik), a);
+    var b = findB(Number(num)); if (!b) return;
+    bookingAction(b, a);
   });
-  function setFilter(f){
-    FILTER = f; Array.prototype.forEach.call(document.querySelectorAll('.fc[data-f]'), function(x){ x.classList.toggle('on', x.getAttribute('data-f') === f); }); if (DATA) draw();
+
+  function bookingAction(b, a){
+    if (a === 'sess') {
+      // Session button cycles Sunset → Sunrise → Wedding → Other → (blank) → Sunset
+      var cyc = ['Sunset', 'Sunrise', 'Wedding', 'Other', ''], cur = sessType(b), idx = { sunset: 0, sunrise: 1, wedding: 2, other: 3, blank: 4 }[cur];
+      var next = cyc[(idx + 1) % cyc.length];
+      return act(b, 'edit', { fields: { time: next } });
+    }
+    if (a === 'dep') return depositSheet(b);
+    if (a === 'dep-undo') return ask('Undo the deposit?', 'This marks ' + esc(b.name) + "'s " + money(b.deposit.amount) + ' deposit as not received.', 'Undo deposit', 'Keep it', function(){ act(b, 'undo-deposit'); });
+    if (a === 'undo-paid-ask') return ask('Undo paid in full?', esc(b.name) + ' goes back to owing ' + money((b.paid && b.paid.amount) || 0) + '.', 'Undo paid', 'Keep it', function(){ act(b, 'undo-paid'); });
+    if (a === 'confirmed') return ask('Text confirmation to customer?', '', 'Yes', 'No', function(){ compose(b, 'Confirmation text', msgConfirm(b)); });
+    if (a === 'text') return compose(b, 'Text ' + first(b.name), 'Hi ' + first(b.name) + '! ');
+    if (a === 'remind') return compose(b, 'Reminder for tomorrow', msgRemind(b));
+    if (a === 'paid') return paidSheet(b);
+    if (a === 'move') return moveSheet(b);
+    if (a === 'edit') return editSheet(b);
+    if (a === 'shooter') return shooterSheet(b);
+    if (a === 'extra') return extraSheet(b);
+    if (a === 'deduct') return deductSheet(b);
+    if (a === 'undo-deduct') return ask('Undo the last deduction?', '', 'Undo', 'Keep it', function(){ act(b, 'undo-deduct'); });
+    if (a === 'shooter-paid') return ask(esc(b.photographer) + ' paid Miranda ' + money(shooterOwes(b)) + '?', 'This marks Miranda\'s share of ' + esc(b.name) + '\'s session as fully paid.', 'Yes, paid', 'Not yet', function(){ act(b, 'shooter-paid', { amount: shooterOwes(b) }); });
+    if (a === 'undo-shooter-paid') return ask('Undo that payment?', '', 'Undo', 'Keep it', function(){ act(b, 'undo-shooter-paid'); });
+    if (a === 'cancel') return cancelSheet(b);
+    if (a === 'undo-cancel') return ask('Bring this booking back?', esc(b.name) + "'s booking goes back on the list and the totals.", 'Undo cancel', 'Leave cancelled', function(){ act(b, 'undo-cancel'); });
   }
-  Array.prototype.forEach.call(document.querySelectorAll('.fc[data-f]'), function(c){ c.addEventListener('click', function(){ setFilter(c.getAttribute('data-f')); }); });
-  $('q').addEventListener('input', function(){ if (DATA) draw(); });
-  // Tap the Upcoming sessions box: show the upcoming list
-  $('tUpTile').addEventListener('click', function(){ $('q').value = ''; if (VIEW === 'calendar') setView('cards'); setFilter('upcoming'); $('bkCard').scrollIntoView({ behavior: 'smooth' }); });
-  $('showTests').addEventListener('change', draw);
-  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-p]'), function(c){ c.addEventListener('click', function(){
-    PERIOD = c.getAttribute('data-p'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-p]'), function(x){ x.classList.toggle('on', x === c); }); if (DATA) draw();
-  }); });
-  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-k]'), function(c){ c.addEventListener('click', function(){
-    KIND = c.getAttribute('data-k'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-k]'), function(x){ x.classList.toggle('on', x === c); }); if (DATA) draw();
-  }); });
-  function setView(v){ VIEW = v; try { localStorage.setItem('mrp-log-view', v); } catch (e) {} Array.prototype.forEach.call(document.querySelectorAll('.vb[data-v]'), function(x){ x.classList.toggle('on', x.getAttribute('data-v') === v); }); if (DATA) draw(); }
-  Array.prototype.forEach.call(document.querySelectorAll('.vb[data-v]'), function(c){ c.addEventListener('click', function(){ setView(c.getAttribute('data-v')); }); });
-  setView(VIEW);
+  var METHODS = ['Venmo', 'Cash App', 'PayPal', 'Pixieset', 'Cash', 'Other'];
+  function methodChips(sel){ return '<div class="chips" data-mth>' + METHODS.map(function(m){ return '<button class="chip' + (m === sel ? ' on' : '') + '" type="button" data-m="' + m + '">' + m + '</button>'; }).join('') + '</div>'; }
+  function pickMethod(e, v){ var c = e.target.closest('[data-m]'); if (!c) return false; Array.prototype.forEach.call(v.querySelectorAll('[data-m]'), function(x){ x.classList.toggle('on', x === c); }); return true; }
+  function method(v){ var c = v.querySelector('[data-m].on'); return c ? c.getAttribute('data-m') : ''; }
+
+  function depositSheet(b){
+    var dflt = Math.min(b.dep || 50, tot(b) || b.dep || 50);
+    sheet('<h3>Deposit received</h3><p class="muted">' + esc(b.name) + ' · ' + esc(b.date ? nice(b.date) : '') + '</p><label class="l">Amount</label><div class="money"><b>$</b><input data-amt type="number" inputmode="decimal" value="' + dflt + '"></div>' +
+      '<label class="l">Paid with</label>' + methodChips('Venmo') + '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>',
+      function(e, v, close){
+        if (pickMethod(e, v)) return;
+        if (!e.target.closest('[data-save]')) return;
+        var amt = parseFloat(v.querySelector('[data-amt]').value); if (!(amt > 0)) return;
+        close(); act(b, 'deposit', { amount: amt, method: method(v) });
+      });
+  }
+  function paidSheet(b){
+    var owed = due(b);
+    sheet('<h3>' + (b.paid ? 'Mark ' + money(owed) + ' paid' : 'Paid in full') + '</h3><p class="muted">' + esc(b.name) + ' pays the last <b>' + money(owed) + '</b>.</p><label class="l">Paid with</label>' + methodChips('') +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Mark paid</button></div>',
+      function(e, v, close){
+        if (pickMethod(e, v)) return;
+        if (!e.target.closest('[data-save]')) return;
+        close(); act(b, 'paid', { method: method(v) }).then(function(nb){ if (nb) ask('Text a payment receipt to customer?', '', 'Yes', 'No', function(){ compose(nb, 'Payment receipt', msgReceipt(nb, owed)); }); });
+      });
+  }
+  function moveSheet(b){
+    sheet('<h3>Move date</h3><p class="muted">' + esc(b.name) + (b.time ? ' · ' + esc(b.time) : '') + '</p><label class="l">New date</label><input data-d type="date" value="' + esc(b.date || '') + '"><p class="err" data-e hidden>Pick the new date.</p>' +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save new date</button></div>',
+      function(e, v, close){
+        if (!e.target.closest('[data-save]')) return;
+        var nd = v.querySelector('[data-d]').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(nd) || nd === b.date) { v.querySelector('[data-e]').hidden = false; return; }
+        close(); act(b, 'move', { date: nd }).then(function(nb){ if (nb) ask('Text the new date to customer?', '', 'Yes', 'No', function(){ compose(nb, 'Date change', msgMoved(nb)); }); });
+      });
+  }
+  var TIMES = ['Sunset', 'Sunrise', 'Midday', 'Wedding', 'Engagement', 'Other', ''];
+  var BEACHES = ['Mexico Beach', 'Port St. Joe', 'Cape San Blas', 'Panama City Beach', 'St. George Island', 'Destin', '30A', 'Other'];
+  var PK = [['Beach Mini', 130, '30 minutes', 'Up to 6', '15'], ['Beach Special', 199, '30 minutes', 'Up to 11', '25'], ['Classic Session', 199, '45–60 minutes · 1 outfit change', '', '30–35'], ['Beach Wedding', 499, 'Up to 4 hours', '', 'Full gallery'],
+    ['Family Session', 250, '45–60 minutes', 'Up to 15', '35+'], ['Deluxe Session', 325, '75+ minutes', '', '50+'], ['Engagement Session', 199, 'Up to 1 hour', '2', '35+'], ['Surprise Proposal', 199, '', '', '30'], ['Custom session', '', '', '', '']];
+  var opts = function(list, sel){ var has = false, h = list.map(function(x){ var s = x === sel; if (s) has = true; return '<option value="' + esc(x) + '"' + (s ? ' selected' : '') + '>' + esc(x || 'No time') + '</option>'; }).join(''); return (!has && sel ? '<option selected>' + esc(sel) + '</option>' : '') + h; };
+  function editSheet(b){
+    sheet('<h3>Edit booking</h3>' +
+      '<label class="l">Name</label><input data-f="name" value="' + esc(b.name) + '">' +
+      '<label class="l">Cell phone</label><input data-f="phone" type="tel" value="' + esc(fmtPhone(b.phone || '')) + '">' +
+      '<div class="row"><div><label class="l">Date</label><input data-f="date" type="date" value="' + esc(b.date || '') + '"></div><div><label class="l">Session</label><select data-f="time">' + opts(TIMES, b.time || '') + '</select></div></div>' +
+      '<label class="l">Beach</label><select data-f="beach">' + opts(BEACHES, b.beach || '') + '</select>' +
+      '<div class="row"><div><label class="l">Package</label><input data-f="pkg" value="' + esc(b.pkg || '') + '" list="pkgList"><datalist id="pkgList">' + PK.map(function(p){ return '<option value="' + esc(p[0]) + '">'; }).join('') + '</datalist></div>' +
+      '<div><label class="l">Price</label><div class="money"><b>$</b><input data-f="total" type="number" inputmode="decimal" value="' + (b.total || 0) + '"></div></div></div>' +
+      (b.addons || less(b) ? '<p class="muted" style="margin:4px 0 0">Extras and deductions stay as they are.</p>' : '') +
+      '<div class="row"><div><label class="l">Deposit</label><div class="money"><b>$</b><input data-f="dep" type="number" inputmode="decimal" value="' + (b.dep || 50) + '"></div></div><div></div></div>' +
+      '<label class="l">Notes</label><input data-f="notes" maxlength="300" value="' + esc(b.notes || '') + '" placeholder="Anything to remember">' +
+      '<p class="muted" style="margin-top:10px">To change who\'s shooting, use the Photographer button.</p>' +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>',
+      function(e, v, close){
+        if (!e.target.closest('[data-save]')) return;
+        var f = {}; Array.prototype.forEach.call(v.querySelectorAll('[data-f]'), function(x){ f[x.getAttribute('data-f')] = x.value.trim(); });
+        if (!f.name) { alert('The name can\'t be blank.'); return; }
+        var moved = f.date && f.date !== b.date;
+        close(); act(b, 'edit', { fields: f }).then(function(nb){ if (nb && moved) ask('Text the new date to customer?', '', 'Yes', 'No', function(){ compose(nb, 'Date change', msgMoved(nb)); }); });
+      });
+  }
+  function shooterSheet(b){
+    var cur = b.photographer || 'Miranda', names = ['Miranda'].concat(PH.names.filter(function(n){ return low(n) !== 'miranda'; }));
+    var sp = b.split || usualSplit(b);
+    var s = sheet('<h3>Who\'s shooting?</h3><p class="muted">' + esc(b.name) + ' · ' + esc(b.date ? nice(b.date) : '') + (b.time ? ' · ' + esc(b.time) : '') + '</p>' +
+      '<div class="chips" data-who style="margin-top:6px">' + names.map(function(n){ return '<button class="chip' + (low(n) === low(cur) ? ' on' : '') + '" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '<button class="chip" type="button" data-n="">Other</button></div>' +
+      '<input data-other placeholder="Photographer\'s name" hidden style="margin-top:8px">' +
+      '<div data-split' + (cur === 'Miranda' ? ' hidden' : '') + '><label class="l">Miranda\'s share</label><div class="chips"><button class="chip' + (sp.mode !== 'amt' ? ' on' : '') + '" type="button" data-mode="pct">%</button><button class="chip' + (sp.mode === 'amt' ? ' on' : '') + '" type="button" data-mode="amt">$</button></div>' +
+      '<div class="money" style="margin-top:8px"><b data-sym>' + (sp.mode === 'amt' ? '$' : '%') + '</b><input data-sv type="number" inputmode="decimal" value="' + sp.val + '"></div><div class="note" data-calc></div></div>' +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>',
+      function(e, v, close){
+        var n = e.target.closest('[data-n]'), md = e.target.closest('[data-mode]');
+        if (n) { Array.prototype.forEach.call(v.querySelectorAll('[data-n]'), function(x){ x.classList.toggle('on', x === n); }); var nm = n.getAttribute('data-n'); v.querySelector('[data-other]').hidden = nm !== ''; v.querySelector('[data-split]').hidden = nm === 'Miranda'; if (nm === '') v.querySelector('[data-other]').focus(); calc(); return; }
+        if (md) { Array.prototype.forEach.call(v.querySelectorAll('[data-mode]'), function(x){ x.classList.toggle('on', x === md); }); var m = md.getAttribute('data-mode'); v.querySelector('[data-sym]').textContent = m === 'amt' ? '$' : '%'; v.querySelector('[data-sv]').value = m === 'amt' ? 50 : PH.split.pct; calc(); return; }
+        if (!e.target.closest('[data-save]')) return;
+        var who = whoPicked(); if (who === null) { alert('Type the photographer\'s name.'); return; }
+        close(); act(b, 'photographer', { photographer: who === 'Miranda' ? '' : who, split: who === 'Miranda' ? null : splitPicked() });
+      });
+    var v = s.el;
+    function whoPicked(){ var on = v.querySelector('[data-n].on'); if (!on) return 'Miranda'; var nm = on.getAttribute('data-n'); if (nm !== '') return nm; var o = v.querySelector('[data-other]').value.trim(); return o || null; }
+    function splitPicked(){ var m = (v.querySelector('[data-mode].on') || {}).getAttribute ? v.querySelector('[data-mode].on').getAttribute('data-mode') : 'pct', val = parseFloat(v.querySelector('[data-sv]').value) || 0; var o = { mode: m, val: val }; if (m === 'pct' && val === PH.split.pct && PH.split.min) o.min = PH.split.min; return o; }
+    function calc(){ var who = whoPicked(); if (!who || who === 'Miranda') return; var t = tot(b), mine = shareOf(splitPicked(), t); v.querySelector('[data-calc]').innerHTML = esc(who) + "'s pay <b>" + money(Math.max(0, t - mine)) + "</b> · Miranda's share <b>" + money(mine) + '</b>'; }
+    v.addEventListener('input', calc); calc();
+  }
+  function extraSheet(b){
+    sheet('<h3>Add an extra</h3><p class="muted">' + esc(b.name) + '</p><label class="l">What was added</label><input data-w maxlength="120" placeholder="Like 10 more photos" autofocus>' +
+      '<label class="l">Amount</label><div class="money"><b>$</b><input data-x type="number" inputmode="decimal" placeholder="40"></div><p class="err" data-e hidden>Enter the extra amount.</p>' +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save extra</button></div>',
+      function(e, v, close){
+        if (!e.target.closest('[data-save]')) return;
+        var what = v.querySelector('[data-w]').value.trim(), amt = Math.round(parseFloat(v.querySelector('[data-x]').value) * 100) / 100;
+        if (!(amt > 0)) { v.querySelector('[data-e]').hidden = false; return; }
+        close();
+        post({ kind: 'addon', amount: amt, ref: b.num, name: b.name, what: what }).then(function(j){
+          if (j.error) { alert("That didn't save. Please try again."); return; }
+          if (!b.test) mail({ name: b.name, 'booking-number': '#' + b.num, 'extra-amount': '+' + money(amt), 'what-was-added': what || 'not filled in', 'session-date': b.date ? nice(b.date) : '', 'added-by': WHO }, '➕ ADD-ON: ' + [b.name, '#' + b.num, new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), '+' + money(amt)].join(' · '));
+          load();
+        }).catch(function(){ alert("That didn't save. Please check your connection and try again."); });
+      });
+  }
+  function deductSheet(b){
+    sheet('<h3>Take money off</h3><p class="muted">' + esc(b.name) + '</p><label class="l">Why</label><input data-w maxlength="80" placeholder="Like 2 fewer people" autofocus>' +
+      '<label class="l">Amount</label><div class="money"><b>$</b><input data-x type="number" inputmode="decimal" placeholder="25"></div><p class="err" data-e hidden>Enter an amount up to ' + money(tot(b)) + '.</p>' +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>',
+      function(e, v, close){
+        if (!e.target.closest('[data-save]')) return;
+        var amt = Math.round(parseFloat(v.querySelector('[data-x]').value) * 100) / 100;
+        if (!(amt > 0) || amt > tot(b)) { v.querySelector('[data-e]').hidden = false; return; }
+        close(); act(b, 'deduct', { amount: amt, why: v.querySelector('[data-w]').value.trim() });
+      });
+  }
+  // Cancel booking: "Are you sure?", then Keep deposit or Return deposit
+  function cancelSheet(b){
+    ask('Are you sure?', 'Cancel ' + esc(b.name) + "'s booking? It comes off the totals and frees up that time.", 'Yes, cancel', 'No', function(){
+      var dep = (b.deposit && b.deposit.amount) || 0;
+      sheet('<h3>What about the deposit?</h3><p class="muted">' + (dep ? 'Deposit received: <b>' + money(dep) + '</b>' : 'No deposit is marked as received.') + '</p>' +
+        '<div data-amtbox' + (dep ? ' hidden' : '') + '><label class="l">Deposit amount</label><div class="money"><b>$</b><input data-a2 type="number" inputmode="decimal" value="50"></div></div>' +
+        '<div class="choice"><button class="btn" data-k="keep">Keep deposit</button><button class="btn ghost" data-k="return">Return deposit</button>' + (dep ? '' : '<button class="btn ghost" data-k="none">No deposit was paid</button>') + '<button class="btn ghost" data-x>Never mind</button></div>' +
+        '<div class="note">Return deposit only records it here. It doesn\'t send any money.</div>',
+        function(e, v, close){
+          var k = e.target.closest('[data-k]'); if (!k) return;
+          var c = k.getAttribute('data-k'), amt = dep || parseFloat(v.querySelector('[data-a2]').value) || 0;
+          close(); act(b, 'cancel', c === 'none' ? {} : { deposit: c, amount: amt });
+        });
+    });
+  }
+
+  // ---------- Inquiry cards ----------
+  function inqAction(o, a){
+    if (!o) return;
+    if (a === 'dismiss') return ask('Not booking?', esc(o.name) + ' comes off the Inquiry list. Their request stays in "Everything that came in."', 'Yes, remove', 'No', function(){
+      post({ kind: 'dismiss', name: o.name, date: o.date, beach: o.beach, by: WHO, test: o.test }).then(function(){ OPEN = null; load(); });
+    });
+    if (a === 'itext') return compose(o, 'Text ' + first(o.name), 'Hi ' + first(o.name) + '! This is Miranda with Miranda Rae Photography. ');
+    if (a === 'resend') return compose(o, 'Confirm link', 'Hi ' + first(o.name) + '! Here\'s your link again. Tap to confirm and hold your date: ' + o.link);
+    if (a === 'build') return buildSheet(o, false);
+    if (a === 'iconfirm') {
+      if (o.sent && o.date && o.amount) return ask('Did ' + esc(first(o.name)) + ' say yes?', 'This books ' + esc(o.name) + ' for ' + esc(nice(o.date)) + (o.time ? ' (' + esc(o.time) + ')' : '') + ' at ' + money(o.amount) + ' without them tapping the link.', 'Yes, book it', 'Not yet', function(){
+        bookInquiry(o, { name: o.name, date: o.date, time: o.time, beach: o.beach, pkg: o.pkg, amount: o.amount, dep: o.dep, phone: o.phone, photographer: o.photographer || '' });
+      });
+      return buildSheet(o, true);
+    }
+  }
+  function bookInquiry(o, d){
+    var body = { kind: 'direct', fromInquiry: true, name: d.name, date: d.date, time: d.time || '', beach: d.beach || '', pkg: d.pkg || '', amount: d.amount || 0, dep: d.dep || 50, phone: d.phone || '', by: WHO, pay: 'none', photographer: d.photographer || '', split: d.split || null };
+    return post(body).then(function(j){
+      if (j.conflict) {
+        if (!confirm('#' + j.with + ' ' + j.withName + ' already has that time on that date. Book it anyway?')) return;
+        body.force = true; return post(body).then(after);
+      }
+      return after(j);
+    }).catch(function(){ alert("That didn't save. Please check your connection and try again."); });
+    function after(j){
+      if (j.duplicate) { alert(o.name + ' is already booked for that date.'); return load(); }
+      if (!j.ok) { alert("That didn't save. Please try again."); return; }
+      OPEN = j.booking && j.booking.num ? 'b' + j.booking.num : null;
+      return load().then(function(){ if (j.past) return; ask('Text confirmation to customer?', '', 'Yes', 'No', function(){ compose(j.booking, 'Confirmation text', msgConfirm(j.booking)); }); });
+    }
+  }
+  // Build the client's Confirm link right from the card (same link New Booking makes), or book them directly
+  function b64(s){ return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function buildSheet(o, direct){
+    var far = /Destin|30A|St\. George/i.test(o.beach || ''), pi = far ? 1 : 0;
+    if (o.pkg) PK.forEach(function(p, i){ if (low(p[0]) === low(o.pkg)) pi = i; });
+    var guessT = o.time || (/sunrise/i.test(o.detail || '') ? 'Sunrise' : /wedding/i.test(o.detail || '') ? 'Wedding' : 'Sunset');
+    var s = sheet('<h3>' + (direct ? 'Book ' + esc(first(o.name)) + ' (no text)' : 'Confirm link for ' + esc(first(o.name))) + '</h3>' +
+      (o.detail ? '<p class="muted" style="margin:0">They asked about: ' + esc(o.detail) + '</p>' : '') +
+      '<label class="l">Name</label><input data-f="n" value="' + esc(o.name) + '">' +
+      '<label class="l">Cell phone</label><input data-f="ph" type="tel" value="' + esc(fmtPhone(o.phone || '')) + '" placeholder="Client\'s cell">' +
+      '<div class="row"><div><label class="l">Date</label><input data-f="d" type="date" value="' + esc(o.date || '') + '"></div><div><label class="l">Session</label><select data-f="t">' + opts(TIMES.slice(0, 6), guessT) + '</select></div></div>' +
+      '<label class="l">Beach</label><select data-f="b">' + opts(BEACHES, o.beach || 'Mexico Beach') + '</select>' +
+      '<div class="row"><div><label class="l">Package</label><select data-f="pk">' + PK.map(function(p, i){ return '<option value="' + i + '"' + (i === pi ? ' selected' : '') + '>' + esc(p[0]) + '</option>'; }).join('') + '</select></div>' +
+      '<div><label class="l">Price</label><div class="money"><b>$</b><input data-f="base" type="number" inputmode="decimal" value="' + (o.amount || PK[pi][1]) + '"></div></div></div>' +
+      '<label class="l">Deposit</label><div class="money"><b>$</b><input data-f="dep" type="number" inputmode="decimal" value="50"></div><div class="muted" data-dn style="font-size:13px;margin-top:4px"></div>' +
+      '<label class="l">Who\'s shooting</label><div class="chips" data-who><button class="chip on" type="button" data-n="">Miranda</button>' + PH.names.filter(function(n){ return low(n) !== 'miranda'; }).map(function(n){ return '<button class="chip" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>' +
+      '<p class="muted" style="margin:6px 0 0">A contracted session uses the usual split: $50 to Miranda, or ' + PH.split.pct + '% on a wedding (and the wedding deposit is her full share). Change it later with the Photographer button.</p>' +
+      '<p class="err" data-e hidden>Fill in the name and date first.</p>' +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>' + (direct ? 'Book it' : 'Text Confirm link') + '</button></div>' +
+      (direct ? '' : '<p style="text-align:center;margin:10px 0 0"><button class="lnk" data-alt>They already said yes? Book without texting</button></p>'),
+      function(e, v, close){
+        var n = e.target.closest('[data-n]');
+        if (n) { Array.prototype.forEach.call(v.querySelectorAll('[data-n]'), function(x){ x.classList.toggle('on', x === n); }); autoDep(); return; }
+        var go = e.target.closest('[data-go]'), alt = e.target.closest('[data-alt]');
+        if (!go && !alt) return;
+        var g = function(k){ return v.querySelector('[data-f="' + k + '"]').value.trim(); };
+        if (!g('n') || !/^\d{4}-\d{2}-\d{2}$/.test(g('d'))) { v.querySelector('[data-e]').hidden = false; return; }
+        var p = PK[Number(g('pk'))], base = Math.round((parseFloat(g('base')) || 0) * 100) / 100, sh = (v.querySelector('[data-n].on') || {}).getAttribute ? v.querySelector('[data-n].on').getAttribute('data-n') : '';
+        var lk = { v: 1, n: g('n'), d: g('d'), t: g('t'), b: g('b'), pk: p[0], base: base, len: p[2], ppl: p[3], ph: p[4], x: [], dc: 0, dr: '', note: '', by: WHO, total: base };
+        var dp = Math.round((parseFloat(g('dep')) || 50) * 100) / 100; if (dp !== 50) lk.dep = dp;
+        if (sh) lk.sh = sh;
+        var sp = sh ? usualSplit({ time: lk.t, pkg: lk.pk }) : null;
+        // Usual wedding split rounds to the dollar so Miranda's share matches the deposit paid up front
+        if (sh && isWed({ time: lk.t, pkg: lk.pk }) && !DEPMAN && base) sp = { mode: 'amt', val: dp };
+        if (direct || alt) { close(); bookInquiry(o, { name: lk.n, date: lk.d, time: lk.t, beach: lk.b, pkg: lk.pk, amount: base, dep: dp, phone: g('ph'), photographer: sh, split: sp }); return; }
+        var url = location.origin + '/confirm?s=' + b64(JSON.stringify(lk));
+        // Same as New Booking: tell the site first (so the card shows "Link texted"), then open Messages
+        var body = JSON.stringify({ kind: 'pending', by: WHO, name: lk.n, date: lk.d, beach: lk.b, phone: g('ph'), time: lk.t, pkg: lk.pk, amount: base, dep: dp, link: url, photographer: sh, split: sp });
+        try { if (!(navigator.sendBeacon && navigator.sendBeacon(API, new Blob([body], { type: 'application/json' })))) fetch(API, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body }); } catch (x) {}
+        close();
+        compose({ name: lk.n, phone: g('ph') }, 'Confirm link', 'Hi ' + first(lk.n) + '! Here are your session details. Tap to confirm and hold your date: ' + url);
+        setTimeout(load, 1500);
+      });
+    var DEPMAN = false, V = s.el;
+    function autoDep(){
+      if (DEPMAN) return;
+      var sh = V.querySelector('[data-n].on').getAttribute('data-n'), t = parseFloat(V.querySelector('[data-f="base"]').value) || 0;
+      var info = { time: V.querySelector('[data-f="t"]').value, pkg: PK[Number(V.querySelector('[data-f="pk"]').value)][0] }, d = 50, why = '';
+      if (sh && isWed(info) && t) { d = Math.ceil(shareOf(usualSplit(info), t)); why = "Miranda's full share, paid up front"; }
+      if (t && d > t) d = t;
+      V.querySelector('[data-f="dep"]').value = d; V.querySelector('[data-dn]').textContent = why;
+    }
+    V.addEventListener('change', function(e){ if (e.target.getAttribute('data-f') === 'pk') V.querySelector('[data-f="base"]').value = PK[Number(e.target.value)][1]; autoDep(); });
+    V.addEventListener('input', function(e){ var f = e.target.getAttribute('data-f'); if (f === 'dep') { DEPMAN = true; V.querySelector('[data-dn]').textContent = ''; } else if (f === 'base') autoDep(); });
+    autoDep();
+  }
+  function clearOld(){
+    var old = inquiries().filter(function(o){ return o.old && (MORE.tests || !o.test); });
+    if (!old.length) { toast('No old inquiries to clear.'); return; }
+    ask('Clear ' + old.length + ' old inquir' + (old.length === 1 ? 'y' : 'ies') + '?', 'These are inquiries whose date has passed, or that are over 30 days old with no date. Their requests stay in "Everything that came in" and in your email.', 'Clear them', 'No', function(){
+      post({ kind: 'dismiss', by: WHO, items: old.map(function(o){ return { name: o.name, date: o.date, beach: o.beach, test: o.test }; }) }).then(function(j){ toast((j.cleared || 0) + ' cleared'); load(); });
+    });
+  }
+
+  // ---------- Who's using this phone ----------
+  function setWho(n){ WHO = String(n || '').trim().slice(0, 40); try { if (WHO) localStorage.setItem('mrp-who', WHO); else localStorage.removeItem('mrp-who'); } catch (e) {} }
+  $('whoBtns').addEventListener('click', function(e){
+    var c = e.target.closest('.chip'); if (!c) return;
+    if (c.textContent === 'Other') { $('whoOther').hidden = false; $('whoOk').hidden = false; $('whoOther').focus(); return; }
+    setWho(c.textContent); load();
+  });
+  $('whoOk').addEventListener('click', function(){ if ($('whoOther').value.trim()) { setWho($('whoOther').value); load(); } });
+  $('whoOther').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('whoOk').click(); });
+  $('whoChg').addEventListener('click', function(){ setWho(''); $('whoOther').value = ''; $('whoOther').hidden = true; $('whoOk').hidden = true; load(); });
+
   $('clearTests').addEventListener('click', function(){
     if (!confirm('Remove all TEST bookings and test entries from this page? Real bookings are not touched.')) return;
-    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify({ kind: 'clear-tests', pass: PASS }) })
-      .then(function(r){ return r.json(); }).then(function(j){ if (!j.ok) { alert("That didn't work. Please try again."); return; } alert('Done. ' + j.removed + ' test item' + (j.removed === 1 ? '' : 's') + ' removed.'); load(); })
+    post({ kind: 'clear-tests' }).then(function(j){ if (!j.ok) { alert("That didn't work. Please try again."); return; } toast(j.removed + ' test item' + (j.removed === 1 ? '' : 's') + ' removed'); load(); })
       .catch(function(){ alert("That didn't work. Please check your connection and try again."); });
   });
   $('unlock').addEventListener('click', function(){ PASS = $('pass').value.trim(); $('perr').hidden = true; load(); });
   $('pass').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('unlock').click(); });
   $('forget').addEventListener('click', function(e){ e.preventDefault(); try { localStorage.removeItem('mrp-log-pass'); } catch (x) {} PASS = ''; $('app').hidden = true; $('lock').hidden = false; });
-  document.addEventListener('visibilitychange', function(){ if (!document.hidden && DATA) load(); });
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden && DATA && !document.querySelector('.veil')) { refreshDay(); load(); } });
   if (PASS) load(); else $('lock').hidden = false;
 })();
 </script>
