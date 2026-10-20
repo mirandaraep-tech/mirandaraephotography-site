@@ -73,7 +73,33 @@ function summary(state, live) {
   };
 }
 
+// Oct 20 2026: AffordableBeachPhotographer.com and MirandaRaePhotos.com may send a copy of each
+// "Check My Date" request here too, so it shows on the Bookings page. Only that one kind of entry
+// is accepted from them; nothing on the Bookings page can be read or changed from those sites.
+const SISTER_SITES = { "affordablebeachphotographer.com": "AffordableBeachPhotographer.com", "mirandaraephotos.com": "MirandaRaePhotos.com" };
+const sisterOf = (req) => {
+  try { const o = req.headers.get("origin") || ""; const h = new URL(o).hostname.replace(/^www\./, "").toLowerCase(); return SISTER_SITES[h] ? { origin: o, name: SISTER_SITES[h] } : null; }
+  catch (e) { return null; }
+};
+
 export default async (req) => {
+  const sister = sisterOf(req);
+  if (sister) {
+    const cors = { "Access-Control-Allow-Origin": sister.origin, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type", "Vary": "Origin", "Cache-Control": "no-store" };
+    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+    let d = {};
+    try { d = JSON.parse(await req.text()); } catch (e) {}
+    if (req.method !== "POST" || d.kind !== "request") return new Response(JSON.stringify({ error: "not allowed" }), { status: 403, headers: cors });
+    const host0 = new URL(req.url).hostname.replace(/^www\./, "");
+    const st = getStore({ name: host0 === "mirandaraephotography.com" ? "booking-counter" : "booking-counter-test", consistency: "strong" });
+    const log = (await st.get("log", { type: "json" })) || [];
+    const c = (v, n = 120) => String(v == null ? "" : v).slice(0, n);
+    log.push({ at: new Date().toISOString(), kind: "request", name: c(d.name, 60), date: String(d.date || "").slice(0, 10), beach: c(d.beach, 40),
+      detail: [sister.name, c(d.detail)].filter(Boolean).join(" · "), phone: String(d.phone || "").replace(/\D/g, "").slice(-10), site: sister.name,
+      test: /\btest\b/i.test(String(d.name || "")) || TEST_PHONES.includes(String(d.phone || "").replace(/\D/g, "").slice(-10)) });
+    await st.setJSON("log", log.slice(-1000));
+    return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, "Content-Type": "application/json" } });
+  }
   const host = new URL(req.url).hostname.replace(/^www\./, "");
   const live = host === "mirandaraephotography.com";
   // "strong" = always read the very latest numbers, so two quick entries can't overwrite each other
