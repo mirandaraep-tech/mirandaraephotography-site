@@ -38,7 +38,9 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 
 /* ---------- Sticky top: updated line, money boxes, filters ---------- */
 .head{position:sticky;top:0;z-index:20;background:var(--cream);padding:8px 0 10px;margin:0 -12px;padding-left:12px;padding-right:12px}
-.head .card{margin-bottom:10px;padding:12px}
+.head .card{margin-bottom:10px;padding:12px;max-height:420px;overflow:hidden;transition:max-height .3s ease,opacity .2s ease,margin .3s ease,padding .3s ease}
+/* Oct 20 2026: while a card is open, the money boxes slide up out of the way; they come back when it closes */
+.head.compact .card{max-height:0;opacity:0;margin-bottom:0;padding-top:0;padding-bottom:0;box-shadow:none}
 .asof{font-size:14px;color:var(--muted);margin:0 2px 8px}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tile{border:1px solid var(--line);border-radius:14px;padding:8px 12px;background:#fff;text-align:left;font:inherit;color:inherit;cursor:pointer;min-height:84px}
@@ -479,6 +481,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var EMPTY = DAY ? 'Nothing booked this day.' : q ? 'No one by that name.' : CON === 'no' ? '' : 'Nothing here with these filters.';
     $('list').innerHTML = TABLE ? table(rows) : rows.length ? rows.map(function(b){ return card(b); }).join('') : (EMPTY ? '<p class="muted" style="margin:6px 4px 14px">' + EMPTY + '</p>' : '');
     $('tblTog').textContent = TABLE ? 'Back to cards' : 'Spreadsheet view';
+    $('head').classList.toggle('compact', !!document.querySelector('#app .bk.open'));
     if (!$('morePanel').hidden) morePanel();
     if (!$('calPop').hidden) $('calPop').innerHTML = calendar();
     mirandaTotals(all.filter(function(b){ return real(b); }));
@@ -785,7 +788,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var num = box.getAttribute('data-num'), ik = box.getAttribute('data-inq');
     if (!btn) {
       if (!e.target.closest('[data-tog]')) return;
-      var id = num ? 'b' + num : 'i' + ik; OPEN = OPEN === id ? null : id; draw(); return;
+      var id = num ? 'b' + num : 'i' + ik; OPEN = OPEN === id ? null : id; draw();
+      // Bring the card up under the top bar (after the boxes slide away or back) so it stays in view
+      setTimeout(function(){
+        var el = document.querySelector(num ? '.bk[data-num="' + num + '"]' : '.bk[data-inq="' + ik.replace(/"/g, '\\"') + '"]'); if (!el) return;
+        window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - $('head').offsetHeight - 8, behavior: 'smooth' });
+      }, 320);
+      return;
     }
     e.stopPropagation();
     var a = btn.getAttribute('data-a');
