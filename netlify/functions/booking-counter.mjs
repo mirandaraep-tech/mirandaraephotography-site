@@ -286,8 +286,13 @@ export default async (req) => {
   // (they said no, or never answered). Only the master page list changes.
   if (data.kind === "dismiss") {
     if (!(await okPass(req, data))) return json({ error: "passcode" });
-    await logIt({ kind: "dismiss", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), by: clip(data.by, 40), test: !!data.test });
-    return json({ ok: true });
+    // One client, or several at once ("Clear all old inquiries"). Hidden from the cards only; the
+    // original request stays in "Everything that came in".
+    const items = Array.isArray(data.items) ? data.items.slice(0, 300) : [data];
+    const log = await getList("log"), at = new Date().toISOString();
+    items.forEach((it) => log.push({ at, kind: "dismiss", name: clip(it.name, 60), date: day(it.date), beach: clip(it.beach, 40), by: clip(data.by, 40), test: !!it.test, ...(items.length > 1 ? { bulk: true } : {}) }));
+    await store.setJSON("log", log.slice(-1000));
+    return json({ ok: true, cleared: items.length });
   }
   // New Booking page "Make this the usual" (Oct 15 2026): saves Miranda's usual percentage
   if (data.kind === "split-default") {
