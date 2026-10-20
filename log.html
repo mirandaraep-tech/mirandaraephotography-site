@@ -51,7 +51,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .tile.bk1{border:2px solid var(--teal)}
 .tile.grn{background:#eef8f1;border-color:#bfe3cb;cursor:default}.tile.grn b{color:var(--ok)}
 .tile.dueT{cursor:default}
-.tile.blu{background:#e9f4f6;border-color:#bcdce3}.tile.blu b{color:var(--teal)}
+.tile.blu{background:#e9f4f6;border-color:#bcdce3}.tile.blu.on{border:2px solid var(--teal)}.tile.blu b{color:var(--teal)}
 .frow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .fb{border:2px solid var(--line);background:#fff;color:var(--teal);border-radius:14px;min-height:46px;padding:4px 6px;font-size:15px;cursor:pointer;line-height:1.15}
 .fb.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:bold}
@@ -121,6 +121,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .s-con{background:#e1f0f3;color:var(--teal);border-color:#bcdce3}
 .s-com{background:#eceff1;color:#455a64;border-color:#d5dce0}
 .s-paid{background:#dcf3e3;color:var(--ok);border-color:#bfe3cb}
+.s-unp{background:#ffd84d;color:#3d2e00;border:2px solid #d9a400;font-weight:bold}
 .s-cx{background:#f7dede;color:var(--bad);border-color:#ebc0c0}
 .s-past{background:#eceff1;color:#455a64;border-color:#d5dce0}
 .tg{display:inline-block;font-size:12px;font-weight:bold;border-radius:999px;padding:3px 8px;margin-left:4px;vertical-align:1px}
@@ -244,9 +245,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       <div class="frow">
         <button class="fb" id="fCon" type="button">Confirmed ↻</button>
         <button class="fb" id="fDep" type="button">Deposit ↻</button>
-        <button class="fb" id="fMore" type="button">More filters</button>
+        <button class="fb" id="fNeed" type="button">Needs a look</button>
       </div>
-      <div class="panel" id="morePanel" hidden></div>
       <div class="crow" id="crow">
         <div class="calpop" id="calPop" hidden></div>
         <button class="cbtn" id="calBtn" type="button"><span class="mini"><i id="calMon">OCT</i><u id="calDay">19</u></span>Calendar</button>
@@ -426,10 +426,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('asof').textContent = (DATA.test ? 'TEST COPY · ' : '') + 'Updated: ' + (last ? when(last.at) : '—') + (whoMade ? ' · ' + whoMade : '');
 
     // Filter buttons show what they're set to
-    var fc = $('fCon'), fd = $('fDep'), fm = $('fMore');
+    var fc = $('fCon'), fd = $('fDep'), fn = $('fNeed');
     fc.classList.toggle('on', !!CON); fc.innerHTML = CON === 'yes' ? 'Confirmed ✓' : CON === 'no' ? 'Not confirmed ✓' : 'Confirmed ↻';
     fd.classList.toggle('on', !!DEP); fd.innerHTML = DEP === 'in' ? 'Deposit in ✓' : DEP === 'none' ? 'No deposit ✓' : 'Deposit ↻';
-    var mc = moreCount(); fm.classList.toggle('on', mc > 0); fm.innerHTML = 'More filters' + (mc ? '<span class="ct">' + mc + '</span>' : '');
+    // Needs a look = past sessions not yet Paid in Full; the number shows how many
+    var nl = all.filter(function(b){ return real(b) && flagged(b); }).length;
+    fn.classList.toggle('on', MORE.status === 'needs'); fn.innerHTML = 'Needs a look' + (nl ? '<span class="ct">' + nl + '</span>' : '') + (MORE.status === 'needs' ? ' ✓' : '');
+    $('tUpTile').classList.toggle('on', MORE.status === 'upcoming');
     var cm = dt(DAY || TODAY); $('calMon').textContent = cm.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(); $('calDay').textContent = cm.getDate();
     $('calBtn').classList.toggle('on', !!DAY);
     $('dayChip').hidden = !DAY;
@@ -482,7 +485,6 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('list').innerHTML = TABLE ? table(rows) : rows.length ? rows.map(function(b){ return card(b); }).join('') : (EMPTY ? '<p class="muted" style="margin:6px 4px 14px">' + EMPTY + '</p>' : '');
     $('tblTog').textContent = TABLE ? 'Back to cards' : 'Spreadsheet view';
     $('head').classList.toggle('compact', !!document.querySelector('#app .bk.open'));
-    if (!$('morePanel').hidden) morePanel();
     if (!$('calPop').hidden) $('calPop').innerHTML = calendar();
     mirandaTotals(all.filter(function(b){ return real(b); }));
     feed(tests);
@@ -496,7 +498,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (b.cancelled) return ['Cancelled', 's-cx'];
     if (b.past) return ['Past entry', 's-past'];
     if (tot(b) > 0 && due(b) <= 0) return ['Paid in full', 's-paid'];
-    if (b.date && b.date < TODAY) return ['Completed', 's-com'];
+    if (b.date && b.date < TODAY) return ['Completed · Not paid', 's-unp'];
     return ['Confirmed', 's-con'];
   }
   var SESS_LBL = { sunset: 'Sunset', sunrise: 'Sunrise', wedding: '♥ Wedding', other: 'Other', blank: 'No time' };
@@ -664,7 +666,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     return h + '</div><div class="legend"><span><span class="dot c-yel"></span>No deposit</span><span><span class="dot c-grn"></span>Deposit in</span><span><span class="dot c-pur"></span>Contracted</span><span><span class="dot c-pnk"></span>Wedding</span><span><span class="dot c-inq"></span>Inquiry</span></div>';
   }
   $('calBtn').addEventListener('click', function(){
-    var p = $('calPop'); $('morePanel').hidden = true;
+    var p = $('calPop');
     if (p.hidden) { CALM = (DAY || TODAY).slice(0, 7); p.innerHTML = calendar(); p.hidden = false; } else p.hidden = true;
   });
   $('calPop').addEventListener('click', function(e){
@@ -682,28 +684,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
   // ---------- Top buttons ----------
   $('tBookedTile').addEventListener('click', function(){ if (DAY) { DAY = ''; PI = 0; } else PI = (PI + 1) % PERIODS.length; OPEN = null; draw(); });
-  $('tUpTile').addEventListener('click', function(){ DAY = ''; PI = 0; CON = ''; DEP = ''; MORE.status = 'upcoming'; Q = ''; $('q').value = ''; draw(); });
+  $('tUpTile').addEventListener('click', function(){ DAY = ''; PI = 0; CON = ''; DEP = ''; MORE.status = MORE.status === 'upcoming' ? '' : 'upcoming'; Q = ''; $('q').value = ''; draw(); });
   $('fCon').addEventListener('click', function(){ CON = CON === '' ? 'yes' : CON === 'yes' ? 'no' : ''; DAY = ''; draw(); });
   $('fDep').addEventListener('click', function(){ DEP = DEP === '' ? 'in' : DEP === 'in' ? 'none' : ''; DAY = ''; draw(); });
-  $('fMore').addEventListener('click', function(){ var p = $('morePanel'); $('calPop').hidden = true; p.hidden = !p.hidden; if (!p.hidden) morePanel(); });
-  function morePanel(){
-    var beaches = {}, shooters = { Miranda: 1 };
-    (DATA.bookings || []).forEach(function(b){ if (b.beach) beaches[b.beach] = 1; if (b.photographer) shooters[b.photographer] = 1; });
-    var g = function(title, key, opts){ return '<div class="grp">' + title + '</div><div class="chips">' + opts.map(function(o){ return '<button class="chip' + (MORE[key] === o[0] ? ' on' : '') + '" data-mk="' + key + '" data-mv="' + esc(o[0]) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div>'; };
-    $('morePanel').innerHTML =
-      g('Balance', 'bal', [['', 'Any'], ['owes', 'Still owes'], ['paid', 'Paid in full'], ['shooter', 'Photographer owes Miranda']]) +
-      g('Session status', 'status', [['', 'Any'], ['upcoming', 'Upcoming'], ['completed', 'Completed'], ['needs', 'Needs a look'], ['cancelled', 'Cancelled'], ['pastentries', 'Past entries']]) +
-      g('Session type', 'type', [['', 'Any'], ['sunrise', 'Sunrise'], ['sunset', 'Sunset'], ['wedding', 'Wedding'], ['other', 'Other']]) +
-      g('Location', 'loc', [['', 'Any']].concat(Object.keys(beaches).sort().map(function(x){ return [x, x]; }))) +
-      g('Photographer', 'shooter', [['', 'Any']].concat(Object.keys(shooters).map(function(x){ return [x, x]; }))) +
-      '<div class="foot"><label class="muted"><input type="checkbox" id="showTests" style="width:auto;min-height:0;vertical-align:-2px"' + (MORE.tests ? ' checked' : '') + '> Show tests</label><button class="btn" id="moreDone" style="min-height:40px">Done</button></div>';
-  }
-  $('morePanel').addEventListener('click', function(e){
-    var c = e.target.closest('[data-mk]');
-    if (c) { MORE[c.getAttribute('data-mk')] = c.getAttribute('data-mv'); DAY = ''; draw(); return; }
-    if (e.target.id === 'moreDone') { $('morePanel').hidden = true; draw(); }
-  });
-  $('morePanel').addEventListener('change', function(e){ if (e.target.id === 'showTests') { MORE.tests = e.target.checked; draw(); } });
+  // Tap once to see only sessions that need a look; tap again to go back to all bookings
+  $('fNeed').addEventListener('click', function(){ MORE.status = MORE.status === 'needs' ? '' : 'needs'; DAY = ''; Q = ''; $('q').value = ''; OPEN = null; draw(); });
   $('srchBtn').addEventListener('click', function(){
     var q = $('q'); if (q.hidden) { q.hidden = false; $('srchBtn').classList.add('on'); q.focus(); }
     else { q.value = ''; Q = ''; q.hidden = true; $('srchBtn').classList.remove('on'); draw(); }
