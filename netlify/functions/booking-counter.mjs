@@ -207,6 +207,7 @@ export default async (req) => {
       if (f.beach != null) set("beach", clip(f.beach, 40), "beach");
       if (f.pkg != null) set("pkg", clip(f.pkg, 60), "package");
       if (f.notes != null) set("notes", clip(f.notes, 300), "notes");
+      if (f.dep != null) { const dp = cents(cleanMoney(f.dep)); if (dp !== (b.dep || 50)) { if (dp && dp !== 50) b.dep = dp; else delete b.dep; changed.push("deposit"); } }
       if (f.total != null) {
         const t = cents(cleanMoney(f.total));
         if (t !== (b.total || 0)) {
@@ -345,7 +346,7 @@ export default async (req) => {
     else if (test) { state.lastTest = (state.lastTest || 0) + 1; num = 900000 + state.lastTest; }
     else { state.last += 1; num = state.last; }
     const payout = split ? cents(total - shareOf(split, total)) : 0;
-    Object.assign(b, { num, ...(isPast ? { past: true } : { direct: true }), ...(pend ? { fromInquiry: true } : {}), pkg: clip(data.pkg, 60), total, by, phone: digits(data.phone),
+    Object.assign(b, { num, ...(isPast ? { past: true } : { direct: true }), ...(pend ? { fromInquiry: true } : {}), pkg: clip(data.pkg, 60), total, ...(cleanMoney(data.dep) && cleanMoney(data.dep) !== 50 ? { dep: cleanMoney(data.dep) } : {}), by, phone: digits(data.phone),
       photographer: who, payout, ...(split ? { split } : {}), test, created: now });
     const pay = data.pay || (data.paid ? "full" : "none");
     if (pay === "full" && total > 0) b.paid = { amount: total, method: clip(data.method, 30), at: now, by };
@@ -403,7 +404,7 @@ export default async (req) => {
       // Oct 20 2026: the texted details are kept with the entry so the Bookings page can show the client
       // as an Inquiry card (Text again, Confirmed, Not booking) until they confirm
       await logIt({ kind: "sent", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), by: p.by, detail: p.photographer ? "Shot by " + p.photographer : "", test: !!(p.testPhone || isTestName(data.name)),
-        time: clip(data.time, 30), pkg: clip(data.pkg, 60), amount: cleanMoney(data.amount), phone: p.phone, ...(p.photographer ? { photographer: p.photographer } : {}), link: clip(data.link, 3000) });
+        time: clip(data.time, 30), pkg: clip(data.pkg, 60), amount: cleanMoney(data.amount), dep: cleanMoney(data.dep) || 50, phone: p.phone, ...(p.photographer ? { photographer: p.photographer } : {}), link: clip(data.link, 3000) });
     }
     return json({ ok: true });
   }
@@ -463,7 +464,7 @@ export default async (req) => {
   const keepBooking = async (num) => {
     if (bookings.some((b) => b.key === key && !b.cancelled)) return;
     bookings.push({ key, num, name: clip(data.name, 60), date: day(data.date), time: me.time, beach: clip(data.beach, 40),
-      pkg: clip(data.pkg, 60), total: amount, by: clip((pend && pend.by) || data.by, 40), phone: pend && pend.phone || "",
+      pkg: clip(data.pkg, 60), total: amount, ...(cleanMoney(data.dep) && cleanMoney(data.dep) !== 50 ? { dep: cleanMoney(data.dep) } : {}), by: clip((pend && pend.by) || data.by, 40), phone: pend && pend.phone || "",
       photographer: pend && pend.photographer || "", payout: pend && pend.payout || 0, ...(pend && pend.photographer && pend.split ? { split: pend.split } : {}), test: isTest, created: new Date().toISOString() });
     await store.setJSON("bookings", bookings.slice(-500));
     await logIt({ kind: "confirm", num, name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), amount, by: (pend && pend.by) || "", detail: headsUp, test: isTest });

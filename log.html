@@ -341,7 +341,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       var k = key(e); if (gone[k]) return;
       var o = map[k] || { inq: true, key: k, name: e.name, date: e.date || '', asked: e.at };
       if (e.kind === 'request') { o.request = e; o.asked = o.asked || e.at; if (!o.phone && e.phone) o.phone = e.phone; if (!o.beach && e.beach) o.beach = e.beach; o.detail = e.detail; o.site = e.site; }
-      else { o.sent = e; o.time = e.time || o.time; o.pkg = e.pkg || o.pkg; o.amount = e.amount || o.amount; o.link = e.link || o.link; o.by = e.by || o.by; o.photographer = e.photographer || o.photographer; if (e.phone) o.phone = e.phone; if (e.beach) o.beach = e.beach; }
+      else { o.sent = e; o.time = e.time || o.time; o.pkg = e.pkg || o.pkg; o.amount = e.amount || o.amount; o.dep = e.dep || o.dep; o.link = e.link || o.link; o.by = e.by || o.by; o.photographer = e.photographer || o.photographer; if (e.phone) o.phone = e.phone; if (e.beach) o.beach = e.beach; }
       o.test = !!(o.test || e.test); o.last = e.at;
       map[k] = o;
     });
@@ -729,7 +729,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   var at = function(b){ return b.beach && b.beach !== 'Other' ? ' at ' + b.beach : ''; };
   function msgConfirm(b){
     var d = b.deposit ? 'Your ' + money(b.deposit.amount) + ' deposit is received' + (due(b) ? ', and ' + money(due(b)) + ' is due on session day.' : '.') :
-      b.paid ? 'You\'re all paid up.' : 'To hold your date, please send the $50 deposit by Venmo (' + VENMO + ').';
+      b.paid ? 'You\'re all paid up.' : 'To hold your date, please send the ' + money(b.dep || 50) + ' deposit by Venmo (' + VENMO + ').';
     return 'Hi ' + first(b.name) + '! You\'re all set for your ' + tWord(b) + 'session' + at(b) + ' on ' + longDay(b.date) + '. ' + d + ' Can\'t wait to see you!';
   }
   function msgReceipt(b, amt){ return 'Hi ' + first(b.name) + '! Thank you, I received your payment of ' + money(amt) + '. You\'re paid in full for your ' + (b.date ? nice(b.date) + ' ' : '') + 'session. Thank you so much!'; }
@@ -807,7 +807,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function method(v){ var c = v.querySelector('[data-m].on'); return c ? c.getAttribute('data-m') : ''; }
 
   function depositSheet(b){
-    var dflt = Math.min(50, tot(b) || 50);
+    var dflt = Math.min(b.dep || 50, tot(b) || b.dep || 50);
     sheet('<h3>Deposit received</h3><p class="muted">' + esc(b.name) + ' · ' + esc(b.date ? nice(b.date) : '') + '</p><label class="l">Amount</label><div class="money"><b>$</b><input data-amt type="number" inputmode="decimal" value="' + dflt + '"></div>' +
       '<label class="l">Paid with</label>' + methodChips('Venmo') + '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>',
       function(e, v, close){
@@ -850,6 +850,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<div class="row"><div><label class="l">Package</label><input data-f="pkg" value="' + esc(b.pkg || '') + '" list="pkgList"><datalist id="pkgList">' + PK.map(function(p){ return '<option value="' + esc(p[0]) + '">'; }).join('') + '</datalist></div>' +
       '<div><label class="l">Price</label><div class="money"><b>$</b><input data-f="total" type="number" inputmode="decimal" value="' + (b.total || 0) + '"></div></div></div>' +
       (b.addons || less(b) ? '<p class="muted" style="margin:4px 0 0">Extras and deductions stay as they are.</p>' : '') +
+      '<div class="row"><div><label class="l">Deposit</label><div class="money"><b>$</b><input data-f="dep" type="number" inputmode="decimal" value="' + (b.dep || 50) + '"></div></div><div></div></div>' +
       '<label class="l">Notes</label><input data-f="notes" maxlength="300" value="' + esc(b.notes || '') + '" placeholder="Anything to remember">' +
       '<p class="muted" style="margin-top:10px">To change who\'s shooting, use the Photographer button.</p>' +
       '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>',
@@ -938,13 +939,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'build') return buildSheet(o, false);
     if (a === 'iconfirm') {
       if (o.sent && o.date && o.amount) return ask('Did ' + esc(first(o.name)) + ' say yes?', 'This books ' + esc(o.name) + ' for ' + esc(nice(o.date)) + (o.time ? ' (' + esc(o.time) + ')' : '') + ' at ' + money(o.amount) + ' without them tapping the link.', 'Yes, book it', 'Not yet', function(){
-        bookInquiry(o, { name: o.name, date: o.date, time: o.time, beach: o.beach, pkg: o.pkg, amount: o.amount, phone: o.phone, photographer: '' });
+        bookInquiry(o, { name: o.name, date: o.date, time: o.time, beach: o.beach, pkg: o.pkg, amount: o.amount, dep: o.dep, phone: o.phone, photographer: o.photographer || '' });
       });
       return buildSheet(o, true);
     }
   }
   function bookInquiry(o, d){
-    var body = { kind: 'direct', fromInquiry: true, name: d.name, date: d.date, time: d.time || '', beach: d.beach || '', pkg: d.pkg || '', amount: d.amount || 0, phone: d.phone || '', by: WHO, pay: 'none', photographer: d.photographer || '', split: d.split || null };
+    var body = { kind: 'direct', fromInquiry: true, name: d.name, date: d.date, time: d.time || '', beach: d.beach || '', pkg: d.pkg || '', amount: d.amount || 0, dep: d.dep || 50, phone: d.phone || '', by: WHO, pay: 'none', photographer: d.photographer || '', split: d.split || null };
     return post(body).then(function(j){
       if (j.conflict) {
         if (!confirm('#' + j.with + ' ' + j.withName + ' already has that time on that date. Book it anyway?')) return;
@@ -973,32 +974,47 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<label class="l">Beach</label><select data-f="b">' + opts(BEACHES, o.beach || 'Mexico Beach') + '</select>' +
       '<div class="row"><div><label class="l">Package</label><select data-f="pk">' + PK.map(function(p, i){ return '<option value="' + i + '"' + (i === pi ? ' selected' : '') + '>' + esc(p[0]) + '</option>'; }).join('') + '</select></div>' +
       '<div><label class="l">Price</label><div class="money"><b>$</b><input data-f="base" type="number" inputmode="decimal" value="' + (o.amount || PK[pi][1]) + '"></div></div></div>' +
+      '<label class="l">Deposit</label><div class="money"><b>$</b><input data-f="dep" type="number" inputmode="decimal" value="50"></div><div class="muted" data-dn style="font-size:13px;margin-top:4px"></div>' +
       '<label class="l">Who\'s shooting</label><div class="chips" data-who><button class="chip on" type="button" data-n="">Miranda</button>' + PH.names.filter(function(n){ return low(n) !== 'miranda'; }).map(function(n){ return '<button class="chip" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>' +
-      '<p class="muted" style="margin:6px 0 0">A contracted session uses the usual split: $50 to Miranda, or ' + PH.split.pct + '% on a wedding. Change it later with the Photographer button.</p>' +
+      '<p class="muted" style="margin:6px 0 0">A contracted session uses the usual split: $50 to Miranda, or ' + PH.split.pct + '% on a wedding (and the wedding deposit is her full share). Change it later with the Photographer button.</p>' +
       '<p class="err" data-e hidden>Fill in the name and date first.</p>' +
       '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>' + (direct ? 'Book it' : 'Text Confirm link') + '</button></div>' +
       (direct ? '' : '<p style="text-align:center;margin:10px 0 0"><button class="lnk" data-alt>They already said yes? Book without texting</button></p>'),
       function(e, v, close){
         var n = e.target.closest('[data-n]');
-        if (n) { Array.prototype.forEach.call(v.querySelectorAll('[data-n]'), function(x){ x.classList.toggle('on', x === n); }); return; }
+        if (n) { Array.prototype.forEach.call(v.querySelectorAll('[data-n]'), function(x){ x.classList.toggle('on', x === n); }); autoDep(); return; }
         var go = e.target.closest('[data-go]'), alt = e.target.closest('[data-alt]');
         if (!go && !alt) return;
         var g = function(k){ return v.querySelector('[data-f="' + k + '"]').value.trim(); };
         if (!g('n') || !/^\d{4}-\d{2}-\d{2}$/.test(g('d'))) { v.querySelector('[data-e]').hidden = false; return; }
         var p = PK[Number(g('pk'))], base = Math.round((parseFloat(g('base')) || 0) * 100) / 100, sh = (v.querySelector('[data-n].on') || {}).getAttribute ? v.querySelector('[data-n].on').getAttribute('data-n') : '';
         var lk = { v: 1, n: g('n'), d: g('d'), t: g('t'), b: g('b'), pk: p[0], base: base, len: p[2], ppl: p[3], ph: p[4], x: [], dc: 0, dr: '', note: '', by: WHO, total: base };
+        var dp = Math.round((parseFloat(g('dep')) || 50) * 100) / 100; if (dp !== 50) lk.dep = dp;
         if (sh) lk.sh = sh;
         var sp = sh ? usualSplit({ time: lk.t, pkg: lk.pk }) : null;
-        if (direct || alt) { close(); bookInquiry(o, { name: lk.n, date: lk.d, time: lk.t, beach: lk.b, pkg: lk.pk, amount: base, phone: g('ph'), photographer: sh, split: sp }); return; }
+        // Usual wedding split rounds to the dollar so Miranda's share matches the deposit paid up front
+        if (sh && isWed({ time: lk.t, pkg: lk.pk }) && !DEPMAN && base) sp = { mode: 'amt', val: dp };
+        if (direct || alt) { close(); bookInquiry(o, { name: lk.n, date: lk.d, time: lk.t, beach: lk.b, pkg: lk.pk, amount: base, dep: dp, phone: g('ph'), photographer: sh, split: sp }); return; }
         var url = location.origin + '/confirm?s=' + b64(JSON.stringify(lk));
         // Same as New Booking: tell the site first (so the card shows "Link texted"), then open Messages
-        var body = JSON.stringify({ kind: 'pending', by: WHO, name: lk.n, date: lk.d, beach: lk.b, phone: g('ph'), time: lk.t, pkg: lk.pk, amount: base, link: url, photographer: sh, split: sp });
+        var body = JSON.stringify({ kind: 'pending', by: WHO, name: lk.n, date: lk.d, beach: lk.b, phone: g('ph'), time: lk.t, pkg: lk.pk, amount: base, dep: dp, link: url, photographer: sh, split: sp });
         try { if (!(navigator.sendBeacon && navigator.sendBeacon(API, new Blob([body], { type: 'application/json' })))) fetch(API, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body }); } catch (x) {}
         close();
         compose({ name: lk.n, phone: g('ph') }, 'Confirm link', 'Hi ' + first(lk.n) + '! Here are your session details. Tap to confirm and hold your date: ' + url);
         setTimeout(load, 1500);
       });
-    s.el.addEventListener('change', function(e){ if (e.target.getAttribute('data-f') === 'pk') s.el.querySelector('[data-f="base"]').value = PK[Number(e.target.value)][1]; });
+    var DEPMAN = false, V = s.el;
+    function autoDep(){
+      if (DEPMAN) return;
+      var sh = V.querySelector('[data-n].on').getAttribute('data-n'), t = parseFloat(V.querySelector('[data-f="base"]').value) || 0;
+      var info = { time: V.querySelector('[data-f="t"]').value, pkg: PK[Number(V.querySelector('[data-f="pk"]').value)][0] }, d = 50, why = '';
+      if (sh && isWed(info) && t) { d = Math.ceil(shareOf(usualSplit(info), t)); why = "Miranda's full share, paid up front"; }
+      if (t && d > t) d = t;
+      V.querySelector('[data-f="dep"]').value = d; V.querySelector('[data-dn]').textContent = why;
+    }
+    V.addEventListener('change', function(e){ if (e.target.getAttribute('data-f') === 'pk') V.querySelector('[data-f="base"]').value = PK[Number(e.target.value)][1]; autoDep(); });
+    V.addEventListener('input', function(e){ var f = e.target.getAttribute('data-f'); if (f === 'dep') { DEPMAN = true; V.querySelector('[data-dn]').textContent = ''; } else if (f === 'base') autoDep(); });
+    autoDep();
   }
   function clearOld(){
     var old = inquiries().filter(function(o){ return o.old && (MORE.tests || !o.test); });

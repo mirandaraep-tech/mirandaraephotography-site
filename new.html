@@ -96,6 +96,12 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       <div><label for="ppl">People</label><input id="ppl" type="text" placeholder="Up to 6"></div>
       <div><label for="pho">Edited photos</label><input id="pho" type="text" placeholder="15"></div>
     </div>
+    <!-- Deposit (Oct 20 2026): $50 usually. On a wedding another photographer shoots it's Miranda's full share,
+         paid up front, so the photographer never owes her anything. She can change it either way. -->
+    <div class="row2">
+      <div><label for="dep">Deposit</label><div class="money"><span>$</span><input id="dep" type="number" inputmode="decimal" min="0" step="any" value="50"></div></div>
+      <div class="small" id="depnote" style="align-self:end;padding-bottom:12px"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -133,7 +139,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <div class="total" id="tot"></div>
     <div id="pastpaid" hidden>
       <label>What's been paid?</label>
-      <div class="chips" id="paidbtns"><button type="button" class="chip on" data-p="none">Nothing yet</button><button type="button" class="chip" data-p="deposit">Deposit paid ($50)</button><button type="button" class="chip" data-p="full">Paid in full</button></div>
+      <div class="chips" id="paidbtns"><button type="button" class="chip on" data-p="none">Nothing yet</button><button type="button" class="chip" data-p="deposit">Deposit paid</button><button type="button" class="chip" data-p="full">Paid in full</button></div>
     </div>
     <a class="btn" id="send" href="#">💬 Text to Client</a>
     <a class="btn past" id="savepast" href="#" hidden>💾 Save (no text sent)</a>
@@ -188,6 +194,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       pk: p[0] === 'Custom' ? 'Custom session' : p[0].replace(/^\$\d+\s*/, ''),
       base: num('base'), len: $('len').value.trim(), ppl: $('ppl').value.trim(), ph: $('pho').value.trim(), x: x,
       dc: num('dc'), dr: $('dr').value.trim(), note: $('note').value.trim(), by: who() };
+    var dp = num('dep'); if (dp && dp !== 50) o.dep = dp;
     // Who's shooting (Oct 15 2026): only the photographer's name goes in the client's link, never the pay
     if (!$('cobox').hidden && $('coname').value.trim()) o.sh = $('coname').value.trim().slice(0, 40);
     var tot = o.base; x.forEach(function(e){ tot += e[1]; });
@@ -204,7 +211,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     o.x.forEach(function(e){ h += '<div class="line"><span>+ ' + esc(e[0]) + '</span><span>' + money(e[1]) + '</span></div>'; });
     if (o.dc) h += '<div class="line minus"><span>− Discount' + (o.dr ? ': ' + esc(o.dr) : '') + '</span><span>−' + money(o.dc) + '</span></div>';
     h += '<div class="line big"><span>Total</span><span>' + money(o.total) + '</span></div>';
-    if (o.total > 50 && !PAST) h += '<div class="small">$50 deposit to confirm · ' + money(o.total - 50) + ' on session day</div>';
+    var dp = o.dep || 50;
+    if (o.total > dp && !PAST) h += '<div class="small">' + money(dp) + ' deposit to confirm · ' + money(o.total - dp) + ' on session day</div>';
     $('tot').innerHTML = h;
     $('prev').href = link(o);
   }
@@ -228,7 +236,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function split(){
     var v = $('coval').value === '' ? (MODE === 'pct' ? SPLIT.pct : 0) : num('coval');
     if (MODE === 'amt') return { mode: 'amt', val: v };
-    var o = { mode: 'pct', val: v }; if (v === SPLIT.pct && SPLIT.min) o.min = SPLIT.min; return o;
+    var o = { mode: 'pct', val: v }; if (v === SPLIT.pct && SPLIT.min) o.min = SPLIT.min;
+    // Usual wedding split: 25% rounded up to the dollar, so it matches the deposit the client pays up front
+    if (!MANUAL && !DEPMAN && isWed()) { var t = data().total; if (t) return { mode: 'amt', val: Math.min(t, Math.ceil(shareOf(o, t))) }; }
+    return o;
   }
   function shareOf(sp, t){ var v = sp.mode === 'amt' ? sp.val : Math.max(t * sp.val / 100, sp.min || 0); return Math.round(Math.min(Math.max(0, t), v) * 100) / 100; }
   function setMode(m, auto){
@@ -238,12 +249,24 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('coval').value = m === 'pct' ? SPLIT.pct : (auto ? FLAT : ''); keep();
   }
   function keep(){
-    if ($('cobox').hidden) return;
+    if ($('cobox').hidden) { autoDep(); return; }
     var t = data().total, who = $('coname').value.trim() || 'the photographer', sp = split(), mine = shareOf(sp, t);
     $('conote').textContent = MODE === 'pct' ? (sp.min ? 'Usual for weddings: ' + SPLIT.pct + '% or ' + money(SPLIT.min) + ', whichever is more' : sp.val + '% of the session') : (!MANUAL && sp.val === FLAT ? 'Usual: a flat ' + money(FLAT) + ' to Miranda (weddings are ' + SPLIT.pct + '%)' : 'Miranda keeps this dollar amount');
     $('cokeep').innerHTML = t ? esc(who) + "'s pay <b>" + money(Math.max(0, t - mine)) + "</b> · Miranda's share <b>" + money(mine) + '</b>' : '';
     var other = MODE === 'pct' && $('coval').value !== '' && num('coval') !== SPLIT.pct;
     $('cosave').hidden = !other; if (other) $('cosave').textContent = 'Make ' + num('coval') + '% the usual';
+    autoDep();
+  }
+  // Deposit follows Miranda's share on a contracted wedding (rounded up to the dollar), $50 otherwise,
+  // until she types her own amount
+  var DEPMAN = false;
+  function autoDep(){
+    if (DEPMAN) return;
+    var co = !$('cobox').hidden && $('coname').value.trim(), t = data().total, v = 50, why = '';
+    if (co && isWed() && t) { v = Math.ceil(shareOf(split(), t)); why = "Miranda's full share, paid up front"; }
+    if (t && v > t) v = t;
+    if (Number($('dep').value) !== v) { $('dep').value = v; update(); }
+    $('depnote').textContent = why;
   }
   try { fetch('/api/booking-counter').then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
     if (j && j.photographers && j.photographers.length) { names = j.photographers; chips(); }
@@ -262,6 +285,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       .catch(function(){ alert("That didn't save. Please check your connection."); });
   });
   document.addEventListener('input', keep); document.addEventListener('change', keep);
+  $('dep').addEventListener('input', function(){ DEPMAN = $('dep').value !== ''; $('depnote').textContent = ''; });
   $('cotog').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = false; $('cotog').hidden = true; MANUAL = false; usual(); });
   $('cooff').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = true; $('cotog').hidden = false; $('coname').value = ''; TOUCHED = false; MANUAL = false; setMode('pct', true); chips(); });
 
@@ -271,7 +295,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     // Oct 20 2026: time, package, price and the link also go along, so the Bookings page can list
     // the client as an Inquiry (and text the same link again) until they confirm
     var body = JSON.stringify({ kind: 'pending', by: who(), name: o.n, date: o.d, beach: o.b, phone: $('ph').value,
-      time: o.t, pkg: o.pk, amount: o.total, link: link(o),
+      time: o.t, pkg: o.pk, amount: o.total, dep: o.dep || 50, link: link(o),
       photographer: co ? $('coname').value.trim() : '', split: co ? split() : null });
     try {
       if (navigator.sendBeacon && navigator.sendBeacon('/api/booking-counter', new Blob([body], { type: 'application/json' }))) return;
@@ -333,6 +357,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function clearForm(){
     ['n', 'ph', 'd', 'note', 'dr', 'dc', 'x1', 'x1d', 'x2', 'x2d', 'x3', 'x3d', 'x4', 'x4d', 'x5', 'x5d'].forEach(function(id){ $(id).value = ''; });
     $('t').selectedIndex = 0; $('b').selectedIndex = 0; $('pk').value = 0; touched = false; fillPkg();
+    $('dep').value = 50; DEPMAN = false; $('depnote').textContent = '';
     if (!$('cobox').hidden) $('cooff').click();
     setPay('none');
   }
@@ -353,7 +378,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     saving = true; $('savepast').textContent = 'Saving…';
     fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
       kind: 'direct', by: who(), name: o.n, phone: $('ph').value, date: o.d, time: o.t, beach: o.b, pkg: o.pk + (o.x.length ? ' + extras' : ''),
-      amount: o.total, pay: PAY, deposit: 50, force: !!force, photographer: co ? $('coname').value.trim() : '', split: co ? split() : null }) })
+      amount: o.total, pay: PAY, deposit: o.dep || 50, dep: o.dep || 50, force: !!force, photographer: co ? $('coname').value.trim() : '', split: co ? split() : null }) })
       .then(function(r){ return r.json(); }).then(function(j){
         if (j && j.ok) {
           $('pastmsg').innerHTML = esc(o.n) + ' · ' + esc(nice(o.d)) + ' · ' + money(o.total) + ' · ' + PAYTXT[PAY] +
