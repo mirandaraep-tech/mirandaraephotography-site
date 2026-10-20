@@ -396,7 +396,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     // Money boxes follow the Booked box's period (Current, Today, Tomorrow...). Tests, past entries and inquiries never count.
     var pool = all.filter(function(b){ return real(b) && (DAY ? b.date === DAY : fitsPeriod(b)); });
     var booked = 0, keep = 0, owe = 0, n = 0;
-    pool.forEach(function(b){ keep += keepOf(b); if (b.cancelled) return; booked += tot(b); owe += due(b); n++; });
+    // On a contracted session only Miranda's share counts in the boxes (the photographer keeps the rest),
+    // so Booked = Collected + Still to collect always adds up
+    pool.forEach(function(b){ keep += keepOf(b); if (b.cancelled) return; n++;
+      if (b.photographer) { booked += mineOf(b); owe += Math.max(0, mineOf(b) - keepOf(b)); } else { booked += tot(b); owe += due(b); } });
     var up = all.filter(function(b){ return real(b) && !b.cancelled && (b.date || '') >= TODAY; }).length;
     $('tPer').textContent = (DAY ? nice(DAY) : PERIODS[PI][1]) + ' ↻';
     $('tBooked').textContent = money(booked);
