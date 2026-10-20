@@ -121,6 +121,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .s-con{background:#e1f0f3;color:var(--teal);border-color:#bcdce3}
 .s-com{background:#eceff1;color:#455a64;border-color:#d5dce0}
 .s-paid{background:#dcf3e3;color:var(--ok);border-color:#bfe3cb}
+.s-unp{background:#ffd84d;color:#3d2e00;border:2px solid #d9a400;font-weight:bold}
 .s-cx{background:#f7dede;color:var(--bad);border-color:#ebc0c0}
 .s-past{background:#eceff1;color:#455a64;border-color:#d5dce0}
 .tg{display:inline-block;font-size:12px;font-weight:bold;border-radius:999px;padding:3px 8px;margin-left:4px;vertical-align:1px}
@@ -497,7 +498,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (b.cancelled) return ['Cancelled', 's-cx'];
     if (b.past) return ['Past entry', 's-past'];
     if (tot(b) > 0 && due(b) <= 0) return ['Paid in full', 's-paid'];
-    if (b.date && b.date < TODAY) return ['Completed', 's-com'];
+    if (b.date && b.date < TODAY) return ['Completed · Not paid', 's-unp'];
     return ['Confirmed', 's-con'];
   }
   var SESS_LBL = { sunset: 'Sunset', sunrise: 'Sunrise', wedding: '♥ Wedding', other: 'Other', blank: 'No time' };
