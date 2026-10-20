@@ -306,7 +306,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function collOf(b){ return Math.min(tot(b), ((b.deposit && b.deposit.amount) || 0) + ((b.paid && b.paid.amount) || 0)); }
   // What Miranda keeps of the money collected: all of it on her own sessions, only her share on contracted ones
   function keepOf(b){
-    if (b.cancelled) return b.cancelled.kept ? (b.photographer ? Math.min(b.cancelled.kept, mineOf(b)) : b.cancelled.kept) : 0;
+    // Cancelled with the deposit kept: Miranda keeps all of it, even on a contracted session (nobody else worked)
+    if (b.cancelled) return b.cancelled.kept || 0;
     return b.photographer ? Math.min(mineOf(b), collOf(b)) : collOf(b);
   }
   function due(b){ return Math.max(0, Math.round((tot(b) - ((b.deposit && b.deposit.amount) || 0) - ((b.paid && b.paid.amount) || 0)) * 100) / 100); }
@@ -584,7 +585,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function mirandaTotals(list){
     var own = 0, share = 0, n = 0, per = {}, paidOut = 0, c = TK === 'collected';
     list.filter(function(b){ return TP === 'all' || (b.date && (TP === 'year' ? b.date.slice(0, 4) === TODAY.slice(0, 4) : b.date.slice(0, 7) === TODAY.slice(0, 7))); }).forEach(function(b){
-      if (b.cancelled) { if (c) own += keepOf(b); return; }
+      if (b.cancelled) { if (c) { if (b.photographer && keepOf(b)) { share += keepOf(b); n++; } else own += keepOf(b); } return; }
       if (!b.photographer) { own += c ? collOf(b) : tot(b); return; }
       n++;
       var mine = mineOf(b), got = c ? Math.min(mine, collOf(b)) : mine, theirs = c ? Math.max(0, collOf(b) - mine) : payOf(b);
