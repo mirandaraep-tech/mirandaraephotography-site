@@ -680,12 +680,15 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (p.hidden) { CALM = (DAY || TODAY).slice(0, 7); p.innerHTML = calendar(); p.hidden = false; calRoom(true); } else p.hidden = true;
   });
   $('calPop').addEventListener('click', function(e){
+    e.stopPropagation(); // taps inside the calendar never close it (the redraw would otherwise look like an outside tap)
     var nav = e.target.closest('button[data-cal]'), dy = e.target.closest('button[data-day]');
     if (nav) { var y = Number(CALM.slice(0, 4)), m = Number(CALM.slice(5, 7)) + Number(nav.getAttribute('data-cal')); if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } CALM = y + '-' + String(m).padStart(2, '0'); $('calPop').innerHTML = calendar(); calRoom(); return; }
     if (!dy) return;
-    // Picking a day shows only that day's clients and clears the other filters
+    // Picking a day shows only that day's clients (below the open calendar) and clears the other filters
     DAY = dy.getAttribute('data-day'); CON = ''; DEP = ''; MORE = { bal: '', status: '', type: '', loc: '', shooter: '', tests: MORE.tests }; Q = ''; $('q').value = ''; $('q').hidden = true; $('srchBtn').classList.remove('on');
-    $('calPop').hidden = true; OPEN = null; draw(); window.scrollTo({ top: 0 });
+    // Calendar stays open; that day's clients show underneath it (Oct 20 2026)
+    OPEN = null; draw(); calRoom();
+    var tc = document.querySelector('.topcard'); window.scrollTo({ top: tc ? tc.offsetTop + tc.offsetHeight + 10 : 0 });
   });
   $('dayClr').addEventListener('click', function(){ DAY = ''; draw(); });
   document.addEventListener('click', function(e){
