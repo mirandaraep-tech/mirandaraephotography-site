@@ -71,8 +71,10 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 
 /* Calendar opens upward above its button. While it's open, the Confirmed/Deposit row tucks away and the
    pinned button area grows just enough to hold it, so the bookings below stay in view (Oct 20 2026) */
-.head:has(.calpop:not([hidden])){padding-top:calc(var(--calh,300px) + 14px)}
-.head:has(.calpop:not([hidden])) .frow{display:none}
+.head:has(.calpop:not([hidden])),.head.calopen{padding-top:calc(var(--calh,300px) + 14px)}
+.head:has(.calpop:not([hidden])) .frow,.head.calopen .frow{display:none}
+/* Desktop (Oct 20 2026): the calendar always opens pinned to the very top of the window, over the title */
+@media (min-width:700px){.calpop.pin{position:fixed;top:12px;bottom:auto;max-height:calc(100vh - 24px);overflow:auto}}
 .calpop{position:absolute;left:0;right:0;bottom:calc(100% + 6px);background:#fff;border-radius:18px;box-shadow:0 10px 40px #1d2b3340;padding:10px 12px 12px;z-index:30;border:1px solid var(--line)}
 .cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .cal-nav b{font:bold 18px Georgia,serif}
@@ -696,8 +698,17 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     return h + '</div><div class="legend"><span><span class="mk full"></span>Booked, deposit in</span><span><span class="mk ring"></span>Booked, no deposit yet</span><span><span class="mk q">?</span>Inquiry, not booked yet</span></div>';
   }
   // Make room above the buttons for the calendar, and scroll the money boxes out of the way so bookings show below
+  function calPin(){
+    var p = $('calPop'), wide = window.innerWidth >= 700;
+    $('head').classList.toggle('calopen', !p.hidden);
+    p.classList.toggle('pin', wide && !p.hidden);
+    if (wide && !p.hidden) { var r = $('crow').getBoundingClientRect(); p.style.left = r.left + 'px'; p.style.width = r.width + 'px'; p.style.right = 'auto'; }
+    else { p.style.left = ''; p.style.width = ''; p.style.right = ''; }
+  }
+  try { new MutationObserver(calPin).observe($('calPop'), { attributes: true, attributeFilter: ['hidden'] }); } catch (e) {}
+  window.addEventListener('resize', function(){ if (!$('calPop').hidden) calPin(); });
   function calRoom(first){
-    var h = $('head'), p = $('calPop'); h.style.setProperty('--calh', p.offsetHeight + 'px');
+    var h = $('head'), p = $('calPop'); calPin(); h.style.setProperty('--calh', p.offsetHeight + 'px');
     if (!first) return;
     var tc = document.querySelector('.topcard'), start = tc ? tc.offsetTop + tc.offsetHeight + 10 : 0;
     if (window.scrollY < start) window.scrollTo({ top: start });
