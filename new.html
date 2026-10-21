@@ -163,14 +163,17 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   var $ = function(id){ return document.getElementById(id); };
   // Packages (same prices as the website). Picking one fills in price, length, people and photos; all can be changed.
   var PK = [
+    /*prices:booking-pk ids=mini,special,wedding,family,deluxe,engagement,proposal,wedding6,wedding10 dollar=yes*/
     ['$130 Beach Mini', 130, '30 minutes', 'Up to 6', '15'],
-    ['$199 Beach Special', 199, '30 minutes', 'Up to 11', '25'],
-    ['$199 Classic Session', 199, '45–60 minutes · 1 outfit change', '', '30–35'],
+    ['$199 Beach Special (Classic)', 199, '45–60 minutes · 1 location · 1 outfit change', 'Up to 11', '30–35'],
     ['$499 Beach Wedding', 499, 'Up to 4 hours', '', 'Full gallery'],
-    ['Family Session', 250, '45–60 minutes', 'Up to 15', '35+'],
-    ['Deluxe Session', 325, '75+ minutes', '', '50+'],
+    ['Family Session', 250, '45–60 minutes · 1 location', 'Up to 15', '35+'],
+    ['Deluxe Session', 325, '75+ minutes · 2 locations · 2 outfit changes', '', '50+'],
     ['Engagement Session', 199, 'Up to 1 hour', '2', '35+'],
     ['Surprise Proposal', 199, '', '', '30'],
+    ['Wedding (6 hours)', 799, '6 hours', '', 'Full gallery'],
+    ['Wedding (10 hours)', 1500, '10 hours', '', 'Full gallery'],
+    /*/prices:booking-pk*/
     ['Custom', '', '', '', '']
   ];
   PK.forEach(function(p, i){ var o = document.createElement('option'); o.value = i; o.textContent = p[0] + (p[1] && p[0].charAt(0) !== '$' ? ' – $' + p[1] : ''); $('pk').appendChild(o); });
@@ -179,7 +182,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   $('pk').addEventListener('change', function(){ touched = true; fillPkg(); });
   // Home beaches default to the $130 Mini, farther beaches to the $199 Beach Special (until she picks a package herself)
   $('b').addEventListener('change', function(){ if (touched) return; $('pk').value = /Destin|30A|St\. George/.test($('b').value) ? 1 : 0; fillPkg(); });
-  $('t').addEventListener('change', function(){ if ($('t').value === 'Wedding' && !touched) { $('pk').value = 3; fillPkg(); } });
+  $('t').addEventListener('change', function(){ if ($('t').value === 'Wedding' && !touched) { $('pk').value = PK.findIndex(function(p){ return /wedding/i.test(p[0]); }); fillPkg(); } });
 
   var num = function(id){ var v = Number($(id).value); return isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : 0; };
   var money = function(n){ return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }); };
