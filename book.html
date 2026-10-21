@@ -60,10 +60,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <img src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae" width="42" height="42">
     <div class="brand"><b>Miranda Rae Photography</b><span>FLORIDA BEACH PHOTOGRAPHER</span></div>
   </div>
-  <nav class="mini-nav" aria-label="Site"><a href="/gallery">Gallery</a></nav>
+  <nav class="mini-nav" aria-label="Site"><a href="/photos?from=book">Gallery</a></nav>
 </div>
 
 <main>
+  <span id="check-date"></span>
   <form class="form-card" id="book" name="booking-text" method="POST" action="https://formsubmit.co/mirandaraep@gmail.com">
       <input type="hidden" name="_cc" value="bookmirandarae@gmail.com">
       <input type="hidden" name="_captcha" value="false">
@@ -155,7 +156,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       <p class="privacy-line" style="font-size:12px;opacity:.75;text-align:center;margin:10px 0 0">By sending, you agree to our <a href="/privacy" style="color:inherit;text-decoration:underline">privacy notice</a>.</p>
     </form>
   <!-- Oct 20 2026: a peek at Miranda's photos, tapping opens her full gallery (Randy) -->
-  <a href="/gallery" class="peek" style="display:block;max-width:440px;margin:16px auto 0;text-decoration:none;color:inherit">
+  <a href="/photos?from=book" class="peek" style="display:block;max-width:440px;margin:16px auto 0;text-decoration:none;color:inherit">
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"><img src="/images/photos/mexico-beach-family-walking-beach-sunset.jpg" alt="Family walking the beach at sunset in Mexico Beach by Miranda Rae Photography" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;display:block"><img src="/images/photos/panama-city-beach-couple-kiss-in-the-waves.jpg" alt="Couple kissing in the waves in Panama City Beach by Miranda Rae Photography" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;display:block"><img src="/images/photos/cape-san-blas-girl-pink-dress-sunset.jpg" alt="Girl in a pink dress at sunset on Cape San Blas by Miranda Rae Photography" loading="lazy" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;display:block"></div>
     <div style="text-align:center;font-weight:600;text-decoration:underline;margin-top:8px;font-size:15px">See Miranda's Photos &rarr;</div>
   </a>

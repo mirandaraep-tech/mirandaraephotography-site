@@ -550,6 +550,8 @@ footer a{color:#fff}
     if (!from) a.addEventListener('click', function(e){ e.preventDefault(); if (history.length > 1) history.back(); });
   });
   if (from) [].forEach.call(document.querySelectorAll('a[href="#check-date"]'), function(a){ a.href = '/' + from + '#check-date'; });
+  // Oct 20 2026: visitors coming from /book already texted Miranda, so hide the Text Miranda buttons for them
+  if (from === 'book') [].forEach.call(document.querySelectorAll('a.sms'), function(a){ a.style.display = 'none'; });
   // Privacy notice: keep the visitor's way back to the landing page (Oct 14 2026)
   if (from) [].forEach.call(document.querySelectorAll('a[href="/privacy"]'), function(a){ a.href = '/privacy?from=' + from; });
 })();
