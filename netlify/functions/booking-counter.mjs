@@ -50,7 +50,7 @@ const json = (o) => Response.json(o, { headers: { "Cache-Control": "no-store" } 
 // /log page behind a passcode. Times are labels (Sunrise, Sunset...), so the slot check treats the
 // same date + same time as taken, and a Wedding as taking the whole day.
 // Only a SHA-256 fingerprint of the passcode is kept here (this code is public on GitHub).
-const PASS_SHA256 = "7520b1eea1d95304e8ae042ee214edcc352583b8a4101ce34c54bb20d5915b30";
+const PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79";
 const sha = async (t) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))).map((b) => b.toString(16).padStart(2, "0")).join("");
 const okPass = async (req, data) => (await sha((req.headers.get("x-pass") || (data && data.pass) || "").trim().toLowerCase())) === PASS_SHA256;
 const day = (v) => String(v || "").slice(0, 10);
