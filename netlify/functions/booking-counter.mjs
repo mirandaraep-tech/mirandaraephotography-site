@@ -308,6 +308,16 @@ export default async (req) => {
     await store.setJSON("log", log.slice(-1000));
     return json({ ok: true, cleared: items.length });
   }
+  // Bookings page (Oct 20 2026): save a client's cell on an Inquiry card that came in without one
+  // (requests before Oct 20 2026 didn't keep the phone). One or several at once.
+  if (data.kind === "phone") {
+    if (!(await okPass(req, data))) return json({ error: "passcode" });
+    const items = (Array.isArray(data.items) ? data.items.slice(0, 300) : [data]).filter((it) => digits(it.phone).length >= 10);
+    const log = await getList("log"), at = new Date().toISOString();
+    items.forEach((it) => log.push({ at, kind: "phone", name: clip(it.name, 60), date: day(it.date), phone: digits(it.phone), by: clip(data.by, 40), test: !!it.test }));
+    await store.setJSON("log", log.slice(-1000));
+    return json({ ok: true, saved: items.length });
+  }
   // New Booking page "Make this the usual" (Oct 15 2026): saves Miranda's usual percentage
   if (data.kind === "split-default") {
     const pct = Number(data.pct);

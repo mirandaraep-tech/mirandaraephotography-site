@@ -381,6 +381,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       o.test = !!(o.test || e.test); o.last = e.at;
       map[k] = o;
     });
+    // Phones saved later on the card ("Add phone", Oct 20 2026)
+    log.forEach(function(e){ if (e.kind === 'phone' && map[key(e)] && e.phone) map[key(e)].phone = e.phone; });
     var cut = new Date(Date.now() - 30 * 86400000).toISOString();
     return Object.keys(map).map(function(k){ var o = map[k]; o.old = o.date ? o.date < TODAY : (o.asked || '') < cut; return o; });
   }
@@ -623,7 +625,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (o.request) L += '<div class="ln">Asked ' + esc(short(o.request.at)) + '</div>' + (o.detail ? '<div class="ln mut">' + esc(o.detail) + '</div>' : '');
     if (sent) L += '<div class="ln">' + esc(o.pkg || 'Session') + (o.amount ? ' · ' + money(o.amount) : '') + '</div><div class="ln mut">Link texted ' + esc(short(o.sent.at)) + (o.by ? ' by ' + esc(o.by) : '') + '</div>';
     if (o.photographer) L += '<div class="ln mut">📷 Shot by ' + esc(o.photographer) + '</div>';
-    L += '<div class="ln mut">📱 ' + (o.phone ? esc(fmtPhone(o.phone)) : 'No phone saved') + '</div>';
+    L += o.phone ? '<div class="ln mut">📱 ' + esc(fmtPhone(o.phone)) + '</div>' : '<div class="ln mut">📱 No phone saved</div><button class="btn ghost" data-a="addphone">+ Add phone</button>';
     L += '<button class="btn red cxb" data-a="dismiss">Not booking</button>';
     var R = '<button class="btn b-paid" data-a="build">' + (sent ? 'New link' : 'Send Confirm link') + '</button>';
     if (sent && o.link) R += '<button class="btn ghost" data-a="resend">Text link again</button>';
@@ -668,6 +670,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     log.forEach(function(e){ if (e.kind === 'confirm' || e.kind === 'added') done[low(e.name) + '|' + (e.date || '')] = 1; });
     var seen = {};
     var f = log.filter(function(e){ return (tests || !e.test) && !e.bulk; }).slice().reverse().filter(function(e){
+      if (e.kind === 'phone') return false;
       if (e.kind !== 'sent') return true;
       var k = low(e.name) + '|' + (e.date || ''); if (done[k] || seen[k]) return false; seen[k] = 1; return true;
     }).slice(0, 80);
@@ -1019,6 +1022,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'itext') return compose(o, 'Text ' + first(o.name), 'Hi ' + first(o.name) + '! This is Miranda with Miranda Rae Photography. ');
     if (a === 'resend') return compose(o, 'Confirm link', 'Hi ' + first(o.name) + '! Here\'s your confirmation link again. Check your session details, then tap Confirm and pay your deposit to hold your date: ' + o.link);
     if (a === 'build') return buildSheet(o, false);
+    if (a === 'addphone') return sheet('<h3>Add ' + esc(first(o.name)) + '\'s cell</h3><label class="l">Cell phone</label><input data-ph type="tel" inputmode="tel" placeholder="(555) 555-5555" autofocus>' +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>',
+      function(e, v, close){
+        if (!e.target.closest('[data-save]')) return;
+        var ph = v.querySelector('[data-ph]').value.replace(/\D/g, '').slice(-10);
+        if (ph.length !== 10) { toast('Enter a 10-digit number'); return; }
+        close(); post({ kind: 'phone', name: o.name, date: o.date, phone: ph, by: WHO, test: o.test }).then(function(j){ if (j && j.ok) toast('Phone saved'); load(); });
+      });
     if (a === 'iconfirm') {
       if (o.sent && o.date && o.amount) return ask('Did ' + esc(first(o.name)) + ' say yes?', 'This books ' + esc(o.name) + ' for ' + esc(nice(o.date)) + (o.time ? ' (' + esc(o.time) + ')' : '') + ' at ' + money(o.amount) + ' without them tapping the link.', 'Yes, book it', 'Not yet', function(){
         bookInquiry(o, { name: o.name, date: o.date, time: o.time, beach: o.beach, pkg: o.pkg, amount: o.amount, dep: o.dep, phone: o.phone, photographer: o.photographer || '' });
