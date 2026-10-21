@@ -78,8 +78,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
   /* Oct 20 2026: smaller calendar on desktop so more booking cards show */
   .calpop.pin .cal .d{min-height:28px;font-size:14px;padding:2px 0 0}
   .calpop.pin .cal-nav b{font-size:16px}.calpop.pin .cal-nav button{height:28px;font-size:18px}
-  .calpop.pin .legend{font-size:13px;flex-direction:row;flex-wrap:wrap;gap:4px 14px}
-  .calpop.pin .cal .dots{gap:2px}.calpop.pin .cal .dots .mk{width:6px;height:6px}.calpop.pin .cal .dots .mk.ring{border-width:1.2px}.calpop.pin .cal .dots .mk.q{width:auto;height:8px;font-size:9px;line-height:8px}}
+  .calpop.pin .legend{font-size:13px;flex-direction:row;flex-wrap:wrap;gap:4px 14px}}
 /* Wide screens: calendar sits to the left of the bookings, so the cards keep the whole window height */
 .head.calside{padding-top:8px !important}.head.calside .frow{display:grid !important}
 .calpop{position:absolute;left:0;right:0;bottom:calc(100% + 6px);background:#fff;border-radius:18px;box-shadow:0 10px 40px #1d2b3340;padding:10px 12px 12px;z-index:30;border:1px solid var(--line)}
@@ -711,7 +710,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var CW = 340, side = false;
     if (wide && !p.hidden) {
       var r = $('crow').getBoundingClientRect();
-      side = r.left >= CW + 36;
+      side = false; // Oct 20 2026: Randy chose the smaller calendar on top (not beside) on every desktop
       if (side) { p.style.left = (r.left - CW - 24) + 'px'; p.style.width = CW + 'px'; }
       else { p.style.left = r.left + 'px'; p.style.width = r.width + 'px'; }
       p.style.right = 'auto';
