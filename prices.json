@@ -1,0 +1,170 @@
+{
+  "_readme": "MASTER PRICE LIST for mirandaraephotography.com. Change a number here, then run `node tools/prices.mjs` and every page (home, Prices page, /book, beach pages, New Booking, /log, llms.txt) is rewritten to match. Keep this matching Miranda's Pixieset Services page.",
+  "updated": "2026-10-21",
+  "deposit": 50,
+  "packages": {
+    "mini": {
+      "name": "Beach Mini Session",
+      "booking": "Beach Mini",
+      "price": 130,
+      "time": "30 min",
+      "timeWords": "30 minutes",
+      "photos": "15",
+      "people": 6,
+      "details": [],
+      "where": "Mexico Beach · Port St. Joe · Cape San Blas · Panama City Beach",
+      "blurb": "Perfect for busy families, couples, or anyone who wants beautiful photos in a shorter, relaxed session.",
+      "more": [
+        "Sunrise, midday or sunset, based on availability"
+      ]
+    },
+    "special": {
+      "name": "Beach Special (Classic Session)",
+      "booking": "Beach Special (Classic)",
+      "price": 199,
+      "time": "45–60 min",
+      "timeWords": "45–60 minutes",
+      "photos": "30–35",
+      "people": 11,
+      "details": [
+        "1 location",
+        "1 outfit change"
+      ],
+      "where": "Destin · 30A · St. George Island",
+      "blurb": "Miranda's most popular session, filled with movement, conversation, sandy feet, snack breaks and letting kids be kids.",
+      "more": []
+    },
+    "family": {
+      "name": "Family Session",
+      "booking": "Family Session",
+      "price": 250,
+      "time": "45–60 min",
+      "timeWords": "45–60 minutes",
+      "photos": "35+",
+      "people": 15,
+      "details": [
+        "1 location"
+      ],
+      "blurb": "All about the love, laughter and little moments that make your family yours.",
+      "more": []
+    },
+    "deluxe": {
+      "name": "Deluxe Session",
+      "booking": "Deluxe Session",
+      "price": 325,
+      "time": "75+ min",
+      "timeWords": "75+ minutes",
+      "photos": "50+",
+      "people": null,
+      "details": [
+        "2 locations",
+        "2 outfit changes"
+      ],
+      "blurb": "A relaxed session with plenty of time to slow down, move around and enjoy being together.",
+      "more": [
+        "1 print of your choice mailed to your home"
+      ]
+    },
+    "engagement": {
+      "name": "Engagement Session",
+      "booking": "Engagement Session",
+      "price": 199,
+      "time": "Up to 1 hour",
+      "timeWords": "up to 1 hour",
+      "photos": "35+",
+      "people": null,
+      "details": [],
+      "blurb": "A relaxed, fun session celebrating this exciting chapter together.",
+      "more": [],
+      "bookingPeople": "2"
+    },
+    "proposal": {
+      "name": "Surprise Proposal",
+      "booking": "Surprise Proposal",
+      "price": 199,
+      "time": "",
+      "timeWords": "",
+      "photos": "30",
+      "people": null,
+      "details": [],
+      "blurb": "Your proposal only happens once. Miranda helps plan it, stays out of sight, and captures every emotion.",
+      "more": [
+        "Planning help with location and timing",
+        "Discreet coverage of the proposal",
+        "Engagement portraits right after",
+        "No set time limit"
+      ]
+    },
+    "wedding": {
+      "name": "Beach Wedding (Riviera Collection)",
+      "booking": "Beach Wedding",
+      "price": 499,
+      "time": "Up to 4 hours",
+      "timeWords": "up to 4 hours",
+      "photos": "",
+      "people": null,
+      "details": [],
+      "blurb": "Four hours of continuous coverage along the coast, ideal for intimate celebrations and shorter wedding days.",
+      "more": [
+        "Getting ready, ceremony, family photos and shoreline portraits",
+        "Full curated gallery, no set photo count"
+      ],
+      "summaryExtra": "ceremony, family photos & shoreline portraits"
+    },
+    "wedding6": {
+      "name": "Wedding: Étoile Collection",
+      "booking": "Wedding (6 hours)",
+      "price": 799,
+      "time": "6 hours",
+      "timeWords": "6 hours",
+      "photos": "",
+      "people": null,
+      "details": [],
+      "blurb": "More of your wedding story, from getting ready through the ceremony, portraits and reception.",
+      "more": [
+        "Full curated gallery, no set photo count"
+      ]
+    },
+    "wedding10": {
+      "name": "Wedding: Grand Coastal Collection",
+      "booking": "Wedding (10 hours)",
+      "price": 1500,
+      "time": "10 hours",
+      "timeWords": "10 hours",
+      "photos": "",
+      "people": null,
+      "details": [],
+      "blurb": "The whole day, from getting ready to the send-off.",
+      "more": [
+        "Full curated gallery, no set photo count"
+      ]
+    }
+  },
+  "extras": {
+    "person": {
+      "name": "Extra person (over the package limit)",
+      "price": 15,
+      "unit": "each"
+    },
+    "photo": {
+      "name": "Extra edited photo",
+      "price": 10,
+      "unit": "each"
+    },
+    "time": {
+      "name": "Extra session time",
+      "price": 30,
+      "unit": "per 20 min"
+    },
+    "rush": {
+      "name": "Rush editing (24–48 hours)",
+      "price": 50,
+      "unit": ""
+    }
+  },
+  "travel": {
+    "Destin": 30,
+    "30A": 30,
+    "St. George Island": 30
+  }
+}
