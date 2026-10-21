@@ -281,7 +281,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <div id="inqBox"></div>
     <div id="list"></div>
     <div id="inqAfter"></div>
-    <p style="text-align:center;margin:4px 0 18px"><button class="lnk" id="tblTog">Spreadsheet view</button></p>
+    <p style="text-align:center;margin:4px 0 18px"><button class="lnk" id="tblTog">Spreadsheet view</button> &nbsp;·&nbsp; <button class="lnk" id="testTog">Show tests</button></p>
 
     <div class="card">
       <h2 style="margin-bottom:10px">Miranda's totals</h2>
@@ -522,6 +522,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var EMPTY = DAY ? 'Nothing booked this day.' : q ? 'No one by that name.' : CON === 'no' ? '' : 'Nothing here with these filters.';
     $('list').innerHTML = TABLE ? table(rows) : rows.length ? rows.map(function(b){ return card(b); }).join('') : (EMPTY ? '<p class="muted" style="margin:6px 4px 14px">' + EMPTY + '</p>' : '');
     $('tblTog').textContent = TABLE ? 'Back to cards' : 'Spreadsheet view';
+    // Oct 20 2026: tests (Randy's/Miranda's/Bradyn's numbers or "test" in the name) hide unless this is on; never in totals
+    var nT = (DATA.bookings || []).filter(function(b){ return b.test && !b.cancelled; }).length + inquiries().filter(function(o){ return o.test && !o.old; }).length;
+    $('testTog').textContent = MORE.tests ? 'Hide tests' : 'Show tests' + (nT ? ' (' + nT + ')' : '');
     $('head').classList.toggle('compact', !!document.querySelector('#app .bk.open'));
     if (!$('calPop').hidden) $('calPop').innerHTML = calendar();
     mirandaTotals(all.filter(function(b){ return real(b); }));
@@ -761,6 +764,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   });
   $('q').addEventListener('input', function(){ Q = $('q').value; draw(); });
   $('tblTog').addEventListener('click', function(){ TABLE = !TABLE; draw(); });
+  $('testTog').addEventListener('click', function(){ MORE.tests = !MORE.tests; OPEN = null; draw(); });
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-p]'), function(c){ c.addEventListener('click', function(){ TP = c.getAttribute('data-p'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-p]'), function(x){ x.classList.toggle('on', x === c); }); draw(); }); });
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-k]'), function(c){ c.addEventListener('click', function(){ TK = c.getAttribute('data-k'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-k]'), function(x){ x.classList.toggle('on', x === c); }); draw(); }); });
 
