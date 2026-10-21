@@ -105,12 +105,16 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   </div>
 
   <div class="card">
-    <h2>Extras <span class="small">(optional, added to the price)</span></h2>
-    <div class="extra"><div><label for="x1d">Extra people</label><input id="x1d" type="text" placeholder="e.g. 2 more people"></div><div><label for="x1">Amount</label><div class="money"><span>$</span><input id="x1" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
-    <div class="extra"><div><label for="x2d">Extra photos</label><input id="x2d" type="text" placeholder="e.g. 10 more photos"></div><div><label for="x2">Amount</label><div class="money"><span>$</span><input id="x2" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
-    <div class="extra"><div><label for="x3d">Extra time</label><input id="x3d" type="text" placeholder="e.g. 15 more minutes"></div><div><label for="x3">Amount</label><div class="money"><span>$</span><input id="x3" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <!-- Extras (Oct 21 2026): priced automatically from the master price list (prices.json). Type how many and the
+         amount fills in; the travel fee fills in from the beach. Every amount can still be changed or cleared. -->
+    <h2>Extras <span class="small">(priced for you, added to the price)</span></h2>
+    <div class="extra"><div><label for="x1c">Extra people <span class="opt" id="x1h"></span></label><input id="x1c" type="number" inputmode="numeric" min="0" step="1" placeholder="How many?"></div><div><label for="x1">Amount</label><div class="money"><span>$</span><input id="x1" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <div class="extra"><div><label for="x2c">Extra edited photos <span class="opt" id="x2h"></span></label><input id="x2c" type="number" inputmode="numeric" min="0" step="1" placeholder="How many?"></div><div><label for="x2">Amount</label><div class="money"><span>$</span><input id="x2" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <div class="extra"><div><label for="x3c">Extra time <span class="opt" id="x3h"></span></label><select id="x3c"></select></div><div><label for="x3">Amount</label><div class="money"><span>$</span><input id="x3" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <div class="extra"><div><label for="xrc">Rush editing</label><select id="xrc"><option value="">No</option><option value="1"></option></select></div><div><label for="xr">Amount</label><div class="money"><span>$</span><input id="xr" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <div class="extra"><div><label for="xt">Travel fee</label><div class="small" id="xth" style="min-height:46px;display:flex;align-items:center"></div></div><div><label for="xt">Amount</label><div class="money"><span>$</span><input id="xt" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
     <div class="extra"><div><label for="x4d">Something else</label><input id="x4d" type="text" placeholder="e.g. second location"></div><div><label for="x4">Amount</label><div class="money"><span>$</span><input id="x4" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
-    <div class="extra"><div><label for="x5d">Something else</label><input id="x5d" type="text" placeholder="e.g. travel fee"></div><div><label for="x5">Amount</label><div class="money"><span>$</span><input id="x5" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
+    <div class="extra"><div><label for="x5d">Something else</label><input id="x5d" type="text" placeholder="e.g. a print"></div><div><label for="x5">Amount</label><div class="money"><span>$</span><input id="x5" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
     <h2 style="margin-top:18px">Discount <span class="small">(optional, taken off the price)</span></h2>
     <div class="extra"><div><label for="dr">Reason <span class="opt">(client sees this)</span></label><input id="dr" type="text" placeholder="e.g. Returning client"></div><div><label for="dc">Amount off</label><div class="money"><span>$</span><input id="dc" type="number" inputmode="decimal" min="0" step="any"></div></div></div>
     <label for="note">Note to client <span class="opt">(optional)</span></label>
@@ -177,6 +181,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     ['Custom', '', '', '', '']
   ];
   PK.forEach(function(p, i){ var o = document.createElement('option'); o.value = i; o.textContent = p[0] + (p[1] && p[0].charAt(0) !== '$' ? ' – $' + p[1] : ''); $('pk').appendChild(o); });
+  // Extras and travel fees from the master price list (Oct 21 2026)
+  var XP = /*prices:booking-extras*/{"person":15,"photo":10,"time":30,"step":20,"rush":50,"rushName":"Rush editing (24–48 hours)","travel":{"Destin":30,"30A":30,"St. George Island":30}}/*/prices:booking-extras*/;
   var touched = false;
   function fillPkg(){ var p = PK[$('pk').value]; $('base').value = p[1]; $('len').value = p[2]; $('ppl').value = p[3]; $('pho').value = p[4]; update(); }
   $('pk').addEventListener('change', function(){ touched = true; fillPkg(); });
@@ -184,13 +190,50 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   $('b').addEventListener('change', function(){ if (touched) return; $('pk').value = /Destin|30A|St\. George/.test($('b').value) ? 1 : 0; fillPkg(); });
   $('t').addEventListener('change', function(){ if ($('t').value === 'Wedding' && !touched) { $('pk').value = PK.findIndex(function(p){ return /wedding/i.test(p[0]); }); fillPkg(); } });
 
+
+  // Automatic extras pricing (Oct 21 2026). Each row fills its own amount until Miranda types an amount herself
+  // (then that row is hers until she changes the count again). Travel fee follows the beach the same way.
+  var AUTO = { x1: true, x2: true, x3: true, xr: true, xt: true };
+  var each = function(n){ return '$' + n + ' each'; };
+  $('x1h').textContent = '(' + each(XP.person) + ')'; $('x2h').textContent = '(' + each(XP.photo) + ')';
+  $('x3h').textContent = '($' + XP.time + ' per ' + XP.step + ' min)';
+  $('x3c').innerHTML = '<option value="">None</option>' + [1, 2, 3, 4, 5, 6].map(function(k){ var m = k * XP.step; return '<option value="' + m + '">+' + m + ' min ($' + k * XP.time + ')</option>'; }).join('');
+  $('xrc').options[1].textContent = 'Yes ($' + XP.rush + ')';
+  $('xrc').previousElementSibling.innerHTML = 'Rush editing <span class="opt">(' + XP.rushName.replace(/^Rush editing\s*/, '').replace(/[()]/g, '') + ')</span>';
+  function setAmt(id, v){ $(id).value = v ? v : ''; }
+  function autoExtras(){
+    var c1 = Math.max(0, Math.floor(Number($('x1c').value) || 0)), c2 = Math.max(0, Math.floor(Number($('x2c').value) || 0));
+    if (AUTO.x1) setAmt('x1', c1 * XP.person);
+    if (AUTO.x2) setAmt('x2', c2 * XP.photo);
+    if (AUTO.x3) setAmt('x3', (Number($('x3c').value) || 0) / XP.step * XP.time);
+    if (AUTO.xr) setAmt('xr', $('xrc').value ? XP.rush : 0);
+    var fee = XP.travel[$('b').value];
+    $('xth').textContent = fee ? $('b').value + ' ($' + fee + ')' : 'None for ' + $('b').value;
+    if (AUTO.xt) setAmt('xt', fee || 0);
+  }
+  [['x1c','x1'],['x2c','x2'],['x3c','x3'],['xrc','xr'],['b','xt']].forEach(function(r){
+    $(r[0]).addEventListener('input', function(){ AUTO[r[1]] = true; autoExtras(); update(); });
+    $(r[0]).addEventListener('change', function(){ AUTO[r[1]] = true; autoExtras(); update(); });
+    $(r[1]).addEventListener('input', function(){ AUTO[r[1]] = false; });
+  });
+
   var num = function(id){ var v = Number($(id).value); return isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : 0; };
   var money = function(n){ return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }); };
   var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]; }); };
 
   function data(){
     var p = PK[$('pk').value], x = [];
-    [['x1d','x1','Extra people'],['x2d','x2','Extra photos'],['x3d','x3','Extra time'],['x4d','x4','Extra'],['x5d','x5','Extra']].forEach(function(r){
+    var cnt = function(id){ return Math.max(0, Math.floor(Number($(id).value) || 0)); };
+    var c1 = cnt('x1c'), c2 = cnt('x2c'), m3 = Number($('x3c').value) || 0;
+    var auto = [
+      ['x1', c1 ? c1 + (c1 === 1 ? ' extra person' : ' extra people') : 'Extra people'],
+      ['x2', c2 ? c2 + ' extra edited photo' + (c2 === 1 ? '' : 's') : 'Extra edited photos'],
+      ['x3', m3 ? m3 + ' more minutes' : 'Extra time'],
+      ['xr', XP.rushName],
+      ['xt', XP.travel[$('b').value] || num('xt') ? 'Travel fee (' + $('b').value + ')' : 'Travel fee']
+    ];
+    auto.forEach(function(r){ var a = num(r[0]); if (a) x.push([r[1], a]); });
+    [['x4d','x4','Extra'],['x5d','x5','Extra']].forEach(function(r){
       var a = num(r[1]); if (a) x.push([$(r[0]).value.trim() || r[2], a]);
     });
     var o = { v: 1, n: $('n').value.trim(), d: $('d').value, t: $('t').value, b: $('b').value,
@@ -358,8 +401,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('err').hidden = true; update();
   }
   function clearForm(){
-    ['n', 'ph', 'd', 'note', 'dr', 'dc', 'x1', 'x1d', 'x2', 'x2d', 'x3', 'x3d', 'x4', 'x4d', 'x5', 'x5d'].forEach(function(id){ $(id).value = ''; });
-    $('t').selectedIndex = 0; $('b').selectedIndex = 0; $('pk').value = 0; touched = false; fillPkg();
+    ['n', 'ph', 'd', 'note', 'dr', 'dc', 'x1', 'x1c', 'x2', 'x2c', 'x3c', 'xrc', 'x4', 'x4d', 'x5', 'x5d'].forEach(function(id){ $(id).value = ''; });
+    $('t').selectedIndex = 0; $('b').selectedIndex = 0; $('pk').value = 0; touched = false;
+    AUTO = { x1: true, x2: true, x3: true, xr: true, xt: true }; autoExtras(); fillPkg();
     $('dep').value = 50; DEPMAN = false; $('depnote').textContent = '';
     if (!$('cobox').hidden) $('cooff').click();
     setPay('none');
@@ -411,6 +455,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   $('pastmore').addEventListener('click', function(e){ e.preventDefault(); backToForm(true); });
   $('pastfin').addEventListener('click', function(e){ e.preventDefault(); backToForm(false); });
+  autoExtras();
   fillPkg();
   showWho();
 })();

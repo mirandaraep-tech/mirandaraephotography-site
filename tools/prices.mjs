@@ -151,6 +151,12 @@ const BLOCKS = {
     }).join('\n') + '\n    ';
   },
 
+  // New Booking (/new): extras + travel fees, priced automatically on the form
+  'booking-extras': () => {
+    const x = P.extras, step = Number((String(x.time.unit).match(/\d+/) || [20])[0]);
+    return JSON.stringify({ person: x.person.price, photo: x.photo.price, time: x.time.price, step, rush: x.rush.price, rushName: x.rush.name, travel: P.travel });
+  },
+
   // llms.txt price section
   'llms': () => '\n' + Object.entries(P.packages).map(([id, p]) => '- ' + p.name + (p.where ? ' (' + p.where.replace(/ · /g, ', ') + ')' : '') + ' — ' + money(p.price) + ': ' + summary(p).replace(/ · /g, ', ') + '.').join('\n') +
     '\n- Extras: ' + Object.values(P.extras).map(x => x.name.toLowerCase() + ' ' + money(x.price) + (x.unit ? ' ' + x.unit : '')).join('; ') + '.' +
