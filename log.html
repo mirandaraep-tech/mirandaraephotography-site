@@ -83,11 +83,16 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .cal .d.past{color:#9aa7ad}
 .cal .d.today{box-shadow:inset 0 0 0 2px var(--teal)}
 .cal .d.sel{background:var(--teal);color:#fff}
-.cal .dots{display:flex;justify-content:center;gap:2px;height:6px;margin-top:2px}
-.cal .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
-.c-yel{background:#e0a32b}.c-grn{background:#3f9a5c}.c-pur{background:#7f77dd}.c-pnk{background:#d4537e}.c-inq{background:#fff;box-shadow:inset 0 0 0 1.5px #b7791f}
-.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--muted);margin-top:6px}
-.legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:0}
+.cal .dots{display:flex;justify-content:center;align-items:center;gap:3px;height:10px;margin-top:2px}
+/* Calendar marks are shapes, not colors (Oct 20 2026, for Randy): ● booked + deposit, ○ booked no deposit, ? inquiry */
+.mk{display:inline-block;width:8px;height:8px;box-sizing:border-box;flex:none}
+.mk.full{border-radius:50%;background:currentColor}
+.mk.ring{border-radius:50%;border:1.5px solid currentColor}
+.mk.q{width:auto;height:10px;font:bold 11px/10px Arial,sans-serif}
+.legend{display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--ink);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.legend span{display:flex;align-items:center;gap:8px}
+.legend .mk{width:10px;height:10px}.legend .mk.q{width:10px;height:auto;font-size:14px;line-height:1;text-align:center}
+.nbhd{font:bold 17px Georgia,serif;color:#7a4f00;margin:16px 4px 8px;padding-top:12px;border-top:2px dashed #f0d58f}
 
 /* More filters panel */
 .panel{background:#fff;border-radius:18px;padding:12px;margin-top:8px;border:1px solid var(--line);max-height:46vh;overflow:auto}
@@ -266,6 +271,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <div id="dayHd"></div>
     <div id="inqBox"></div>
     <div id="list"></div>
+    <div id="inqAfter"></div>
     <p style="text-align:center;margin:4px 0 18px"><button class="lnk" id="tblTog">Spreadsheet view</button></p>
 
     <div class="card">
@@ -486,7 +492,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('listLbl').textContent = q ? 'Search' : DAY ? nice(DAY) : CON === 'no' ? 'Inquiries' : PERIODS[PI][1];
     $('dayHd').innerHTML = '';
     var ih = '';
-    if (CON === 'no' || q || DAY) {
+    var after = '';
+    if (DAY) {
+      // Oct 20 2026: on a tapped day, booked sessions come first; inquiries go below under "Not booked yet"
+      if (inq.length) after = '<div class="nbhd">Not booked yet</div>' + inq.map(function(o){ return inqCard(o); }).join('');
+    } else if (CON === 'no' || q) {
       ih = inq.map(function(o){ return inqCard(o); }).join('');
       if (CON === 'no' && !q) {
         var oldOnes = INQ.filter(function(o){ return o.old; });
@@ -498,6 +508,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         (INQOPEN ? '<div class="inqwrap">' + inq.map(function(o){ return inqCard(o); }).join('') + '</div>' : '');
     }
     $('inqBox').innerHTML = ih;
+    $('inqAfter').innerHTML = after;
     var EMPTY = DAY ? 'Nothing booked this day.' : q ? 'No one by that name.' : CON === 'no' ? '' : 'Nothing here with these filters.';
     $('list').innerHTML = TABLE ? table(rows) : rows.length ? rows.map(function(b){ return card(b); }).join('') : (EMPTY ? '<p class="muted" style="margin:6px 4px 14px">' + EMPTY + '</p>' : '');
     $('tblTog').textContent = TABLE ? 'Back to cards' : 'Spreadsheet view';
@@ -667,7 +678,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function isWed(b){ return /wedding/i.test(b.time || '') || /wedding/i.test(b.pkg || ''); }
   // Usual split (Oct 20 2026): a flat $50 to Miranda, except weddings at 25% (at least $50)
   function usualSplit(b){ return isWed(b) ? { mode: 'pct', val: PH.split.pct, min: PH.split.min } : { mode: 'amt', val: 50 }; }
-  function dotOf(b){ return b.inq ? 'c-inq' : b.photographer ? 'c-pur' : isWed(b) ? 'c-pnk' : (b.deposit || b.paid) ? 'c-grn' : 'c-yel'; }
+  function dotOf(b){ return b.inq ? 'q' : (b.deposit || b.paid) ? 'full' : 'ring'; }
   function calendar(){
     var by = {}, tests = MORE.tests;
     (DATA.bookings || []).filter(function(b){ return (tests || !b.test) && !b.cancelled && b.date; }).forEach(function(b){ (by[b.date] = by[b.date] || []).push(b); });
@@ -677,11 +688,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(function(x){ h += '<div class="h">' + x + '</div>'; });
     for (var i = 0; i < fd; i++) h += '<div></div>';
     for (var d = 1; d <= days; d++) {
-      var ds = CALM + '-' + String(d).padStart(2, '0'), bs = (by[ds] || []).sort(function(a, b){ return ord(a) - ord(b); }).slice(0, 5);
+      var ds = CALM + '-' + String(d).padStart(2, '0'), bs = (by[ds] || []).sort(function(a, b){ return (a.inq ? 1 : 0) - (b.inq ? 1 : 0) || ord(a) - ord(b); }).slice(0, 5);
       h += '<button class="d' + (ds < TODAY ? ' past' : '') + (ds === TODAY ? ' today' : '') + (ds === DAY ? ' sel' : '') + '" data-day="' + ds + '">' + d +
-        '<div class="dots">' + bs.map(function(b){ return '<span class="dot ' + dotOf(b) + '"></span>'; }).join('') + '</div></button>';
+        '<div class="dots">' + bs.map(function(b){ return dotOf(b) === 'q' ? '<span class="mk q">?</span>' : '<span class="mk ' + dotOf(b) + '"></span>'; }).join('') + '</div></button>';
     }
-    return h + '</div><div class="legend"><span><span class="dot c-yel"></span>No deposit</span><span><span class="dot c-grn"></span>Deposit in</span><span><span class="dot c-pur"></span>Contracted</span><span><span class="dot c-pnk"></span>Wedding</span><span><span class="dot c-inq"></span>Inquiry</span></div>';
+    return h + '</div><div class="legend"><span><span class="mk full"></span>Booked, deposit in</span><span><span class="mk ring"></span>Booked, no deposit yet</span><span><span class="mk q">?</span>Inquiry, not booked yet</span></div>';
   }
   // Make room above the buttons for the calendar, and scroll the money boxes out of the way so bookings show below
   function calRoom(first){
