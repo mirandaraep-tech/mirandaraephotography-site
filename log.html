@@ -437,7 +437,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
     // Updated line: the last change anyone made, and who made it
     var log = DATA.log || [], last = log[log.length - 1];
-    var whoMade = last ? (last.kind === 'confirm' ? 'Client confirmed' : last.kind === 'request' ? 'Website request' : last.by || '') : '';
+    // Oct 20 2026: name the client after "Client confirmed" / "Website request"
+    var whoMade = last ? (last.kind === 'confirm' ? 'Client confirmed' + (last.name ? ': ' + last.name : '') : last.kind === 'request' ? 'Website request' + (last.name ? ': ' + last.name : '') : last.by || '') : '';
     $('asof').textContent = (DATA.test ? 'TEST COPY · ' : '') + 'Updated: ' + (last ? when(last.at) : '—') + (whoMade ? ' · ' + whoMade : '');
 
     // Filter buttons show what they're set to
