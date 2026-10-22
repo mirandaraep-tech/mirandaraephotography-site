@@ -247,8 +247,10 @@ export async function chat({ base, from, text, history = [] }) {
   const msgs = history.slice(-16).concat({ role: "user", content: text });
   const changes = [];
   let reply = "";
+  // The picture of the app is taken once, when the message comes in. Changes Sandy makes show up in her
+  // tool results, so she doesn't mistake her own change for something that was already there.
+  const sys = system(person.role, snapshot(data, today).text + "\n\n(This snapshot was taken when this message arrived. Changes you make with tools show in the tool results, not here.)", priceList, today);
   for (let i = 0; i < 8; i++) {
-    const sys = system(person.role, snapshot(data, today).text, priceList, today);
     const res = await claude(sys, msgs);
     msgs.push({ role: "assistant", content: res.content });
     const uses = res.content.filter((c) => c.type === "tool_use");
@@ -262,7 +264,7 @@ export async function chat({ base, from, text, history = [] }) {
       results.push({ type: "tool_result", tool_use_id: u.id, content: JSON.stringify(out).slice(0, 4000) });
     }
     msgs.push({ role: "user", content: results });
-    data = await loadData(base); // fresh picture after changes
+    data = await loadData(base); // fresh data for the next tool call (e.g. finding an inquiry)
   }
   reply = clean(reply) || "Sorry, I got mixed up there. Could you say that again?";
   const newHist = history.concat({ role: "user", content: text }, { role: "assistant", content: reply }).slice(-20);
