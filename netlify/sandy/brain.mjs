@@ -9,6 +9,9 @@
 //   SANDY_TEXTING      — set to "on" once Twilio approves the campaign. Until then nothing is texted;
 //                        Sandy's texts only show on the private /sandy test page.
 import { getStore } from "@netlify/blobs";
+// Sandy talks to the Bookings code directly (not over the internet), so it also works on password-protected test copies
+import bookingCounter from "../functions/booking-counter.mjs";
+import PRICES from "../../prices.json" with { type: "json" };
 
 export const MODEL = "claude-sonnet-5-5";
 export const SANDY_NUMBER = "+14482173502"; // (448) 217-3502, Twilio
@@ -132,16 +135,13 @@ export function snapshot(data, today = todayCT()) {
 
 // ---------- Talking to the Bookings app ----------
 const api = (base) => base.replace(/\/$/, "") + "/api/booking-counter";
+const callCounter = async (url, init) => (await bookingCounter(new Request(url, init))).json();
 export async function loadData(base) {
-  const r = await fetch(api(base) + "?log=1", { headers: { "x-sandy-key": await sandyKey() }, cache: "no-store" });
-  const j = await r.json();
-  if (j.error) throw new Error("Bookings app said: " + j.error + "");
+  const j = await callCounter(api(base) + "?log=1", { headers: { "x-sandy-key": await sandyKey() } });
+  if (j.error) throw new Error("Bookings app said: " + j.error);
   return j;
 }
-const post = async (base, body) => {
-  const r = await fetch(api(base), { method: "POST", headers: { "Content-Type": "application/json", "x-sandy-key": await sandyKey() }, body: JSON.stringify(body) });
-  return r.json();
-};
+const post = async (base, body) => callCounter(api(base), { method: "POST", headers: { "Content-Type": "application/json", "x-sandy-key": await sandyKey() }, body: JSON.stringify(body) });
 
 // ---------- Sandy's tools (each one is a button on the /log page) ----------
 const num = { type: "integer", description: "Booking number, e.g. 112 (the # number in the snapshot; test bookings have big numbers like 900003)" };
@@ -194,9 +194,7 @@ async function runTool(base, name, x, by, data) {
 }
 
 // ---------- The conversation ----------
-async function prices(base) {
-  try { const p = await (await fetch(base.replace(/\/$/, "") + "/prices.json")).json(); delete p._readme; return JSON.stringify(p); } catch (e) { return "(price list unavailable)"; }
-}
+async function prices() { const p = { ...PRICES }; delete p._readme; return JSON.stringify(p); }
 
 function system(who, snap, priceList, today) {
   return `You are Sandy, the texting assistant for Miranda Rae Photography, a family and wedding beach photography business on the Florida Gulf Coast (Mexico Beach, Port St. Joe, Cape San Blas, Panama City Beach, St. George Island, Destin, 30A). You are Claude, made by Anthropic, built into the business's website. Your texting number is (448) 217-3502.
