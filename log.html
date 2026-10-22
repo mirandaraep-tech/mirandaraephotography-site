@@ -366,10 +366,43 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // ---------- Inquiries: website requests and texted Confirm links nobody has confirmed yet ----------
   // A client leaves the Inquiry list when they confirm, when Miranda books them here, or taps "Not booking".
   // They also drop off on their own once their date passes, or 30 days after they asked if they gave no date.
+  // Oct 22 2026: a booking also closes the inquiry when it's clearly the same person even if the date
+  // moved or the name was typed differently (Cissy Cameron asked Oct 29, booked Oct 30; "jeniffer hoffman").
+  // Same person = same phone number, or a name that's the same give or take a typo or two.
+  var nameParts = function(s){ return low(s).replace(/[^a-z\s]/g, '').split(/\s+/).filter(Boolean); };
+  function edits(a, b){
+    if (a === b) return 0;
+    var p = [], i, j; for (j = 0; j <= b.length; j++) p[j] = j;
+    for (i = 1; i <= a.length; i++) { var q = [i];
+      for (j = 1; j <= b.length; j++) q[j] = Math.min(p[j] + 1, q[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      p = q; }
+    return p[b.length];
+  }
+  // Long names may be off by 2 letters, medium by 1, short ones must match. First letters must agree.
+  function closeWord(a, b){ if (a === b) return true; if (!a || !b || a[0] !== b[0]) return false; var n = Math.min(a.length, b.length); return edits(a, b) <= (n >= 6 ? 2 : n >= 4 ? 1 : 0); }
+  function sameName(x, y){
+    var a = nameParts(x), b = nameParts(y);
+    if (!a.length || !b.length) return false;
+    if (a.join(' ') === b.join(' ')) return true;
+    if (a.length < 2 || b.length < 2) return false;   // one-word names only match exactly
+    return closeWord(a[0], b[0]) && closeWord(a[a.length - 1], b[b.length - 1]);
+  }
+  var digits10 = function(s){ return String(s || '').replace(/\D/g, '').slice(-10); };
+  var daysApart = function(a, b){ return Math.abs(dt(a) - dt(b)) / 86400000; };
+  function bookedAs(o, b){
+    var samePhone = o.phone && digits10(o.phone).length === 10 && digits10(o.phone) === digits10(b.phone);
+    if (!samePhone && !sameName(o.name, b.name)) return false;
+    // A booking made long before they asked is an old one (a repeat client), not this inquiry
+    if (b.created && o.asked && b.created < new Date(new Date(o.asked).getTime() - 7 * 86400000).toISOString()) return false;
+    // Dates within two weeks of each other count as the same session moved around
+    if (o.date && b.date && daysApart(o.date, b.date) > 14) return false;
+    return true;
+  }
   function inquiries(){
     var log = (DATA && DATA.log) || [], gone = {}, map = {};
     var key = function(e){ return low(e.name) + '|' + (e.date || ''); };
-    (DATA.bookings || []).forEach(function(b){ gone[low(b.name) + '|' + (b.date || '')] = 1; });
+    var bookings = DATA.bookings || [];
+    bookings.forEach(function(b){ gone[low(b.name) + '|' + (b.date || '')] = 1; });
     log.forEach(function(e){ if (e.kind === 'confirm' || e.kind === 'added' || e.kind === 'dismiss') gone[key(e)] = 1; });
     log.forEach(function(e){
       if (e.kind !== 'request' && e.kind !== 'sent') return;
@@ -382,7 +415,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       map[k] = o;
     });
     var cut = new Date(Date.now() - 30 * 86400000).toISOString();
-    return Object.keys(map).map(function(k){ var o = map[k]; o.old = o.date ? o.date < TODAY : (o.asked || '') < cut; return o; });
+    return Object.keys(map).filter(function(k){ var o = map[k]; return !bookings.some(function(b){ return bookedAs(o, b); }); }).map(function(k){ var o = map[k]; o.old = o.date ? o.date < TODAY : (o.asked || '') < cut; return o; });
   }
 
   // ---------- Filters ----------
