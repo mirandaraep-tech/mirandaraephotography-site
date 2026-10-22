@@ -52,7 +52,10 @@ const json = (o) => Response.json(o, { headers: { "Cache-Control": "no-store" } 
 // Only a SHA-256 fingerprint of the passcode is kept here (this code is public on GitHub).
 const PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79";
 const sha = async (t) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))).map((b) => b.toString(16).padStart(2, "0")).join("");
-const okPass = async (req, data) => (await sha((req.headers.get("x-pass") || (data && data.pass) || "").trim().toLowerCase())) === PASS_SHA256;
+// Sandy (Oct 21 2026): Miranda's texting assistant reads and changes bookings through this same code,
+// using her own password, kept in the site's private storage (made by netlify/sandy/brain.mjs), never in this file.
+const sandyOk = async (req) => { const h = req.headers.get("x-sandy-key"); if (!h) return false; const k = await getStore({ name: "sandy-secret", consistency: "strong" }).get("key"); return !!k && k.length >= 20 && h === k; };
+const okPass = async (req, data) => (await sandyOk(req)) || (await sha((req.headers.get("x-pass") || (data && data.pass) || "").trim().toLowerCase())) === PASS_SHA256;
 const day = (v) => String(v || "").slice(0, 10);
 // Oct 15 2026: a Wedding no longer blocks the whole day. A wedding only clashes with another wedding;
 // a session on a wedding day still confirms, and Miranda gets a heads-up in the email to check the timing.

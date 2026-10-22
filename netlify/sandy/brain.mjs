@@ -1,0 +1,323 @@
+// Sandy — Miranda Rae Photography's texting assistant (added Oct 21 2026).
+// Sandy is Claude (Anthropic's AI) built into this site. She reads the private Bookings app (/log)
+// and makes the same changes its buttons make (Deposit received, Paid in full, Move, Cancel...),
+// always through /api/booking-counter so the money rules live in one place.
+//
+// Secrets live in Netlify's environment settings, never in this file:
+//   ANTHROPIC_API_KEY  — Sandy's Claude account key
+//   TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN — Twilio account (texting)
+//   SANDY_TEXTING      — set to "on" once Twilio approves the campaign. Until then nothing is texted;
+//                        Sandy's texts only show on the private /sandy test page.
+import { getStore } from "@netlify/blobs";
+// Sandy talks to the Bookings code directly (not over the internet), so it also works on password-protected test copies
+import bookingCounter from "../functions/booking-counter.mjs";
+import PRICES from "../../prices.json" with { type: "json" };
+
+export const MODEL = "claude-sonnet-5-5";
+export const SANDY_NUMBER = "+14482173502"; // (448) 217-3502, Twilio
+// Who may text Sandy for now (last 10 digits). Customers come later.
+export const PEOPLE = {
+  "2563996736": { name: "Randy", role: "Randy (Miranda's dad, the administrator who set Sandy up)" },
+  "4482196539": { name: "Miranda", role: "Miranda (she runs Miranda Rae Photography and does the shooting)" },
+};
+export const MIRANDA = "4482196539";
+// Same fingerprint as the /log passcode (only the fingerprint is public)
+const PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79";
+
+// Sandy's own password for reaching the Bookings data. Made up automatically the first time and kept in
+// the site's private storage (never in this file or in Netlify settings), so nobody has to type it anywhere.
+export async function sandyKey() {
+  const s = getStore({ name: "sandy-secret", consistency: "strong" });
+  let k = await s.get("key");
+  if (!k || k.length < 20) { k = Array.from(crypto.getRandomValues(new Uint8Array(24))).map((b) => b.toString(16).padStart(2, "0")).join(""); await s.set("key", k); }
+  return k;
+}
+export const env = (k) => ((globalThis.Netlify && Netlify.env.get(k)) || process.env[k] || "");
+export const digits = (v) => String(v || "").replace(/\D/g, "").slice(-10);
+const sha = async (t) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))).map((b) => b.toString(16).padStart(2, "0")).join("");
+export const passOk = async (p) => (await sha(String(p || "").trim().toLowerCase())) === PASS_SHA256;
+export const isLive = (base) => /^https:\/\/(www\.)?mirandaraephotography\.com/.test(base);
+export const sandyStore = (base) => getStore({ name: isLive(base) ? "sandy" : "sandy-test", consistency: "strong" });
+
+// ---------- Dates (Central time, same as Miranda's beaches) ----------
+const ymdIn = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+export const todayCT = (now = new Date()) => ymdIn(now);
+export const hourCT = (now = new Date()) => Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", hour: "numeric", hourCycle: "h23" }).format(now));
+const addDays = (ymd, n) => { const d = new Date(ymd + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+const nice = (ymd) => { try { return new Date(ymd + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }); } catch (e) { return ymd; } };
+const daysAgo = (iso, today) => { const k = Math.round((new Date(today + "T12:00:00Z") - new Date(ymdIn(new Date(iso)) + "T12:00:00Z")) / 86400000); return k <= 0 ? "today" : k === 1 ? "yesterday" : k + " days ago"; };
+
+// ---------- Money (same rules as the /log page) ----------
+const r2 = (n) => Math.round(n * 100) / 100;
+const less = (b) => (b.deducts || []).reduce((s, x) => s + (x.amount || 0), 0);
+const tot = (b) => r2((b.total || 0) + (b.addons || 0) - less(b));
+const shareOf = (sp, t) => { const v = sp.mode === "amt" ? sp.val : Math.max(t * sp.val / 100, sp.min || 0); return r2(Math.min(Math.max(0, t), v)); };
+const payOf = (b) => !b.photographer ? 0 : b.split ? r2(tot(b) - shareOf(b.split, tot(b))) : (b.payout || 0);
+const mineOf = (b) => Math.max(0, tot(b) - payOf(b));
+const handed = (b) => (b.shooterPaid || []).reduce((s, x) => s + (x.amount || 0), 0);
+const keepOf = (b) => b.cancelled ? (b.cancelled.kept || 0) : b.photographer ? Math.min(mineOf(b), ((b.deposit && b.deposit.amount) || 0) + handed(b)) : Math.min(tot(b), ((b.deposit && b.deposit.amount) || 0) + ((b.paid && b.paid.amount) || 0));
+const shooterOwes = (b) => (!b.photographer || b.cancelled || !b.paid) ? 0 : Math.max(0, r2(mineOf(b) - keepOf(b)));
+const due = (b) => Math.max(0, r2(tot(b) - ((b.deposit && b.deposit.amount) || 0) - ((b.paid && b.paid.amount) || 0)));
+const money = (n) => "$" + (Number(n) || 0).toLocaleString("en-US", { maximumFractionDigits: 2 });
+const low = (s) => String(s || "").trim().toLowerCase();
+
+// Inquiries: website requests and texted Confirm links nobody has confirmed (same as /log)
+function inquiries(data, today) {
+  const log = data.log || [], gone = {}, map = {};
+  const key = (e) => low(e.name) + "|" + (e.date || "");
+  (data.bookings || []).forEach((b) => { gone[low(b.name) + "|" + (b.date || "")] = 1; });
+  log.forEach((e) => { if (e.kind === "confirm" || e.kind === "added" || e.kind === "dismiss") gone[key(e)] = 1; });
+  log.forEach((e) => {
+    if (e.kind !== "request" && e.kind !== "sent") return;
+    if (!String(e.name || "").trim()) return;
+    const k = key(e); if (gone[k]) return;
+    const o = map[k] || { key: k, name: e.name, date: e.date || "", asked: e.at };
+    if (e.kind === "request") { o.request = e; if (!o.phone && e.phone) o.phone = e.phone; if (!o.beach && e.beach) o.beach = e.beach; o.detail = e.detail; }
+    else { o.sent = e; o.time = e.time || o.time; o.pkg = e.pkg || o.pkg; o.amount = e.amount || o.amount; if (e.phone) o.phone = e.phone; if (e.beach) o.beach = e.beach; }
+    o.test = !!(o.test || e.test);
+    map[k] = o;
+  });
+  const cut = new Date(Date.now() - 30 * 86400000).toISOString();
+  return Object.values(map).map((o) => ({ ...o, old: o.date ? o.date < today : (o.asked || "") < cut }));
+}
+
+const fmtPhone = (p) => { const d = digits(p); return d.length === 10 ? "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6) : ""; };
+function line(b) {
+  const bits = [
+    b.num < 900000 ? "#" + b.num : "TEST #" + b.num, b.name, b.date ? nice(b.date) : "no date", b.time, b.beach, b.pkg,
+    money(tot(b)),
+    b.cancelled ? "CANCELLED" : due(b) <= 0 ? "paid in full" : (b.deposit ? "deposit in (" + money(b.deposit.amount) + " " + (b.deposit.method || "") + ")" : "NO DEPOSIT YET") + ", owes " + money(due(b)),
+    b.photographer ? "shot by " + b.photographer + " (their pay " + money(payOf(b)) + ")" : "",
+    b.phone ? "phone " + fmtPhone(b.phone) : "",
+    b.notes ? "notes: " + b.notes : "",
+  ];
+  return "- " + bits.filter(Boolean).join(" · ");
+}
+
+// What Sandy "sees": a short written picture of the Bookings app
+export function snapshot(data, today = todayCT()) {
+  const withTests = !!data.test; // on a test copy of the site everything is test data, so show it
+  const ok = (x) => withTests || !x.test;
+  const B = (data.bookings || []).filter(ok);
+  const live = B.filter((b) => !b.cancelled && !b.past);
+  const tomorrow = addDays(today, 1);
+  const sorted = (a) => a.slice().sort((x, y) => (x.date || "9999").localeCompare(y.date || "9999") || (x.num || 0) - (y.num || 0));
+  const todays = sorted(live.filter((b) => b.date === today));
+  const tomorrows = sorted(live.filter((b) => b.date === tomorrow));
+  const upcoming = sorted(live.filter((b) => (b.date || "") > tomorrow || !b.date));
+  const noDeposit = upcoming.concat(todays, tomorrows).filter((b) => !b.deposit && !b.paid && tot(b) > 0);
+  const needs = sorted(live.filter((b) => b.date && b.date < today && due(b) > 0));
+  const owes = B.filter((b) => shooterOwes(b) > 0);
+  const inq = inquiries(data, today).filter(ok);
+  const open = inq.filter((o) => !o.old).sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
+  const old = inq.filter((o) => o.old);
+  const recentCut = addDays(today, -21);
+  const recent = sorted(B.filter((b) => (b.cancelled || b.past || (b.date && b.date < today && due(b) <= 0)) && (b.date || "") >= recentCut)).reverse();
+
+  const inqLine = (o) => "- " + [o.name, o.date ? "wants " + nice(o.date) : "no date given", o.beach, o.time, o.pkg, o.amount ? money(o.amount) : "", o.phone ? "phone " + fmtPhone(o.phone) : "",
+    o.sent ? "Confirm link texted " + daysAgo(o.sent.at, today) + ", not confirmed yet" : "asked " + daysAgo(o.asked, today) + " (" + (o.detail || "website") + "), no Confirm link sent yet", o.test ? "TEST" : ""].filter(Boolean).join(" · ");
+  const sect = (title, arr, f = line) => title + " (" + arr.length + "):\n" + (arr.length ? arr.map(f).join("\n") : "- none");
+  const parts = [
+    "BOOKINGS SNAPSHOT — today is " + nice(today) + " (" + today + "), Central time." + (withTests ? " THIS IS THE TEST COPY OF THE SITE: all entries are test data." : ""),
+    sect("TODAY'S SESSIONS", todays),
+    sect("TOMORROW'S SESSIONS", tomorrows),
+    sect("OPEN INQUIRIES (asked, not booked yet)", open, inqLine),
+    sect("CONFIRMED BUT NO DEPOSIT YET", noDeposit),
+    sect("NEEDS A LOOK (session date passed but not marked paid in full — shot or moved?)", needs),
+    sect("PHOTOGRAPHER OWES MIRANDA", owes, (b) => line(b) + " · owes Miranda " + money(shooterOwes(b))),
+    sect("OTHER UPCOMING BOOKINGS", upcoming),
+    sect("RECENT (last 3 weeks: finished, cancelled or past entries)", recent),
+    "OLD INQUIRIES that could be cleared (date passed or 30+ days old): " + old.length,
+  ];
+  const loose = open.length + noDeposit.length + needs.length + owes.length;
+  return { text: parts.join("\n\n"), counts: { today: todays.length, tomorrow: tomorrows.length, open: open.length, noDeposit: noDeposit.length, needs: needs.length, owes: owes.length, loose } };
+}
+
+// ---------- Talking to the Bookings app ----------
+const api = (base) => base.replace(/\/$/, "") + "/api/booking-counter";
+const callCounter = async (url, init) => (await bookingCounter(new Request(url, init))).json();
+export async function loadData(base) {
+  const j = await callCounter(api(base) + "?log=1", { headers: { "x-sandy-key": await sandyKey() } });
+  if (j.error) throw new Error("Bookings app said: " + j.error);
+  return j;
+}
+const post = async (base, body) => callCounter(api(base), { method: "POST", headers: { "Content-Type": "application/json", "x-sandy-key": await sandyKey() }, body: JSON.stringify(body) });
+
+// ---------- Sandy's tools (each one is a button on the /log page) ----------
+const num = { type: "integer", description: "Booking number, e.g. 112 (the # number in the snapshot; test bookings have big numbers like 900003)" };
+const method = { type: "string", description: "How it was paid: Venmo, Cash App, PayPal, Pixieset, Cash, Zelle, Check or Other" };
+export const TOOLS = [
+  { name: "deposit_received", description: "Mark a booking's deposit as received (the 'Deposit received' button).", input_schema: { type: "object", properties: { num, amount: { type: "number", description: "Deposit amount in dollars; usually 50" }, method }, required: ["num", "method"] } },
+  { name: "paid_in_full", description: "Mark a booking Paid in Full (the rest of the balance came in). The amount is worked out automatically.", input_schema: { type: "object", properties: { num, method }, required: ["num"] } },
+  { name: "add_extra", description: "Add an extra charge to a booking (extra people, extra photos, extra time, travel fee...). Raises what the client owes.", input_schema: { type: "object", properties: { num, amount: { type: "number" }, what: { type: "string" } }, required: ["num", "amount", "what"] } },
+  { name: "deduct", description: "Take money off a booking (a discount, fewer people...).", input_schema: { type: "object", properties: { num, amount: { type: "number" }, why: { type: "string" } }, required: ["num", "amount"] } },
+  { name: "move_date", description: "Move a session to a new date (same time of day). Fails if that slot is already taken.", input_schema: { type: "object", properties: { num, date: { type: "string", description: "YYYY-MM-DD" } }, required: ["num", "date"] } },
+  { name: "edit_booking", description: "Change details on a booking. Only send the fields that change. time is a label like Sunrise, Sunset, Wedding, Midday or a clock time.", input_schema: { type: "object", properties: { num, name: { type: "string" }, phone: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD" }, time: { type: "string" }, beach: { type: "string" }, pkg: { type: "string", description: "Package name" }, total: { type: "number", description: "Session price before extras" }, notes: { type: "string" } }, required: ["num"] } },
+  { name: "set_photographer", description: "Hand a session to another photographer (e.g. Kallie), or back to Miranda (photographer: 'Miranda'). The usual split is applied automatically.", input_schema: { type: "object", properties: { num, photographer: { type: "string" } }, required: ["num", "photographer"] } },
+  { name: "photographer_paid_miranda", description: "Record that the contracted photographer handed Miranda her share.", input_schema: { type: "object", properties: { num, amount: { type: "number" } }, required: ["num", "amount"] } },
+  { name: "cancel_booking", description: "Cancel a booking. ONLY after the person has clearly said yes to cancelling AND said whether Miranda keeps or returns the deposit.", input_schema: { type: "object", properties: { num, deposit: { type: "string", enum: ["keep", "return", "none"], description: "none = no deposit was paid" } }, required: ["num", "deposit"] } },
+  { name: "undo", description: "Undo the last change of one kind on a booking.", input_schema: { type: "object", properties: { num, what: { type: "string", enum: ["deposit", "paid", "cancel", "deduct", "photographer_paid"] } }, required: ["num", "what"] } },
+  { name: "add_booking", description: "Add a client Miranda has already set up (nothing is texted to the client). A past date makes a past entry that doesn't count in totals.", input_schema: { type: "object", properties: { name: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD" }, time: { type: "string" }, beach: { type: "string" }, pkg: { type: "string" }, amount: { type: "number", description: "Session price" }, phone: { type: "string" }, photographer: { type: "string", description: "Leave empty if Miranda is shooting" }, pay: { type: "string", enum: ["none", "deposit", "full"] }, deposit: { type: "number" }, method }, required: ["name", "date", "amount", "pay"] } },
+  { name: "remove_inquiry", description: "Take an inquiry off the list without booking it (they said no or never answered). Use name and date exactly as in the snapshot.", input_schema: { type: "object", properties: { name: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD, or empty if none" } }, required: ["name"] } },
+  { name: "clear_old_inquiries", description: "Clear every old inquiry (date passed, or 30+ days old with no date). They stay in the record, just off the list.", input_schema: { type: "object", properties: {} } },
+];
+
+async function runTool(base, name, x, by, data) {
+  const st = (action, extra) => post(base, { kind: "status", action, num: x.num, by, ...extra });
+  switch (name) {
+    case "deposit_received": return st("deposit", { amount: x.amount || 50, method: x.method });
+    case "paid_in_full": return st("paid", { method: x.method || "" });
+    case "add_extra": {
+      const r = await post(base, { kind: "addon", ref: x.num, amount: x.amount, what: x.what, name: ((data.bookings || []).find((b) => b.num === x.num) || {}).name || "" });
+      return r.num ? { ok: true } : { error: "booking not found" };
+    }
+    case "deduct": return st("deduct", { amount: x.amount, why: x.why || "" });
+    case "move_date": return st("move", { date: x.date });
+    case "edit_booking": { const { num: _n, ...fields } = x; return st("edit", { fields }); }
+    case "set_photographer": return st("photographer", { photographer: x.photographer });
+    case "photographer_paid_miranda": return st("shooter-paid", { amount: x.amount });
+    case "cancel_booking": return st("cancel", x.deposit === "none" ? {} : { deposit: x.deposit });
+    case "undo": return st({ deposit: "undo-deposit", paid: "undo-paid", cancel: "undo-cancel", deduct: "undo-deduct", photographer_paid: "undo-shooter-paid" }[x.what]);
+    case "add_booking": return post(base, { kind: "direct", ...x, dep: 50, by });
+    case "remove_inquiry": {
+      const o = inquiries(data, todayCT()).find((i) => low(i.name) === low(x.name) && (i.date || "") === (x.date || ""));
+      if (!o) return { error: "no inquiry with that exact name and date" };
+      return post(base, { kind: "dismiss", name: o.name, date: o.date, beach: o.beach || "", by, test: !!o.test });
+    }
+    case "clear_old_inquiries": {
+      const old = inquiries(data, todayCT()).filter((o) => o.old);
+      if (!old.length) return { ok: true, cleared: 0 };
+      return post(base, { kind: "dismiss", items: old.map((o) => ({ name: o.name, date: o.date, beach: o.beach || "", test: !!o.test })), by });
+    }
+  }
+  return { error: "unknown tool" };
+}
+
+// ---------- The conversation ----------
+async function prices() { const p = { ...PRICES }; delete p._readme; return JSON.stringify(p); }
+
+function system(who, snap, priceList, today) {
+  return `You are Sandy, the texting assistant for Miranda Rae Photography, a family and wedding beach photography business on the Florida Gulf Coast (Mexico Beach, Port St. Joe, Cape San Blas, Panama City Beach, St. George Island, Destin, 30A). You are Claude, made by Anthropic, built into the business's website. Your texting number is (448) 217-3502.
+
+You are texting with ${who}.
+Randy is Miranda's dad and the administrator; he set you up and helps run the website and ads. Miranda runs the business and does the photography. Bradyn sometimes tests the website. Kallie Callan is a photographer friend Miranda sometimes hands sessions to.
+
+Your job: keep Miranda's Bookings app (the private /log page) tidy and up to date, and help her stay on top of loose ends — inquiries waiting on her, deposits not in yet, sessions whose date passed but aren't marked paid, photographers who owe her. When she or Randy tells you something, you fix it in the app with your tools.
+
+How you text:
+- Plain text only. No markdown, no asterisks, no headings. Short lines; a simple dash list is fine.
+- Short and friendly, like a capable assistant who knows the business. Usually under 500 characters. Use first names.
+- Only state facts from the snapshot below or from tool results. If you can't find something, say so — never guess or make up bookings, prices or payments.
+- When asked to make a change, make it with a tool, then confirm in one line what changed (booking #, name, amount).
+- If it's not clear which booking they mean (two with the same name, etc.), ask before changing anything.
+- Before cancelling: ask them to confirm, and ask whether Miranda keeps or returns the deposit. Miranda's policy is that deposits aren't refundable, but it's her call case by case.
+- If a tool returns a conflict (slot already taken) or an error, tell them plainly and suggest what to do.
+- You can't text customers, send Confirm links, or change the website yet — Randy is working toward that. If asked, say so kindly.
+- Deposits are usually $50. Sunrise and sunset are Miranda's main session times.
+- Contracted sessions (Kallie or another photographer shooting): only bring up the photographer paying Miranda when that booking is listed under PHOTOGRAPHER OWES MIRANDA. Otherwise they owe her nothing, so don't ask about it.
+- Never share passcodes, keys, or the running dollar total unless Randy or Miranda asks about money.
+
+Today is ${nice(today)} (${today}), Central time.
+
+PRICE LIST (website, matches Miranda's Pixieset): ${priceList}
+
+${snap}`;
+}
+
+async function claude(sys, messages) {
+  const key = env("ANTHROPIC_API_KEY");
+  if (!key) throw new Error("ANTHROPIC_API_KEY isn't set in Netlify yet");
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+    body: JSON.stringify({ model: MODEL, max_tokens: 1200, system: sys, tools: TOOLS, messages }),
+  });
+  const j = await r.json();
+  if (j.type === "error" || !j.content) throw new Error("Claude: " + ((j.error && j.error.message) || r.status));
+  return j;
+}
+
+// One message in, one text out. history = [{role, content}] (plain text turns only).
+// Returns { reply, changes: [tool calls made], history }
+export async function chat({ base, from, text, history = [] }) {
+  const person = PEOPLE[digits(from)] || { name: "Someone", role: "an unknown number" };
+  const by = "Sandy · " + person.name;
+  let data = await loadData(base);
+  const today = todayCT();
+  const priceList = await prices(base);
+  const msgs = history.slice(-16).concat({ role: "user", content: text });
+  const changes = [];
+  let reply = "";
+  // The picture of the app is taken once, when the message comes in. Changes Sandy makes show up in her
+  // tool results, so she doesn't mistake her own change for something that was already there.
+  const sys = system(person.role, snapshot(data, today).text + "\n\n(This snapshot was taken when this message arrived. Changes you make with tools show in the tool results, not here.)", priceList, today);
+  for (let i = 0; i < 8; i++) {
+    const res = await claude(sys, msgs);
+    msgs.push({ role: "assistant", content: res.content });
+    const uses = res.content.filter((c) => c.type === "tool_use");
+    reply = res.content.filter((c) => c.type === "text").map((c) => c.text).join("\n").trim();
+    if (!uses.length || res.stop_reason !== "tool_use") break;
+    const results = [];
+    for (const u of uses) {
+      let out;
+      try { out = await runTool(base, u.name, u.input || {}, by, data); } catch (e) { out = { error: String(e.message || e) }; }
+      changes.push({ tool: u.name, input: u.input, result: out });
+      results.push({ type: "tool_result", tool_use_id: u.id, content: JSON.stringify(out).slice(0, 4000) });
+    }
+    msgs.push({ role: "user", content: results });
+    data = await loadData(base); // fresh data for the next tool call (e.g. finding an inquiry)
+  }
+  reply = clean(reply) || "Sorry, I got mixed up there. Could you say that again?";
+  const newHist = history.concat({ role: "user", content: text }, { role: "assistant", content: reply }).slice(-20);
+  return { reply, changes, history: newHist };
+}
+
+// Morning check-in for Miranda. Returns null when there's nothing worth texting.
+export async function dailyCheckin({ base, history = [] }) {
+  const data = await loadData(base);
+  const today = todayCT();
+  const snap = snapshot(data, today);
+  if (!snap.counts.loose && !snap.counts.today && !snap.counts.tomorrow) return null;
+  const sys = system(PEOPLE[MIRANDA].role, snap.text, await prices(base), today);
+  const ask = "[Automatic morning check-in — this message is from the system, not Miranda.] Write today's check-in text to Miranda. Start with a short greeting. Then: today's and tomorrow's sessions in one line each (if any), then the loose ends that need her (inquiries she hasn't sent a Confirm link to, confirmed sessions with no deposit, past sessions not marked paid, photographers who owe her). Number the loose ends so she can answer by number, and ask simple questions she can answer by text (e.g. 'Did the Smiths pay the rest?') so you can fix the app for her. Group, don't list more than 6; say how many more if there are. Keep it under 700 characters. Don't use any tools now.";
+  const res = await claude(sys, history.slice(-10).concat({ role: "user", content: ask }));
+  const reply = clean(res.content.filter((c) => c.type === "text").map((c) => c.text).join("\n"));
+  if (!reply) return null;
+  // Saved as Sandy's own text so Miranda can simply reply to it
+  return { reply, counts: snap.counts, history: history.concat({ role: "user", content: "[Morning check-in]" }, { role: "assistant", content: reply }).slice(-20) };
+}
+
+// Strip any markdown that slipped through; texts are plain
+const clean = (s) => String(s || "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").replace(/`/g, "").trim().slice(0, 1500);
+
+// ---------- Texting (Twilio) ----------
+export const textingOn = () => env("SANDY_TEXTING").toLowerCase() === "on";
+export async function sendText(to, body) {
+  const sid = env("TWILIO_ACCOUNT_SID"), tok = env("TWILIO_AUTH_TOKEN");
+  if (!sid || !tok) throw new Error("Twilio keys aren't set in Netlify yet");
+  const r = await fetch("https://api.twilio.com/2010-04-01/Accounts/" + sid + "/Messages.json", {
+    method: "POST",
+    headers: { Authorization: "Basic " + btoa(sid + ":" + tok), "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ To: "+1" + digits(to), From: SANDY_NUMBER, Body: body }),
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error("Twilio: " + (j.message || r.status));
+  return j.sid;
+}
+
+// Keeps each person's conversation, and a list of every text Sandy sent (or would have sent)
+export async function getHistory(base, phone) { return (await sandyStore(base).get("chat-" + digits(phone), { type: "json" })) || []; }
+export async function saveHistory(base, phone, h) { await sandyStore(base).setJSON("chat-" + digits(phone), h.slice(-20)); }
+export async function record(base, entry) {
+  const s = sandyStore(base);
+  const list = (await s.get("outbox", { type: "json" })) || [];
+  list.push({ at: new Date().toISOString(), ...entry });
+  await s.setJSON("outbox", list.slice(-200));
+}
+// Deliver a text: really sends only when SANDY_TEXTING is "on" and this is the live site
+export async function deliver(base, to, body, kind) {
+  let sent = false, error = "";
+  if (textingOn() && isLive(base)) { try { await sendText(to, body); sent = true; } catch (e) { error = String(e.message || e); } }
+  await record(base, { kind, to: digits(to), body, sent, ...(error ? { error } : {}) });
+  return { sent, error };
+}

@@ -8,6 +8,7 @@ Disallow: /deposit
 Disallow: /tag-photos
 Disallow: /log
 Disallow: /confirm
+Disallow: /sandy
 
 User-agent: Googlebot
 Allow: /
