@@ -5,7 +5,6 @@
 //
 // Secrets live in Netlify's environment settings, never in this file:
 //   ANTHROPIC_API_KEY  — Sandy's Claude account key
-//   SANDY_KEY          — long random password Sandy uses to reach the Bookings data
 //   TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN — Twilio account (texting)
 //   SANDY_TEXTING      — set to "on" once Twilio approves the campaign. Until then nothing is texted;
 //                        Sandy's texts only show on the private /sandy test page.
@@ -22,6 +21,14 @@ export const MIRANDA = "4482196539";
 // Same fingerprint as the /log passcode (only the fingerprint is public)
 const PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79";
 
+// Sandy's own password for reaching the Bookings data. Made up automatically the first time and kept in
+// the site's private storage (never in this file or in Netlify settings), so nobody has to type it anywhere.
+export async function sandyKey() {
+  const s = getStore({ name: "sandy-secret", consistency: "strong" });
+  let k = await s.get("key");
+  if (!k || k.length < 20) { k = Array.from(crypto.getRandomValues(new Uint8Array(24))).map((b) => b.toString(16).padStart(2, "0")).join(""); await s.set("key", k); }
+  return k;
+}
 export const env = (k) => ((globalThis.Netlify && Netlify.env.get(k)) || process.env[k] || "");
 export const digits = (v) => String(v || "").replace(/\D/g, "").slice(-10);
 const sha = async (t) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))).map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -126,13 +133,13 @@ export function snapshot(data, today = todayCT()) {
 // ---------- Talking to the Bookings app ----------
 const api = (base) => base.replace(/\/$/, "") + "/api/booking-counter";
 export async function loadData(base) {
-  const r = await fetch(api(base) + "?log=1", { headers: { "x-sandy-key": env("SANDY_KEY") }, cache: "no-store" });
+  const r = await fetch(api(base) + "?log=1", { headers: { "x-sandy-key": await sandyKey() }, cache: "no-store" });
   const j = await r.json();
-  if (j.error) throw new Error("Bookings app said: " + j.error + " (is SANDY_KEY set in Netlify?)");
+  if (j.error) throw new Error("Bookings app said: " + j.error + "");
   return j;
 }
 const post = async (base, body) => {
-  const r = await fetch(api(base), { method: "POST", headers: { "Content-Type": "application/json", "x-sandy-key": env("SANDY_KEY") }, body: JSON.stringify(body) });
+  const r = await fetch(api(base), { method: "POST", headers: { "Content-Type": "application/json", "x-sandy-key": await sandyKey() }, body: JSON.stringify(body) });
   return r.json();
 };
 

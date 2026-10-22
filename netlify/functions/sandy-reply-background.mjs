@@ -1,9 +1,9 @@
 // Sandy's helper that does the thinking (added Oct 21 2026). Runs in the background (up to 15 min),
 // started by sandy-sms (a text came in) or sandy-daily (morning check-in).
-import { chat, dailyCheckin, deliver, getHistory, saveHistory, record, env, MIRANDA } from "../sandy/brain.mjs";
+import { chat, dailyCheckin, deliver, getHistory, saveHistory, record, env, MIRANDA, sandyKey } from "../sandy/brain.mjs";
 
 export default async (req) => {
-  const k = env("SANDY_KEY");
+  const k = await sandyKey();
   if (!(k.length >= 20 && req.headers.get("x-sandy-key") === k)) return;
   let d = {}; try { d = await req.json(); } catch (e) { return; }
   const base = /^https:\/\/[a-z0-9.-]+$/i.test(d.base || "") ? d.base : env("URL");

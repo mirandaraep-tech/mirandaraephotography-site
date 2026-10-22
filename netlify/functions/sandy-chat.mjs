@@ -12,7 +12,7 @@ export default async (req) => {
   const store = sandyStore(base);
   const phone = Object.keys(PEOPLE).find((p) => PEOPLE[p].name === d.as) || MIRANDA;
   const hkey = "page-" + phone; // this page keeps its own conversation, separate from real texts
-  const status = { live: isLive(base), texting: textingOn(), ready: { claude: !!env("ANTHROPIC_API_KEY"), key: env("SANDY_KEY").length >= 20, twilio: !!(env("TWILIO_ACCOUNT_SID") && env("TWILIO_AUTH_TOKEN")) } };
+  const status = { live: isLive(base), texting: textingOn(), ready: { claude: !!env("ANTHROPIC_API_KEY"), twilio: !!(env("TWILIO_ACCOUNT_SID") && env("TWILIO_AUTH_TOKEN")) } };
   try {
     if (d.action === "send") {
       const text = String(d.text || "").trim().slice(0, 1500);

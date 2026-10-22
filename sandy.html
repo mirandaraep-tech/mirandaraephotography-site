@@ -139,8 +139,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 24px}
     var r = s.ready || {};
     var items = [
       [r.claude, 'Claude account key added in Netlify (ANTHROPIC_API_KEY)'],
-      [r.key, 'Sandy\'s Bookings key added in Netlify (SANDY_KEY)'],
-      [r.twilio, 'Twilio keys added in Netlify (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)'],
+      [r.twilio, 'Twilio keys added in Netlify (only needed once Twilio approves)'],
       [s.texting, 'Texting turned on (SANDY_TEXTING = on, after Twilio approves)']
     ];
     $('chk').innerHTML = items.map(function(i){ return '<li><span class="s">' + (i[0] ? '✓' : '✗') + '</span>' + esc(i[1]) + '</li>'; }).join('');

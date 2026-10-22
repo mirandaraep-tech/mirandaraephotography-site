@@ -3,7 +3,7 @@
 // https://mirandaraephotography.com/api/sandy-sms (HTTP POST).
 // Twilio waits only 15 seconds, so this answers right away and Sandy replies by her own text a moment later.
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { PEOPLE, MIRANDA, digits, env, deliver, record } from "../sandy/brain.mjs";
+import { PEOPLE, MIRANDA, digits, env, deliver, record, sandyKey } from "../sandy/brain.mjs";
 
 const empty = () => new Response('<?xml version="1.0" encoding="UTF-8"?><Response></Response>', { headers: { "Content-Type": "text/xml" } });
 
@@ -34,7 +34,7 @@ export default async (req) => {
   await record(base, { kind: "incoming", from, body: text });
   // Hand the thinking to Sandy's longer-running helper (up to 15 minutes)
   await fetch(base + "/.netlify/functions/sandy-reply-background", {
-    method: "POST", headers: { "Content-Type": "application/json", "x-sandy-key": env("SANDY_KEY") },
+    method: "POST", headers: { "Content-Type": "application/json", "x-sandy-key": await sandyKey() },
     body: JSON.stringify({ kind: "text", from, text, base }),
   });
   return empty();
