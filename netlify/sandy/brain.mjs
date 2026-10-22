@@ -61,6 +61,37 @@ const due = (b) => Math.max(0, r2(tot(b) - ((b.deposit && b.deposit.amount) || 0
 const money = (n) => "$" + (Number(n) || 0).toLocaleString("en-US", { maximumFractionDigits: 2 });
 const low = (s) => String(s || "").trim().toLowerCase();
 
+// Oct 22 2026: same rule as /log — a booking closes the inquiry when it's clearly the same person even if
+// the date moved (within 2 weeks) or the name has a typo or two, or the phone number matches.
+const nameParts = (s) => low(s).replace(/[^a-z\s]/g, "").split(/\s+/).filter(Boolean);
+function edits(a, b) {
+  if (a === b) return 0;
+  let p = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const q = [i];
+    for (let j = 1; j <= b.length; j++) q[j] = Math.min(p[j] + 1, q[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    p = q;
+  }
+  return p[b.length];
+}
+const closeWord = (a, b) => { if (a === b) return true; if (!a || !b || a[0] !== b[0]) return false; const n = Math.min(a.length, b.length); return edits(a, b) <= (n >= 6 ? 2 : n >= 4 ? 1 : 0); };
+function sameName(x, y) {
+  const a = nameParts(x), b = nameParts(y);
+  if (!a.length || !b.length) return false;
+  if (a.join(" ") === b.join(" ")) return true;
+  if (a.length < 2 || b.length < 2) return false;
+  return closeWord(a[0], b[0]) && closeWord(a[a.length - 1], b[b.length - 1]);
+}
+const d10 = (s) => String(s || "").replace(/\D/g, "").slice(-10);
+const daysApart = (a, b) => Math.abs(new Date(a + "T12:00:00") - new Date(b + "T12:00:00")) / 86400000;
+function bookedAs(o, b) {
+  const samePhone = d10(o.phone).length === 10 && d10(o.phone) === d10(b.phone);
+  if (!samePhone && !sameName(o.name, b.name)) return false;
+  if (b.created && o.asked && b.created < new Date(new Date(o.asked).getTime() - 7 * 86400000).toISOString()) return false;
+  if (o.date && b.date && daysApart(o.date, b.date) > 14) return false;
+  return true;
+}
+
 // Inquiries: website requests and texted Confirm links nobody has confirmed (same as /log)
 function inquiries(data, today) {
   const log = data.log || [], gone = {}, map = {};
@@ -78,7 +109,7 @@ function inquiries(data, today) {
     map[k] = o;
   });
   const cut = new Date(Date.now() - 30 * 86400000).toISOString();
-  return Object.values(map).map((o) => ({ ...o, old: o.date ? o.date < today : (o.asked || "") < cut }));
+  return Object.values(map).filter((o) => !(data.bookings || []).some((b) => bookedAs(o, b))).map((o) => ({ ...o, old: o.date ? o.date < today : (o.asked || "") < cut }));
 }
 
 const fmtPhone = (p) => { const d = digits(p); return d.length === 10 ? "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6) : ""; };
