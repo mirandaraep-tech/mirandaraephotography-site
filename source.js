@@ -273,7 +273,7 @@
     try {
       var el = f.elements, v = function (k) { return el[k] && el[k].value ? String(el[k].value).trim() : ''; };
       var body = JSON.stringify({ kind: 'request', name: v('name'), date: v('date'), beach: v('beach'), phone: v('phone'),
-        detail: [n.replace(/^booking-/, '') + ' page', v('session-type'), v('heard-from')].filter(Boolean).join(' · ') });
+        detail: [n.replace(/^booking-/, '') + ' page', v('session-type'), v('collection') && !/not sure/i.test(v('collection')) ? v('collection') : '', v('heard-from')].filter(Boolean).join(' · ') });
       if (!(navigator.sendBeacon && navigator.sendBeacon('/api/booking-counter', new Blob([body], { type: 'application/json' }))))
         fetch('/api/booking-counter', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body });
     } catch (err) {}

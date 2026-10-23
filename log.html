@@ -1099,6 +1099,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     // Oct 21 2026: Beach Special and Classic are now one package; older bookings may use either old name
     var wantPk = low(o.pkg || '').replace(/^\$\d+\s*/, ''); if (/^(beach special|classic session)$/.test(wantPk)) wantPk = 'beach special (classic)';
     if (o.pkg) PK.forEach(function(p, i){ if (low(p[0]) === low(o.pkg) || low(p[0]) === wantPk) pi = i; });
+    // Oct 23 2026: wedding-page requests pick the wedding package they asked about (10 hours if Grand Coastal, else 6 hours)
+    else if (/wedding|étoile|grand coastal/i.test(o.detail || '')) { var wantH = /grand coastal|10 hours/i.test(o.detail || '') ? '10 hours' : '6 hours'; PK.forEach(function(p, i){ if (/wedding/i.test(p[0]) && p[0].indexOf(wantH) > -1) pi = i; }); }
     var guessT = o.time || (/sunrise/i.test(o.detail || '') ? 'Sunrise' : /wedding/i.test(o.detail || '') ? 'Wedding' : 'Sunset');
     var s = sheet('<h3>' + (direct ? 'Book ' + esc(first(o.name)) + ' (no text)' : 'Confirm link for ' + esc(first(o.name))) + '</h3>' +
       (o.detail ? '<p class="muted" style="margin:0">They asked about: ' + esc(o.detail) + '</p>' : '') +
