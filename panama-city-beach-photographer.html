@@ -409,6 +409,39 @@ footer a{color:#fff}
   </div>
 </div>
 
+<!-- Price row (added Oct 23 2026, idea borrowed from a ChatGPT mockup) -->
+<style>
+.price-row{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:30px 0;margin-top:26px}
+.price-row .shell{display:grid;grid-template-columns:repeat(3,1fr)}
+.pr{display:flex;gap:14px;align-items:flex-start;padding:4px 26px}
+.pr+.pr{border-left:1px solid var(--line)}
+.pr .ic{font-size:30px;line-height:1;color:var(--teal);flex:none;width:34px;text-align:center;margin-top:4px}
+.pr .tag{display:inline-block;font:bold 10px Arial;letter-spacing:1.5px;text-transform:uppercase;border:1.5px solid var(--ink);border-radius:20px;padding:2px 9px;margin-bottom:6px}
+.pr strong{display:block;font:34px/1.05 Georgia,serif;color:#111}
+.pr b{display:block;font:18px Georgia,serif;font-weight:normal;margin:2px 0 6px}
+.pr ul{list-style:none;margin:0;padding:0;font-size:14px;color:var(--muted);line-height:1.5}
+@media(max-width:860px){.price-row .shell{grid-template-columns:1fr}.pr{padding:14px 4px}.pr strong{font-size:30px}.pr ul{display:flex;flex-wrap:wrap;gap:0 12px}.pr+.pr{border-left:0;border-top:1px solid var(--line)}}
+</style>
+<div class="price-row" aria-label="Session prices">
+  <div class="shell">
+    <div class="pr">
+      <span class="ic" aria-hidden="true">◎</span>
+      <div><span class="tag">★ Most affordable</span><strong><data data-p="mini.price">$130</data></strong><b>Beach Mini</b>
+        <ul><li><span data-p="mini.timeWords">30 minutes</span></li><li><span data-p="mini.photos">15</span> edited photos</li><li>Up to <span data-p="mini.people">6</span> people</li></ul></div>
+    </div>
+    <div class="pr">
+      <span class="ic" aria-hidden="true">♡</span>
+      <div><strong><data data-p="family.price">$250</data></strong><b>Family Session</b>
+        <ul><li><span data-p="family.timeWords">45–60 minutes</span></li><li><span data-p="family.photos">35+</span> edited photos</li><li>Up to <span data-p="family.people">15</span> people</li></ul></div>
+    </div>
+    <div class="pr">
+      <span class="ic" aria-hidden="true">☼</span>
+      <div><strong><data data-p="deluxe.price">$325</data></strong><b>Deluxe Session</b>
+        <ul><li><span data-p="deluxe.timeWords">75+ minutes</span></li><li><span data-p="deluxe.photos">50+</span> edited photos</li><li>2 locations · 2 outfits</li></ul></div>
+    </div>
+  </div>
+</div>
+
 <!-- Gallery -->
 <section>
   <div class="shell center">
