@@ -1,6 +1,6 @@
 {
   "_readme": "MASTER PRICE LIST for mirandaraephotography.com. Change a number here, then run `node tools/prices.mjs` and every page (home, Prices page, /book, beach pages, New Booking, /log, llms.txt) is rewritten to match. Keep this matching Miranda's Pixieset Services page.",
-  "updated": "2026-10-21",
+  "updated": "2026-10-23",
   "deposit": 50,
   "packages": {
     "mini": {
@@ -95,22 +95,6 @@
         "No set time limit"
       ]
     },
-    "wedding": {
-      "name": "Beach Wedding (Riviera Collection)",
-      "booking": "Beach Wedding",
-      "price": 499,
-      "time": "Up to 4 hours",
-      "timeWords": "up to 4 hours",
-      "photos": "",
-      "people": null,
-      "details": [],
-      "blurb": "Four hours of continuous coverage along the coast, ideal for intimate celebrations and shorter wedding days.",
-      "more": [
-        "Getting ready, ceremony, family photos and shoreline portraits",
-        "Full curated gallery, no set photo count"
-      ],
-      "summaryExtra": "ceremony, family photos & shoreline portraits"
-    },
     "wedding6": {
       "name": "Wedding: Étoile Collection",
       "booking": "Wedding (6 hours)",
@@ -120,8 +104,9 @@
       "photos": "",
       "people": null,
       "details": [],
-      "blurb": "More of your wedding story, from getting ready through the ceremony, portraits and reception.",
+      "blurb": "Six hours of continuous coverage, so your day can unfold without feeling rushed: getting ready, ceremony, newlywed portraits and reception.",
       "more": [
+        "Getting ready through the reception",
         "Full curated gallery, no set photo count"
       ]
     },
@@ -134,8 +119,9 @@
       "photos": "",
       "people": null,
       "details": [],
-      "blurb": "The whole day, from getting ready to the send-off.",
+      "blurb": "The ultimate coastal wedding: every chapter of the day, from getting ready to the very last celebration.",
       "more": [
+        "Getting ready, ceremony, portraits, family photos, reception and send-off",
         "Full curated gallery, no set photo count"
       ]
     }
