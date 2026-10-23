@@ -123,14 +123,16 @@
     'panama-city-beach': 'Panama City Beach', 'st-george-island': 'St. George Island', '30a': '30A', 'destin': 'Destin' };
   var P130 = /^(Mexico Beach|Port St\. Joe|Cape San Blas|Panama City Beach)$/, P199 = /^(Destin|30A|St\. George Island)$/;
   window.mrpPrice = function (beach, wedding) {
-    if (wedding) return '$499';
+    // Oct 23 2026: no more $499 wedding. Weddings are $799 (6 hrs) or $1,500 (10 hrs); the wedding form's
+    // "collection" pick fills in the price, otherwise the email just says "Wedding".
+    if (wedding) return 'Wedding';
     // $199 ad pages (e.g. /mexico-beach-199, added Oct 13 2026): any beach picked there is the $199 Beach Special
     if (beach && /-199(\.html)?\/?$/.test(location.pathname)) return '$199';
     if (P130.test(beach)) return '$130';
     if (P199.test(beach)) return '$199';
     return '';
   };
-  window.mrpPriceLabel = function (p) { return p === '$130' ? '$130 Mini' : p === '$199' ? '$199 Beach Special' : p === '$499' ? '$499 Wedding' : p; };
+  window.mrpPriceLabel = function (p) { return p === '$130' ? '$130 Mini' : p === '$199' ? '$199 Beach Special' : p; };
   window.mrpDate = function (v, long) {
     if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
       try { return new Date(v + 'T12:00:00').toLocaleDateString('en-US', long ? { weekday: 'short', month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric' }); } catch (e) {}
@@ -147,7 +149,7 @@
       var wedding = /wedding/i.test(path) || /wedding/i.test(beach) || /wedding/i.test(v('session'));
       if (/^(wedding|not sure yet|other)$/i.test(beach)) beach = '';
       if (!beach) { for (var k in BEACH) { if (path.indexOf('/' + k) === 0) { beach = BEACH[k]; break; } } }
-      var parts = [v('name') || 'No name', v('date') ? window.mrpDate(v('date'), true) : 'no date yet', beach, window.mrpPriceLabel(window.mrpPrice(beach, wedding))].filter(Boolean);
+      var parts = [v('name') || 'No name', v('date') ? window.mrpDate(v('date'), true) : 'no date yet', beach, (wedding && v('collection') && !/not sure/i.test(v('collection')) ? v('collection').replace(/^(.*?) — (\$[\d,]+).*$/, '$2 $1') : window.mrpPriceLabel(window.mrpPrice(beach, wedding)))].filter(Boolean);
       subj.value = '📩 NEW REQUEST: ' + parts.join(' · ');
     } catch (err) {}
   }, true);

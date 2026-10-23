@@ -9,10 +9,10 @@
 /mexico-beach-mini-sessions          /mexico-beach-photographer.html      301
 /panama-city-beach-mini-sessions.html /panama-city-beach-photographer.html 301
 /panama-city-beach-mini-sessions     /panama-city-beach-photographer.html 301
-/beach-wedding-special.html          /beach-wedding-499.html              301
-/beach-wedding-special               /beach-wedding-499.html              301
-/wedding-photographer-inquiry.html   /beach-wedding-499.html              301
-/wedding-photographer-inquiry        /beach-wedding-499.html              301
+/beach-wedding-special.html          /beach-wedding-photographer         301
+/beach-wedding-special               /beach-wedding-photographer         301
+/wedding-photographer-inquiry.html   /beach-wedding-photographer         301
+/wedding-photographer-inquiry        /beach-wedding-photographer         301
 /thank-you-facebook.html             /thank-you                           301
 /thank-you-facebook                  /thank-you                           301
 /home-preview.html                   /                                    301
@@ -29,3 +29,11 @@
 /images/photos/st-george-island-toddler-on-catamaran.jpg        https://images-pw.pixieset.com/site/B8woOD/Zj4veM/DSC09384-19910961-1000.jpeg  200
 /images/photos/st-george-island-girl-striped-dress-catamaran.jpg https://images-pw.pixieset.com/site/B8woOD/rMmYOV/DSC09394-5c3b4a96-1000.jpeg  200
 /images/photos/st-george-island-baby-pink-bow-on-the-sand.jpg   https://images-pw.pixieset.com/site/B8woOD/DlqWPd/DSC09425-0bbe7ef4-1000.jpeg  200
+
+# Old $499 wedding pages -> one wedding page with Miranda's real packages (Oct 23 2026)
+/beach-wedding-499.html                        /beach-wedding-photographer  301!
+/beach-wedding-499                             /beach-wedding-photographer  301!
+/beach-wedding-panama-city-beach.html          /beach-wedding-photographer  301!
+/beach-wedding-panama-city-beach               /beach-wedding-photographer  301!
+/beach-wedding-mexico-beach-port-st-joe.html   /beach-wedding-photographer  301!
+/beach-wedding-mexico-beach-port-st-joe        /beach-wedding-photographer  301!

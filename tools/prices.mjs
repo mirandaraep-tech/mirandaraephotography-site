@@ -100,7 +100,7 @@ const ids = a => (a.ids || '').split(',').filter(Boolean);
 const BLOCKS = {
   // Home page price list (li rows)
   'home-list': (a, old) => ids(a).map(id => {
-    const p = pkg(id), nm = id === 'wedding' ? '<a href="/beach-wedding-499">Beach Wedding</a>' : esc(p.name);
+    const p = pkg(id), nm = /^wedding/.test(id) ? '<a href="/beach-wedding-photographer">' + esc(p.name) + '</a>' : esc(p.name);
     return '\n      <li><div><b>' + nm + '</b><small>' + esc(summary(p)) + '</small>' + (p.where ? '<small class="where">' + esc(p.where) + '</small>' : '') + '</div><strong>' + money(p.price) + '</strong></li>';
   }).join('') + '\n      ',
 
@@ -143,7 +143,7 @@ const BLOCKS = {
     const pre = a.dollar === 'yes';
     return '\n' + ids(a).map(id => {
       const p = pkg(id);
-      const nm = (pre && (id === 'mini' || id === 'special' || id === 'wedding') ? money(p.price) + ' ' : '') + p.booking;
+      const nm = (pre && (id === 'mini' || id === 'special') ? money(p.price) + ' ' : '') + p.booking;
       const len = [p.timeWords && p.timeWords.charAt(0).toUpperCase() + p.timeWords.slice(1), ...p.details.filter(d => /outfit|location/.test(d))].filter(Boolean).join(' · ');
       const ppl = p.bookingPeople || (p.people ? 'Up to ' + p.people : '');
       const q = s => "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";

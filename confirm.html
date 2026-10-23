@@ -236,7 +236,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // otherwise the regular price for the beach. Hidden when unknown (e.g. "Other").
   function priceNow(){
     var cb = $('beach').value, cs = $('session').value, cp = '';
-    if (/wedding/i.test(cs)) cp = '$499';
+    if (/wedding/i.test(cs)) cp = 'Wedding';
     else if (/^(Sunrise|Midday|Sunset)$/i.test(cs) && window.mrpPrice) cp = window.mrpPrice(cb, false);
     var amount = agreed || Number(String(cp).replace(/[^0-9.]/g, '')) || 0;
     return { amount: amount, text: agreed ? money(agreed) : (window.mrpPriceLabel ? window.mrpPriceLabel(cp) : cp) };
