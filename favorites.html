@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pick Your Favorites | Miranda Rae Photography</title>
+<!-- Private page (added Oct 25 2026), just for Randy and Miranda: Miranda checks every Pixieset
+     portfolio photo she loves, then numbers her top 15, so the website photos can be swapped for
+     the ones she likes best. Not linked anywhere, not for search. Every tap saves online right away
+     (netlify/functions/photo-favorites.mjs). When she taps "I'm done" her top 15 is emailed to Randy. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+:root{--ink:#112b39;--teal:#16677a;--cream:#fff9f1;--line:#e6ddd2;--muted:#556770;--sand:#f3e7d6;--gold:#c9871a}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.45;background:var(--cream)}
+.top{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line)}
+.top .in{width:min(760px,94%);margin:auto;display:flex;align-items:center;gap:10px;padding:9px 0}
+.top img{width:38px;height:38px;border-radius:50%;object-fit:cover;object-position:50% 22%;border:2px solid var(--teal)}
+.top b{font-size:15px}.top small{display:block;color:var(--muted);font-size:12.5px}
+.top .saved{margin-left:auto;font-size:12.5px;font-weight:700;color:#1e7a46;white-space:nowrap}
+.top .saved.wait{color:var(--muted)}.top .saved.err{color:#b3261e}
+main{width:min(760px,94%);margin:auto;padding:14px 0 110px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 6px 20px #11283912;margin-bottom:14px}
+h1{font-size:22px;margin:4px 0 8px}
+p{margin:6px 0}
+.muted{color:var(--muted);font-size:14px}
+.steps{margin:12px 0 4px;padding:0;list-style:none}
+.steps li{display:flex;gap:10px;align-items:flex-start;margin:8px 0}
+.steps .n{flex:none;width:28px;height:28px;border-radius:50%;background:var(--teal);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+button{font:inherit;cursor:pointer;border-radius:12px;border:2px solid var(--teal);background:#fff;color:var(--teal);font-weight:700;padding:12px 10px;min-height:48px}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.4;cursor:default}
+.big{width:100%;margin-top:14px;background:var(--teal);color:#fff;font-size:17px;padding:15px}
+.how{background:var(--sand);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:15px}
+.how b{display:block;font-size:17px;margin-bottom:2px}
+.chips{display:flex;gap:8px;margin-bottom:12px}
+.chips button{min-height:38px;padding:6px 14px;border-radius:20px;font-size:14px}
+.chips button.on{background:var(--teal);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(min-width:600px){.grid{grid-template-columns:repeat(3,1fr)}}
+.tile{position:relative;aspect-ratio:4/5;border-radius:12px;overflow:hidden;background:#eee6da;border:3px solid transparent;padding:0;min-height:0}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile .num{position:absolute;left:6px;bottom:6px;background:#112b39b3;color:#fff;font-size:11.5px;font-weight:700;padding:2px 7px;border-radius:10px}
+.tile .chk{position:absolute;right:7px;top:7px;width:34px;height:34px;border-radius:50%;background:#ffffffd9;border:2px solid #fff;box-shadow:0 1px 4px #0005;display:flex;align-items:center;justify-content:center;font-size:20px;color:transparent;font-weight:700}
+.tile.fav{border-color:var(--teal)}
+.tile.fav .chk{background:var(--teal);color:#fff}
+.tile .rank{position:absolute;right:7px;top:7px;min-width:40px;height:40px;border-radius:50%;background:var(--gold);color:#fff;font-size:20px;font-weight:700;display:none;align-items:center;justify-content:center;box-shadow:0 1px 5px #0006;border:2px solid #fff}
+.ranking .tile .chk,.ranking .tile .num{display:none}
+.ranking .tile{border-color:transparent}
+.ranking .tile.ranked{border-color:var(--gold)}
+.ranking .tile.ranked .rank{display:flex}
+.ranking .tile:not(.ranked) img{opacity:.9}
+.zoom{position:absolute;left:6px;top:6px;width:34px;height:34px;border-radius:50%;background:#112b39a6;color:#fff;border:none;font-size:16px;min-height:0;padding:0;display:flex;align-items:center;justify-content:center}
+.foot{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);box-shadow:0 -4px 16px #11283914;z-index:6}
+.foot .in{width:min(760px,94%);margin:auto;padding:10px 0 calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center}
+.foot .txt{font-size:14px;color:var(--muted);line-height:1.25}
+.foot .txt b{display:block;color:var(--ink);font-size:16px}
+.foot button{margin-left:auto;background:var(--teal);color:#fff;white-space:nowrap}
+.foot .back{margin-left:0;background:#fff;color:var(--teal);padding:12px}
+.toplist{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.toplist div{position:relative;aspect-ratio:4/5;border-radius:10px;overflow:hidden;background:#eee6da}
+.toplist img{width:100%;height:100%;object-fit:cover;display:block}
+.toplist span{position:absolute;left:6px;top:6px;background:var(--gold);color:#fff;font-weight:700;border-radius:14px;padding:2px 9px;font-size:14px;border:2px solid #fff}
+.viewer{position:fixed;inset:0;background:#0b1a22f2;z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;padding:14px}
+.viewer.open{display:flex}
+.viewer img{max-width:100%;max-height:72vh;border-radius:8px;display:block}
+.viewer .row{display:flex;gap:10px;margin-top:14px;width:min(420px,100%)}
+.viewer .row button{flex:1}
+.viewer .act{background:var(--teal);color:#fff;border-color:var(--teal)}
+.viewer .act.on{background:#fff;color:var(--teal)}
+.viewer .x{background:transparent;color:#fff;border-color:#fff8}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <img src="/images/destin-199/destin199-miranda.webp" alt="">
+    <div><b id="title">Pick your favorites</b><small id="count">Loading…</small></div>
+    <span class="saved wait" id="saved"></span>
+  </div>
+</header>
+
+<main>
+  <section class="card" id="intro">
+    <h1>Hi Miranda! 👋</h1>
+    <p>Here are all the photos from your Pixieset portfolio, so we can swap out website pictures for the ones you like best.</p>
+    <ol class="steps">
+      <li><span class="n">1</span><span><b>Check your favorites.</b> Tap every photo you love. Pick as many as you want.</span></li>
+      <li><span class="n">2</span><span><b>Number your top 15.</b> Tap your #1 first, then #2, and so on.</span></li>
+    </ol>
+    <p class="muted">Every tap saves right away, so you can stop anytime and pick up where you left off, on any phone. Tap 🔍 on a photo to see it bigger.</p>
+    <button class="big" id="start">Start →</button>
+  </section>
+
+  <section id="pick" class="hidden">
+    <div class="how"><b>Step 1: Check your favorites</b>Tap a photo to check it. Tap again to uncheck.</div>
+    <div class="chips"><button class="on" id="showAll">All photos</button><button id="showFavs">Just my checked ones</button></div>
+    <div class="grid" id="grid1"></div>
+  </section>
+
+  <section id="rank" class="hidden ranking">
+    <div class="how"><b>Step 2: Number your top 15</b>Tap your #1 favorite first, then #2, and so on. Tap a number to take it off.</div>
+    <div class="grid" id="grid2"></div>
+  </section>
+
+  <section id="done" class="card hidden">
+    <h1>All done! 🎉</h1>
+    <p>Thank you! Here's your top 15. Dad has a copy, and we'll use these on the website.</p>
+    <p class="muted" id="mailMsg"></p>
+    <div class="toplist" id="toplist"></div>
+    <button class="big" id="change">Change my picks</button>
+  </section>
+</main>
+
+<footer class="foot hidden" id="foot1"><div class="in">
+  <div class="txt"><b id="favCount">0 checked</b>Check all you like</div>
+  <button id="toStep2">Next: Top 15 →</button>
+</div></footer>
+<footer class="foot hidden" id="foot2"><div class="in">
+  <button class="back" id="toStep1">←</button>
+  <div class="txt"><b id="rankCount">0 of 15 numbered</b><span id="rankHint">Tap your #1 first</span></div>
+  <button id="finish" disabled>I'm done ✓</button>
+</div></footer>
+
+<div class="viewer" id="viewer">
+  <img id="vImg" alt="">
+  <div class="row">
+    <button class="x" id="vClose">Close</button>
+    <button class="act" id="vAct"></button>
+  </div>
+</div>
+
+<script>
+const BASE="https://images-pw.pixieset.com/site/B8woOD/";
+const PHOTOS=["be4KWv/DSC01120-90dbc16b-1000.jpg","D0EqQ0/6C8EA687-9A9B-4AD4-ADAF-54B77AA54722-ea6d3601-1000.jpeg","q7GRwM/003D48AE-66E2-4AC9-A279-58F949A6F5D7-c053b54c-1000.jpeg","KWkqoe/EA1E74D7-6B09-4286-99A6-290077F70315-2450edd8-1000.jpeg","pKMyQE/DSC07806-56e86210-1000.jpg","MkzpjX/IMG_6564-50a58f6e-1000.jpg","ye141r/3BF4A190-E08B-48C7-A82C-C48AF885A879-33f62403-1000.png","lmkyj0/DSC00302-dccad3c8-1000.jpg","G1nOqM/IMG_7087-a809ee98-1000.jpg","6qPQMK/DSC00239-87cfd72a-1000.jpeg","G1oapv/5BBD17D1-AC76-4D8F-AF76-FF77EBD8C4BA-038b7e46-1000.png","8Pakm1/DSC087792-f36b9840-1000.jpg","3b7v3V/DSC00344-c5445a0a-1000.jpeg","5lR8ok/IMG_7110-fb7b2a7b-1000.jpg","1aMo36/DSC03810-b0ffd18f-1000.jpeg","MrJ14R/072E2E70-0E65-4375-94C5-CC44DAE9DF44-f5a09802-1000.jpeg","0j8M9O/DSC00333-96369ee9-1000.jpeg","PGwkXj/3973BE3C-C3AF-410F-9DB9-BA709ADA6B65-1ecb36be-1000.jpeg","mO3yyR/DSC087791-b2b46885-1000.jpg","ePXVmy/IMG_7106-5abe6c6b-1000.jpg","ElOqaR/870CAD54-7659-48CA-9831-6773C79E3E77-cfbe6b50-1000.jpeg","rMmYOV/DSC09394-5c3b4a96-1000.jpeg","7MzOwO/73AFF7EB-ECAC-4C55-8EA6-16C32816C13C-bf0e70ae-1000.jpeg","yq341J/2E9B42C3-33CA-4D4C-8F1E-0BC8E7381181-0af9c20f-1000.jpeg","yRKrjb/0B50638A-0B7E-4E13-945A-9FD00E90E1C3-3b186bef-1000.jpeg","nmJLJe/168D5A0F-F7E3-46B1-84B0-7ED8F26CAF8D-5275b9ca-1000.jpeg","6WJGab/DSC00441-38c98b5c-1000.jpg","vPZjK3/DSC00274-03d9cc6b-1000.jpeg","AEOoPz/126C38F8-6695-4B48-B6A6-C90D78254D4A-4befda74-1000.png","LjzXq7/DSC03819-e38d156c-1000.jpeg","lmo3YO/DSC09217-d5350782-1000.jpg","O5QWEE/DSC00638-29e64c85-1000.jpg","4pWPl1/DSC09856-b893bd79-1000.jpg","4043eL/IMG_6171-74c0945b-1000.jpeg","57PbL9/DSC09296-6004d958-1000.jpeg","q6RQzJ/DSC01057-b5089c3a-1000.jpeg","7GoKmG/DSC09603-02c6a3de-1000.jpg","o6Lx4O/7602AE9D-057E-4EFB-97AB-32D5E11A47E6-18dab4f2-1000.jpeg","Zj4veM/DSC09384-19910961-1000.jpeg","G6j3ma/DSC09991-fa183059-1000.jpg","dxA48R/DSC09953-1bd3361a-1000.jpeg","0l6bMY/DSC092111-27828571-1000.jpg","ePWv0A/FA9BC8DF-918F-424D-AB4C-9B182393C313-f13cfcb5-1000.jpeg","8eobOp/DSC09829-62d3e00b-1000.jpg","9ykJ65/DSC00724-99da4356-1000.jpg","VrApAd/872BAC9D-3310-49B9-A040-CB008AAA20E3-b7e03f42-1000.jpeg","MGdYQ6/DSC08801-fd2904ef-1000.jpg","d5kAGY/181826F9-478D-47AF-97FA-89BDB567BF2D-3d09e9a3-1000.png","zRwv9p/DSC00681-88230a95-1000.jpg","6Wyp9j/DSC08763-0f9e861c-1000.jpg","5lxAWj/211F06ED-AD5C-4DD5-A0FD-AE7051F3246F-50f9baa5-1000.jpeg","k10kYq/DSC00275-0bae0c6a-1000.jpg","pM9rjq/BF76F34D-5B16-49BA-B668-0951270B06F2-932171af-1000.jpeg","9M8AEx/73125A39-413C-4C37-BAAC-706E18ED19AC-769c5f67-1000.png","wjZ7em/DSC03713-061893e4-1000.jpeg","Jp73xo/DSC07811-059aa6f3-1000.jpg","Z0vWR8/AE71A228-AABD-4864-AF41-0D372A0E2C1E-67025924-1000.jpeg","yam0bb/DSC00273-fa736efa-1000.jpeg","OqlXZk/DSC02357-ef8ddf7f-1000.jpeg","40OA7z/49D4ABCA-C9B0-4A2A-9F1C-B7AB0BA1DDB6-4100f366-1000.jpeg","Px3nVy/DSC08886-eb9dde88-1000.jpeg","PYMQpj/DSC00227-dfa033ab-1000.jpeg","My3vAW/DSC00362-757855d9-1000.jpeg","G6qYQ6/DSC01209-0279004d-1000.jpg","6qoz13/DSC09748-4700bd5a-1000.jpg","AAlW1A/6ED5BCEA-6941-451F-A5A2-1F9864C6E280-c6c71f34-1000.jpeg","Yr5e9D/AA60F4AA-ACAC-4C0C-AD64-FDC0C67144C0-a7c62645-1000.jpeg","bG146J/5567D9C6-06EB-44C8-8C9A-B73FB07841EE-6196f35c-1000.jpeg","8rb54b/CB1C051B-2149-4C76-92A4-64EE314FA4B3-a6d25ce1-1000.jpeg","My3vAR/DSC00491-ce597a68-1000.jpeg","MkzpAR/IMG_5981-38e7c901-1000.jpeg","mL7nRo/D88D7DF2-7AF7-496D-BFE2-F9F5F7BCA439-9309d9ef-1000.jpeg","DlqWPd/DSC09425-0bbe7ef4-1000.jpeg","7GyaYO/DSC00490-7e6575bb-1000.jpeg","36zxJv/DSC00308-6bbb4fbf-1000.jpg","6rz5Gl/669E2E38-3BFB-4F5C-8DDF-F5BB55553565-07171af1-1000.jpeg","QR8LaZ/DSC09192-a220d762-1000.jpg","7Gn8Wa/DSC00644-8d290323-1000.jpeg","JWq1VK/DSC01096-311e877b-1000.jpg","G8dqo3/514A0AD4-14BD-41B6-9838-5961925512D0-706fba9f-1000.jpeg","joApkZ/57E8C4C9-ABF0-4733-92FB-3785CEC91596-0183b089-1000.jpeg","QqPzdO/99E591FC-C6EE-41C2-8B02-F7418F5F1540-f84e40fc-1000.jpeg","54vy39/DSC00012-a96af4ba-1000.jpg","wqn9D4/50573D72-DDF1-4190-82D6-13B97778189B-e54dab65-1000.jpeg","qOwmaw/C4989649-749A-4EDF-B618-55814BDDE895-b3b77195-1000.jpeg","PYMQp3/DSC00381-f16e4e98-1000.jpeg","RwWYvr/DSC00021-7e0e2b18-1000.jpg","MkzpVp/FA813550-7CCF-4FD6-89DA-00937959185B-3e94012e-1000.jpeg","Lqv6Yq/DSC00817-381f0546-1000.jpg","rKY7oD/0043DDB3-7ED9-4E27-A4D3-1B59E3A91587-95b5dbd7-1000.jpeg","p8rPOM/DSC01158-626c4398-1000.jpg","exDmWX/3F84B44C-B4CA-4AD5-9070-9F484F298206-82d8386c-1000.jpeg","q6X9q0/DSC09956-4a243f8a-1000.jpg","7vQe19/DSC08808-4a589898-1000.jpeg","ypdvxb/DSC03636-70b90a56-1000.jpeg","8PpK8l/DSC00314-990ccd4c-1000.jpg","0l1Kzk/DSC00297-2e7d513b-1000.jpg","yxVWrr/DSC00206-e62e7259-1000.jpg","13mzwa/DSC00736-6b6dc1a5-1000.jpg","bymY33/DSC09280-228f5478-1000.jpeg","OpGmx7/13045FAD-AB23-4F0C-A002-48011D2B26C7-61be5b1c-1000.jpeg","MyqJ7G/DSC09835-b5b73fa9-1000.jpeg","lZxYMe/DSC00304-64811c1a-1000.jpeg","mO3yrw/DSC00714-db51ce76-1000.jpg","LKkLok/3C37312A-B94C-40D0-A108-8682E532046B-534f0236-1000.jpeg","pmj1Xy/97E4834B-4FF1-4F10-AF76-D102DAC42173-e0c5b576-1000.jpeg","WrPkOv/DSC08793-b8ef1a6b-1000.jpg","4po9D0/DSC01067-47bf1ec9-1000.jpg","6zyAln/DSC01831-bebb61e3-1000.jpeg","pmAJRG/8080C0F9-0966-45CD-B883-50500849434E-5113c90a-1000.jpeg","rWemdz/5B4BF3E3-306C-472F-A1CC-80ACFC73AB79-bde80263-1000.jpeg","LrYEMX/2D4BB469-1DFC-48E1-8302-1544C18DE46A-b63f6f86-1000.jpeg","0XwJvO/79C85C89-3986-43F1-82DE-A57318215D51-2836e4a2-1000.jpeg","kLAK40/F7E1461D-0919-4644-A6A7-54E11CAD4151-34709dc7-1000.jpeg","k0edjX/23AB645C-120B-42DB-9A93-9ACAECE9617C-0e459983-1000.jpeg","eRmGyG/DSC01044-f0ce82be-1000.jpeg","aPqnKm/DSC00057-b55cb6ba-1000.jpg","ya5q8J/DSC00805-9cd04ae0-1000.jpeg","Lr5L58/88DBE1C2-9CD8-4DA9-A7AD-3B73CF8FE827-a0c23b39-1000.jpeg","GKzWMa/DSC09287-33761dbb-1000.jpeg","QRY0X0/DSC00147-1499f0aa-1000.jpg","WXo0Aw/IMG_6004-6b950de2-1000.jpeg","aG4z51/DSC00488-4c12c596-1000.jpeg","7GyaYW/DSC00493-d4bd13c9-1000.jpeg","vGoazL/DSC08888-192a5c7b-1000.jpeg","AEOovr/32D86773-1263-4B1E-8882-65193CC9638C-ee9ac680-1000.jpeg","01oGmm/FED24088-0392-4E40-ACE2-556C37153B8B-2b96c4d2-1000.jpeg","l9l0Rm/F5A278C0-1E6B-4E29-85E2-7490056055C7-e3144265-1000.jpeg","4Mjyma/DSC07738-733b3f41-1000.jpg","54omkp/DSC01226-510bc4ae-1000.jpeg","wqwbw9/C73A7E11-DB48-4EBD-A267-FF8DDD4B2A24-4557bdb1-1000.jpeg","Wma9Aw/DSC00379-8cd2f748-1000.jpeg","Qrdzd0/846BC955-F60B-434C-80A2-1E1165DC332B-c141a6f0-1000.jpeg","YlOvL0/DSC001411-47eb3449-1000.jpg","PrLOLo/3AD0F092-16AD-4169-8332-4523E1650649-83ca2bd0-1000.jpeg","QenXkE/D3B1E23A-488F-46B6-A34F-D68EA44EB1A5-c9afe91c-1000.jpeg","vPZjK1/DSC00258-2d17b158-1000.jpeg","b76MEk/C525B993-163F-48E6-B286-08F0E3A42964-12723785-1000.jpeg","qOAb1b/IMG_6226-867716a8-1000.jpeg","Yd0GEP/5341C55B-5FDE-4CAD-BE41-86C4126BB29C-ab3c841f-1000.jpeg","780MYO/IMG_5959-99228f11-1000.jpeg","MGP4RD/DSC00578-ca7e09af-1000.jpg","vP5b07/DSC00695-de5bc7c0-1000.jpeg","J7Oqjy/5B61BA8E-F982-4FE2-8B0E-BBAD78449A94-d6e76f2b-1000.jpeg","3baD8q/DSC00606-1adb851b-1000.jpeg","780MlA/IMG_6454-e09980bd-1000.jpg","xQmk0x/DSC09868-5bdd7649-1000.jpeg","4jGoOV/ED1335C9-58CC-42B2-8711-127D98CD07F5-32e437bf-1000.jpeg","VrG5wm/A1035B4F-927F-44DB-9FCE-1602CE0DB720-17fa2996-1000.jpeg","1dWAe1/3BA3BBDE-5979-4B6B-87DE-9A5FEF943EF3-842bdd94-1000.jpeg","Wma9Aa/DSC00305-260a913a-1000.jpeg","W0zKxw/DCF755C6-382D-4729-90EE-A241EC27AE03-4db9f25d-1000.jpeg","QV7a5E/DSC00277-08c4ec09-1000.jpeg","aM86O0/0E205485-BE3A-42A8-A90A-A5BD5A6F7EA2-598b06ec-1000.jpeg","LKkL7k/C980BCE0-E232-4C1F-8E01-FC211A1F16D1-2eb9710d-1000.jpeg","G1nOAr/IMG_6158-31068adf-1000.jpeg","7vbEx1/DSC00477-7a42067c-1000.jpg","x4Ax6W/IMG_7148-09cca888-1000.jpeg","j9oeLe/DSC00745-7a948866-1000.jpg","8eQYxy/DSC00484-37f3d8f9-1000.jpeg","eRo7q1/DSC00016-08afb2aa-1000.jpg","p8oLqO/DSC09875-1956fb69-1000.jpg"];
+const API="/api/photo-favorites", KEY="mr-photo-favs-v1", TOP=15;
+const idOf=p=>p.split("/")[0];
+const img=(p,w)=>"/.netlify/images?url="+encodeURIComponent(BASE+p)+"&w="+w+"&fm=webp&q="+(w>800?82:70);
+const byId={};PHOTOS.forEach((p,i)=>byId[idOf(p)]={p,n:i+1});
+const $=id=>document.getElementById(id);
+
+let favs=new Set(), ranks=[], view="all", step=0, vId=null;
+function local(){try{localStorage.setItem(KEY,JSON.stringify({favs:[...favs],ranks,step}))}catch(e){}}
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s){favs=new Set(s.favs||[]);ranks=s.ranks||[];step=s.step||0;}}catch(e){}
+
+// --- saving online (each tap right away; keeps trying if signal drops) ---
+let queue=Promise.resolve(), pending=0;
+function status(t,c){const s=$("saved");s.textContent=t;s.className="saved "+(c||"");}
+function save(body){
+  pending++;status("Saving…","wait");local();
+  queue=queue.then(async()=>{
+    for(let i=0;i<4;i++){
+      try{const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+        if(r.ok){pending--;if(!pending)status("✓ Saved");return;}}catch(e){}
+      await new Promise(r=>setTimeout(r,1500*(i+1)));
+    }
+    pending--;status("Not saved – check signal","err");
+  });
+}
+
+// --- tiles ---
+function tile(p,mode){
+  const id=idOf(p), t=document.createElement("div");
+  t.className="tile";t.dataset.id=id;t.setAttribute("role","button");
+  t.innerHTML='<img loading="lazy" alt="Photo '+byId[id].n+'" src="'+img(p,500)+'"><span class="num">'+byId[id].n+'</span>'+
+    (mode==1?'<span class="chk">✓</span>':'<span class="rank"></span>')+'<button class="zoom" aria-label="See bigger">🔍</button>';
+  t.onclick=e=>{ if(e.target.closest(".zoom")){openViewer(id);return;} mode==1?toggleFav(id):toggleRank(id); };
+  return t;
+}
+function buildPick(){
+  const g=$("grid1");g.innerHTML="";
+  PHOTOS.forEach(p=>{const t=tile(p,1);if(view=="favs"&&!favs.has(idOf(p)))t.classList.add("hidden");g.appendChild(t);});
+  paint();
+}
+function buildRank(){
+  const g=$("grid2");g.innerHTML="";
+  PHOTOS.filter(p=>favs.has(idOf(p))).forEach(p=>g.appendChild(tile(p,2)));
+  paint();
+}
+function paint(){
+  document.querySelectorAll("#grid1 .tile").forEach(t=>{const on=favs.has(t.dataset.id);t.classList.toggle("fav",on);if(view=="favs")t.classList.toggle("hidden",!on);});
+  document.querySelectorAll("#grid2 .tile").forEach(t=>{const r=ranks.indexOf(t.dataset.id);t.classList.toggle("ranked",r>=0);t.querySelector(".rank").textContent=r>=0?r+1:"";});
+  const need=Math.min(TOP,favs.size);
+  $("favCount").textContent=favs.size+" checked";
+  $("toStep2").disabled=favs.size==0;
+  $("rankCount").textContent=ranks.length+" of "+need+" numbered";
+  $("rankHint").textContent=ranks.length>=need?"Looks great!":"Tap your #"+(ranks.length+1)+" next";
+  $("finish").disabled=ranks.length<need||need==0;
+  $("count").textContent=step==2?ranks.length+" of "+need+" numbered":favs.size+" checked of "+PHOTOS.length;
+}
+function toggleFav(id){
+  const on=!favs.has(id);
+  on?favs.add(id):favs.delete(id);
+  if(!on)ranks=ranks.filter(x=>x!==id);
+  paint();save({id,on});
+}
+function toggleRank(id){
+  const r=ranks.indexOf(id);
+  if(r>=0)ranks.splice(r,1);
+  else{if(ranks.length>=TOP){status("Only 15 – tap a number to take one off","err");return;}ranks.push(id);}
+  paint();save({top:ranks});
+}
+
+// --- big view ---
+function openViewer(id){
+  vId=id;$("vImg").src=img(byId[id].p,1200);
+  setVAct();$("viewer").classList.add("open");
+}
+function setVAct(){
+  const b=$("vAct");
+  if(step==2){const r=ranks.indexOf(vId);b.textContent=r>=0?"Take off #"+(r+1):(ranks.length>=TOP?"Top 15 is full":"Make this #"+(ranks.length+1));b.classList.toggle("on",r>=0);b.disabled=r<0&&ranks.length>=TOP;}
+  else{const on=favs.has(vId);b.textContent=on?"✓ Checked":"Check it";b.classList.toggle("on",on);b.disabled=false;}
+}
+$("vAct").onclick=()=>{step==2?toggleRank(vId):toggleFav(vId);setVAct();};
+$("vClose").onclick=()=>$("viewer").classList.remove("open");
+$("viewer").onclick=e=>{if(e.target.id=="viewer")$("viewer").classList.remove("open");};
+
+// --- steps ---
+function go(s){
+  step=s;local();
+  $("intro").classList.toggle("hidden",s!=0);
+  $("pick").classList.toggle("hidden",s!=1);$("foot1").classList.toggle("hidden",s!=1);
+  $("rank").classList.toggle("hidden",s!=2);$("foot2").classList.toggle("hidden",s!=2);
+  $("done").classList.toggle("hidden",s!=3);
+  $("title").textContent=s==2?"Number your top 15":s==3?"Your top 15":"Pick your favorites";
+  if(s==1)buildPick(); if(s==2)buildRank(); if(s==3)showDone();
+  paint();window.scrollTo(0,0);
+}
+$("start").onclick=()=>go(1);
+$("toStep2").onclick=()=>go(2);
+$("toStep1").onclick=()=>go(1);
+$("change").onclick=()=>go(2);
+$("showAll").onclick=()=>{view="all";$("showAll").classList.add("on");$("showFavs").classList.remove("on");paint();};
+$("showFavs").onclick=()=>{view="favs";$("showFavs").classList.add("on");$("showAll").classList.remove("on");paint();window.scrollTo(0,0);};
+$("finish").onclick=async()=>{save({done:true});go(3);emailDad();};
+
+function showDone(){
+  $("toplist").innerHTML=ranks.map((id,i)=>'<div><img loading="lazy" alt="#'+(i+1)+'" src="'+img(byId[id].p,400)+'"><span>'+(i+1)+'</span></div>').join("");
+}
+async function emailDad(){
+  const m=$("mailMsg");
+  const lines=ranks.map((id,i)=>"#"+(i+1)+"  (photo "+byId[id].n+")  "+BASE+byId[id].p);
+  try{const r=await fetch("https://formsubmit.co/ajax/mirandaraep@gmail.com",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},
+      body:JSON.stringify({_subject:"⭐ MIRANDA'S TOP "+ranks.length+" PHOTOS ("+favs.size+" checked)",_template:"table",_captcha:"false",
+        "Top picks, in order":lines.join("\n"),"All checked favorites (photo #)":[...favs].map(id=>byId[id]?byId[id].n:id).sort((a,b)=>a-b).join(", ")})});
+    if(!r.ok)throw 0;m.textContent="";}catch(e){m.textContent="(Your picks are saved. The email to Dad didn't go through, but he can still see them.)";}
+}
+
+// --- load what's already saved online (from any phone) ---
+(async()=>{
+  try{const r=await fetch(API,{cache:"no-store"});const j=await r.json();
+    if(j.favs){favs=new Set(j.favs.filter(id=>byId[id]));ranks=(j.top||[]).filter(id=>byId[id]);}
+    if(j.done&&step<3&&ranks.length)step=3;
+    status(favs.size?"✓ Saved":"");
+  }catch(e){status("Offline – will save when connected","err");}
+  go(step);
+})();
+</script>
+</body>
+</html>

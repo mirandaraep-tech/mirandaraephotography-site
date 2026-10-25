@@ -6,6 +6,7 @@ Disallow: /add-on
 Disallow: /new
 Disallow: /deposit
 Disallow: /tag-photos
+Disallow: /favorites
 Disallow: /log
 Disallow: /confirm
 Disallow: /sandy
