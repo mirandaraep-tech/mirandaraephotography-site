@@ -1,11 +1,11 @@
 // Miranda's favorite photos (added Oct 25 2026).
 // On the hidden /favorites page Miranda (1) checks every Pixieset portfolio photo she likes,
-// then (2) numbers her top 15. Every tap is saved here online right away, so she can stop
+// then (2) numbers her top 30. Every tap is saved here online right away, so she can stop
 // and pick up later on any phone, and Randy/Claude can read her picks anytime to swap
 // photos on the website.
 // GET  /api/photo-favorites                     -> { favs: [id...], top: [id...], updated, done }
 // POST /api/photo-favorites {id, on}            -> checks/unchecks one favorite
-// POST /api/photo-favorites {top: [id...]}      -> saves the numbered top list (in order, max 15)
+// POST /api/photo-favorites {top: [id...]}      -> saves the numbered top list (in order, max 30)
 // POST /api/photo-favorites {done: true}        -> marks her as finished
 // Live site uses the "photo-favorites" store; test copies use "photo-favorites-test".
 import { getStore } from "@netlify/blobs";
@@ -26,7 +26,7 @@ export default async (req) => {
   try { data = await req.json(); } catch (e) {}
 
   if (Array.isArray(data.top)) {
-    const top = [...new Set(data.top.map(String).filter((id) => ID.test(id)))].slice(0, 15);
+    const top = [...new Set(data.top.map(String).filter((id) => ID.test(id)))].slice(0, 30);
     state.top = top;
     // anything in the top list is a favorite too
     top.forEach((id) => { if (!state.favs.includes(id)) state.favs.push(id); });
