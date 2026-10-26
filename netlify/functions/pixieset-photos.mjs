@@ -28,14 +28,17 @@ async function collect() {
     for (const m of html.matchAll(IMG)) {
       const id = m[1], name = m[2];
       if (/logo/i.test(name)) continue;
-      if (!found.has(id)) { found.set(id, id + "/" + name + "-1000." + m[4].toLowerCase()); n++; }
+      const path = id + "/" + name + "-" + m[3] + "." + m[4];
+      // keep Pixieset's exact link (the code in each file name differs by size); prefer the 1000px one
+      if (!found.has(id)) { found.set(id, path); n++; }
+      else if (m[3] === "1000") found.set(id, path);
     }
     pages.set(url, n);
     // follow links to other pages on her Pixieset site (galleries)
     for (const m of html.matchAll(/href="(\/[a-z0-9-]+\/?)"/gi)) {
       let u = SITE + m[1];
       if (!u.endsWith("/")) u += "/";
-      if (!seen.has(u) && !/\/(contact|about|client|blog|store|services)/i.test(u)) queue.push(u);
+      if (!seen.has(u) && !/\/(contact|about|client|blog|store|services|real-estate|terms)/i.test(u)) queue.push(u);
     }
   }
   return { photos: [...found.values()], pages: Object.fromEntries(pages), updated: new Date().toISOString() };
