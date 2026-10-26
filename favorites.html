@@ -43,6 +43,9 @@ button:disabled{opacity:.4;cursor:default}
 @media(min-width:600px){.grid{grid-template-columns:repeat(3,1fr)}}
 .tile{position:relative;aspect-ratio:4/5;border-radius:12px;overflow:hidden;background:#eee6da;border:3px solid transparent;padding:0;min-height:0}
 .tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile .new{position:absolute;left:6px;top:6px;background:var(--gold);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.5px}
+.ranking .tile .new{display:none}
+.newnote{background:#fff3dc;border:1px solid #f0d49b;border-radius:10px;padding:9px 12px;margin:0 0 10px;font-size:15px}
 .tile .num{position:absolute;left:6px;bottom:6px;background:#112b39b3;color:#fff;font-size:11.5px;font-weight:700;padding:2px 7px;border-radius:10px}
 .tile .chk{position:absolute;right:7px;top:7px;width:34px;height:34px;border-radius:50%;background:#ffffffd9;border:2px solid #fff;box-shadow:0 1px 4px #0005;display:flex;align-items:center;justify-content:center;font-size:20px;color:transparent;font-weight:700}
 .tile.fav{border-color:var(--teal)}
@@ -141,6 +144,7 @@ const API="/api/photo-favorites", KEY="mr-photo-favs-v1", TOP=30, MIN=15;
 const idOf=p=>p.split("/")[0];
 const img=(p,w)=>"/.netlify/images?url="+encodeURIComponent(BASE+p)+"&w="+w+"&fm=webp&q="+(w>800?82:70);
 const byId={};PHOTOS.forEach((p,i)=>byId[idOf(p)]={p,n:i+1});
+const NEW=new Set(); // photos Miranda added to Pixieset after this page was built (shown first)
 const $=id=>document.getElementById(id);
 
 let favs=new Set(), ranks=[], view="all", step=0, vId=null;
@@ -166,14 +170,15 @@ function save(body){
 function tile(p,mode){
   const id=idOf(p), t=document.createElement("div");
   t.className="tile";t.dataset.id=id;t.setAttribute("role","button");
-  t.innerHTML='<img loading="lazy" alt="Photo '+byId[id].n+'" src="'+img(p,500)+'"><span class="num">'+byId[id].n+'</span>'+
+  t.innerHTML='<img loading="lazy" alt="Photo '+byId[id].n+'" src="'+img(p,500)+'"><span class="num">'+byId[id].n+'</span>'+(NEW.has(id)?'<span class="new">NEW</span>':'')+
     (mode==1?'<span class="chk">✓</span>':'<span class="rank"></span>')+'<button class="zoom" aria-label="See bigger">🔍</button>';
   t.onclick=e=>{ if(e.target.closest(".zoom")){openViewer(id);return;} mode==1?toggleFav(id):toggleRank(id); };
   return t;
 }
 function buildPick(){
   const g=$("grid1");g.innerHTML="";
-  PHOTOS.forEach(p=>{const t=tile(p,1);if(view=="favs"&&!favs.has(idOf(p)))t.classList.add("hidden");g.appendChild(t);});
+  if(NEW.size){const d=document.createElement("p");d.className="newnote";d.textContent="⭐ "+NEW.size+" new photo"+(NEW.size>1?"s":"")+" from your Pixieset are first (marked NEW). Check any you like!";g.before(d);document.querySelectorAll(".newnote").forEach((x,i,a)=>{if(i<a.length-1)x.remove();});}
+  [...PHOTOS.filter(p=>NEW.has(idOf(p))),...PHOTOS.filter(p=>!NEW.has(idOf(p)))].forEach(p=>{const t=tile(p,1);if(view=="favs"&&!favs.has(idOf(p)))t.classList.add("hidden");g.appendChild(t);});
   paint();
 }
 function buildRank(){
@@ -253,9 +258,14 @@ async function emailDad(){
 
 // --- load what's already saved online (from any phone) ---
 (async()=>{
+  // add any photos she's put on her Pixieset since (checked live)
+  try{const r=await fetch("/api/pixieset-photos");const j=await r.json();
+    (j.photos||[]).forEach(p=>{const id=idOf(p);if(!byId[id]){PHOTOS.push(p);byId[id]={p,n:PHOTOS.length};NEW.add(id);}});
+  }catch(e){}
   try{const r=await fetch(API,{cache:"no-store"});const j=await r.json();
     if(j.favs){favs=new Set(j.favs.filter(id=>byId[id]));ranks=(j.top||[]).filter(id=>byId[id]);}
     if(j.done&&step<3&&ranks.length)step=3;
+    if(NEW.size&&step!=0)step=1;
     status(favs.size?"✓ Saved":"");
   }catch(e){status("Offline – will save when connected","err");}
   go(step);
