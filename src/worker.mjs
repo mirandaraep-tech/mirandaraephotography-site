@@ -118,7 +118,7 @@ function withCache(r) {
 }
 
 // ---------- "Text Miranda" taps and Facebook/Pixieset clicks -> alert email ----------
-async function pingAlert(req, url, env) {
+async function pingAlert(req, url, env, ctx) {
   let p;
   try { p = new URLSearchParams(await req.text()); } catch (e) { return new Response("ok"); }
   const form = p.get("form-name"), page = (p.get("page") || "").slice(0, 60), link = (p.get("link") || "").slice(0, 40);
@@ -128,13 +128,17 @@ async function pingAlert(req, url, env) {
   const body = { _subject: (live ? "" : "[TEST] ") + subject, _template: "table", _captcha: "false", Page: page, Time: new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }) + " CT" };
   if (link) body.Link = link;
   if (live) body._cc = ALERT_CC;
-  try {
-    await realFetch("https://formsubmit.co/ajax/" + ALERT_TO, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json", Origin: "https://" + LIVE_HOST, Referer: "https://" + LIVE_HOST + "/" },
-      body: JSON.stringify(body),
-    });
-  } catch (e) {}
+  // send in the background so the visitor's page never waits on the email service
+  ctx.waitUntil((async () => {
+    try {
+      const r = await realFetch("https://formsubmit.co/ajax/" + ALERT_TO, {
+        method: "POST", signal: AbortSignal.timeout(25000),
+        headers: { "Content-Type": "application/json", Accept: "application/json", Origin: "https://" + LIVE_HOST, Referer: "https://" + LIVE_HOST + "/" },
+        body: JSON.stringify(body),
+      });
+      console.log("tap alert", form, page, r.status, (await r.text()).slice(0, 200));
+    } catch (e) { console.log("tap alert failed", String(e)); }
+  })());
   return new Response("ok");
 }
 
@@ -200,7 +204,7 @@ export default {
     if (path === "/api/move-import") return moveImport(req);
     if (path === BACKGROUND) return new Response("Not found", { status: 404 }); // only Sandy calls this, internally
     if (path === "/.netlify/images") return image(req, url, env);
-    if (req.method === "POST" && path === "/") return pingAlert(req, url, env);
+    if (req.method === "POST" && path === "/") return pingAlert(req, url, env, ctx);
 
     const r = redirectFor(url);
     if (r) {
