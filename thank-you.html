@@ -19,7 +19,8 @@
   // Count the Google Ads lead only right after a real form send (not on refresh or a direct visit)
   if (mrpPending && !/[?&]src=text/.test(location.search)) gtag('event', 'conversion', { 'send_to': 'AW-18391952045/iFCFCP2cl-wcEK3V-8FE' });
   // Gallery / review taps: email alert only (not counted as a lead)
-  function linkTap(which){ try{ fetch('/', {method:'POST', keepalive:true, headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'form-name=link-click&page=thank-you&link='+which}); }catch(e){} return true; }
+  // Link-click alert email straight to FormSubmit (Oct 27 2026, Cloudflare move; was Netlify Forms)
+  function linkTap(which){ try{ var live=/(^|\.)mirandaraephotography\.com$/.test(location.hostname); var p=new URLSearchParams(); p.set('_subject',(live?'':'[TEST] ')+'\u{1F517} LINK CLICKED: '+which+' \u00b7 thank-you'); p.set('_template','table'); p.set('_captcha','false'); p.set('Page','thank-you'); p.set('Link',which); if(live) p.set('_cc','bookmirandarae@gmail.com'); fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', {method:'POST', keepalive:true, mode:'no-cors', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString()}); }catch(e){} return true; }
 </script>
 <script src="/source.js"></script>
 </head>

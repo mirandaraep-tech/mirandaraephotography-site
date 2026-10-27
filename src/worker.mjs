@@ -20,7 +20,6 @@ import sandyReply from "../netlify/functions/sandy-reply-background.mjs";
 
 const LIVE_HOST = "mirandaraephotography.com";
 const PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79"; // same as /log
-const ALERT_TO = "mirandaraep@gmail.com", ALERT_CC = "bookmirandarae@gmail.com";
 const BACKGROUND = "/.netlify/functions/sandy-reply-background";
 
 const API = {
@@ -117,35 +116,10 @@ function withCache(r) {
   return out;
 }
 
-// ---------- "Text Miranda" taps and Facebook/Pixieset clicks -> alert email ----------
-async function pingAlert(req, url, env, ctx) {
-  let p;
-  try { p = new URLSearchParams(await req.text()); } catch (e) { return new Response("ok"); }
-  const form = p.get("form-name"), page = (p.get("page") || "").slice(0, 60), link = (p.get("link") || "").slice(0, 40);
-  if (form !== "text-tap" && form !== "link-click") return new Response("ok");
-  const live = url.hostname.replace(/^www\./, "") === LIVE_HOST;
-  const subject = form === "text-tap" ? "👆 TEXT MIRANDA TAPPED · " + page : "🔗 LINK CLICKED: " + link + " · " + page;
-  const body = { _subject: (live ? "" : "[TEST] ") + subject, _template: "table", _captcha: "false", Page: page, Time: new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }) + " CT" };
-  if (link) body.Link = link;
-  if (live) body._cc = ALERT_CC;
-  // send in the background so the visitor's page never waits on the email service
-  // (on the test copy, ?wait=1 waits and shows the email service's answer, for checking)
-  const send = (async () => {
-    try {
-      const r = await realFetch("https://formsubmit.co/ajax/" + ALERT_TO, {
-        method: "POST", signal: AbortSignal.timeout(25000),
-        headers: { "Content-Type": "application/json", Accept: "application/json", Origin: "https://" + LIVE_HOST, Referer: "https://" + LIVE_HOST + "/" },
-        body: JSON.stringify(body),
-      });
-      const t = (await r.text()).slice(0, 300);
-      console.log("tap alert", form, page, r.status, t);
-      return r.status + " " + t;
-    } catch (e) { console.log("tap alert failed", String(e)); return "failed " + String(e); }
-  })();
-  if (!live && url.searchParams.get("wait")) return new Response(await send);
-  ctx.waitUntil(send);
-  return new Response("ok");
-}
+// ---------- Old tap/click pings ----------
+// Pages now email tap/click alerts straight to FormSubmit from the visitor's browser (FormSubmit doesn't
+// answer Cloudflare's servers). A page still open from before the move may post here; just say ok.
+async function pingAlert() { return new Response("ok"); }
 
 // ---------- Moving the data over from Netlify (used by the private /move page) ----------
 const sha = async (t) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))).map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -209,7 +183,7 @@ export default {
     if (path === "/api/move-import") return moveImport(req);
     if (path === BACKGROUND) return new Response("Not found", { status: 404 }); // only Sandy calls this, internally
     if (path === "/.netlify/images") return image(req, url, env);
-    if (req.method === "POST" && path === "/") return pingAlert(req, url, env, ctx);
+    if (req.method === "POST" && path === "/") return pingAlert();
 
     const r = redirectFor(url);
     if (r) {

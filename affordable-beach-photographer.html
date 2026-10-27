@@ -31,10 +31,17 @@
   var PAGE = 'home';
 
   function ping(formName, extra) {
+    // Tap/click alert email straight to FormSubmit (Oct 27 2026, Cloudflare move; was Netlify Forms)
     try {
-      fetch('/', {method:'POST', keepalive:true,
-        headers:{'Content-Type':'application/x-www-form-urlencoded'},
-        body:'form-name=' + formName + '&page=' + PAGE + (extra ? '&' + extra : '')});
+      var link = (new URLSearchParams(extra || '')).get('link') || '';
+      var live = /(^|\.)mirandaraephotography\.com$/.test(location.hostname);
+      var p = new URLSearchParams();
+      p.set('_subject', (live ? '' : '[TEST] ') + (formName === 'text-tap' ? '\u{1F446} TEXT MIRANDA TAPPED \u00b7 ' + PAGE : '\u{1F517} LINK CLICKED: ' + link + ' \u00b7 ' + PAGE));
+      p.set('_template', 'table'); p.set('_captcha', 'false'); p.set('Page', PAGE);
+      if (link) p.set('Link', link);
+      if (live) p.set('_cc', 'bookmirandarae@gmail.com');
+      fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', {method:'POST', keepalive:true, mode:'no-cors',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString()});
     } catch (e) {}
   }
   var textTapSent = false;
