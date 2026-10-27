@@ -129,16 +129,21 @@ async function pingAlert(req, url, env, ctx) {
   if (link) body.Link = link;
   if (live) body._cc = ALERT_CC;
   // send in the background so the visitor's page never waits on the email service
-  ctx.waitUntil((async () => {
+  // (on the test copy, ?wait=1 waits and shows the email service's answer, for checking)
+  const send = (async () => {
     try {
       const r = await realFetch("https://formsubmit.co/ajax/" + ALERT_TO, {
         method: "POST", signal: AbortSignal.timeout(25000),
         headers: { "Content-Type": "application/json", Accept: "application/json", Origin: "https://" + LIVE_HOST, Referer: "https://" + LIVE_HOST + "/" },
         body: JSON.stringify(body),
       });
-      console.log("tap alert", form, page, r.status, (await r.text()).slice(0, 200));
-    } catch (e) { console.log("tap alert failed", String(e)); }
-  })());
+      const t = (await r.text()).slice(0, 300);
+      console.log("tap alert", form, page, r.status, t);
+      return r.status + " " + t;
+    } catch (e) { console.log("tap alert failed", String(e)); return "failed " + String(e); }
+  })();
+  if (!live && url.searchParams.get("wait")) return new Response(await send);
+  ctx.waitUntil(send);
   return new Response("ok");
 }
 
