@@ -10,8 +10,10 @@
   // The Bookings/Sandy programs in netlify/functions import Netlify's storage; use Cloudflare's instead
   "alias": { "@netlify/blobs": "./src/blobs.mjs" },
   "rules": [{ "type": "Text", "globs": ["**/_redirects"], "fallthrough": true }],
+  // Copies the pages and photos into .cf-public/ first (leaves out code and Netlify's _redirects)
+  "build": { "command": "node tools/cf-build.mjs" },
   "assets": {
-    "directory": ".",
+    "directory": ".cf-public",
     "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none",
