@@ -497,7 +497,11 @@ export default async (req) => {
   const seen = key.replace(/\|/g, "") ? state.recent.find((r) => r.key === key) : null;
   if (seen) {
     await save();
-    return json({ num: seen.num, repeat: true, photographer: seen.photographer || null, payout: seen.payout || 0, ...summary(state, live) });
+    // Oct 27 2026: tell the client screen whether Miranda has already marked the deposit / full payment,
+    // so a repeat tap shows "Deposit received" instead of asking them to pay again.
+    const bk = bookings.find((b) => b.num === seen.num && !b.cancelled);
+    return json({ num: seen.num, repeat: true, depositIn: !!(bk && (bk.deposit || bk.paid)), paidFull: !!(bk && bk.paid),
+      photographer: seen.photographer || null, payout: seen.payout || 0, ...summary(state, live) });
   }
   state.last += 1;
   const rec = { key, num: state.last };
