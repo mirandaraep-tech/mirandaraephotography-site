@@ -1,0 +1,30 @@
+// Cloudflare settings for mirandaraephotography.com (added Oct 27 2026, Netlify -> Cloudflare move).
+// Cloudflare builds this automatically from GitHub. The site's pages and photos are served as files;
+// src/worker.mjs handles redirects, the /api/... programs, photo resizing and tap alerts.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mirandaraephotography",
+  "main": "src/worker.mjs",
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // The Bookings/Sandy programs in netlify/functions import Netlify's storage; use Cloudflare's instead
+  "alias": { "@netlify/blobs": "./src/blobs.mjs" },
+  "rules": [{ "type": "Text", "globs": ["**/_redirects"], "fallthrough": true }],
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none",
+    "run_worker_first": true
+  },
+  "durable_objects": { "bindings": [{ "name": "STORE", "class_name": "SiteStore" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SiteStore"] }],
+  // Sandy's 9 AM Central check-in (wakes at both hours; Sandy only goes ahead at 9 AM Central)
+  "triggers": { "crons": ["0 14,15 * * *"] },
+  "vars": {
+    "URL": "https://mirandaraephotography.com",
+    // "yes" only once the real domain points here (switch night) — keeps the test copy from texting anyone
+    "LIVE": "no"
+  },
+  "observability": { "enabled": true }
+}
