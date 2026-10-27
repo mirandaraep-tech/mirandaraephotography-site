@@ -1,0 +1,21 @@
+# Publishes mirandaraephotography.com to Cloudflare whenever the site changes on GitHub (added Oct 27 2026).
+# The key is stored in GitHub (Settings -> Secrets -> CLOUDFLARE_API_TOKEN), never in this file.
+name: Publish to Cloudflare
+on:
+  push:
+    branches: [cloudflare-move]
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency: cloudflare-deploy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Publish
+        run: npx --yes wrangler@4 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 2a16229ad0396d603cf3660e1171a119
