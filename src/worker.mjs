@@ -125,7 +125,12 @@ async function pingAlert() { return new Response("ok"); }
 const sha = async (t) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))).map((b) => b.toString(16).padStart(2, "0")).join("");
 const LIVE_STORES = ["booking-counter", "sandy", "photo-favorites", "photo-tags", "sandy-secret"];
 async function moveImport(req) {
-  const j = (o, s = 200) => Response.json(o, { status: s, headers: { "Cache-Control": "no-store" } });
+  // The /move page runs on the Netlify preview copy (so it can read Netlify's saved data) and sends it here
+  const origin = req.headers.get("origin") || "";
+  const cors = /^https:\/\/deploy-preview-\d+--silly-semolina-1d2534\.netlify\.app$/.test(origin)
+    ? { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Headers": "x-pass, content-type", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Vary": "Origin" } : {};
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+  const j = (o, s = 200) => Response.json(o, { status: s, headers: { ...cors, "Cache-Control": "no-store" } });
   if ((await sha(String(req.headers.get("x-pass") || "").trim().toLowerCase())) !== PASS_SHA256) return j({ error: "passcode" }, 403);
   if (req.method === "GET") {
     const out = {};
