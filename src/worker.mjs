@@ -17,6 +17,7 @@ import sandyChat from "../netlify/functions/sandy-chat.mjs";
 import sandySms from "../netlify/functions/sandy-sms.mjs";
 import sandyDaily from "../netlify/functions/sandy-daily.mjs";
 import sandyReply from "../netlify/functions/sandy-reply-background.mjs";
+import sandyVoice from "../netlify/functions/sandy-voice.mjs";
 
 const LIVE_HOST = "mirandaraephotography.com";
 const PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79"; // same as /log
@@ -29,6 +30,7 @@ const API = {
   "/api/pixieset-photos": pixiesetPhotos,
   "/api/sandy": sandyChat,
   "/api/sandy-sms": sandySms,
+  "/api/sandy-voice": sandyVoice,
 };
 
 // ---------- Sandy's background work ----------
@@ -43,7 +45,9 @@ globalThis.fetch = async (input, init = {}) => {
   if (u && u.pathname === BACKGROUND && CTX_ENV) {
     const h = new Headers(init.headers || {});
     const job = { key: h.get("x-sandy-key") || "", body: typeof init.body === "string" ? init.body : "" };
-    await CTX_ENV.STORE.get(CTX_ENV.STORE.idFromName("jobs")).enqueue(job);
+    // Phone-call turns get their own queue so they never wait behind a text Sandy is working on
+    const q = h.get("x-sandy-queue") === "voice" ? "voice-jobs" : "jobs";
+    await CTX_ENV.STORE.get(CTX_ENV.STORE.idFromName(q)).enqueue(job);
     return new Response("queued", { status: 202 });
   }
   return realFetch(input, init);
@@ -175,6 +179,23 @@ async function moveImport(req) {
   return j({ ok: true, mode, done });
 }
 
+// ---------- One-time Twilio setup for Sandy's phone line (Oct 28 2026) ----------
+// Points calls to Sandy's number at /api/sandy-voice using the Twilio keys already stored in Cloudflare.
+// Takes no input and only ever sets this one fixed address (texting is left as it is). Remove after use.
+async function twilioVoiceHook(env) {
+  const sid = env.TWILIO_ACCOUNT_SID, tok = env.TWILIO_AUTH_TOKEN;
+  if (!sid || !tok) return Response.json({ error: "Twilio keys missing" });
+  const H = { Authorization: "Basic " + btoa(sid + ":" + tok), "Content-Type": "application/x-www-form-urlencoded" };
+  const HOOK = "https://" + LIVE_HOST + "/api/sandy-voice";
+  const nums = await realFetch("https://api.twilio.com/2010-04-01/Accounts/" + sid + "/IncomingPhoneNumbers.json?PhoneNumber=%2B14482173502", { headers: H }).then((r) => r.json());
+  const out = { numbers: [] };
+  for (const n of nums.incoming_phone_numbers || []) {
+    const r = await realFetch("https://api.twilio.com/2010-04-01/Accounts/" + sid + "/IncomingPhoneNumbers/" + n.sid + ".json", { method: "POST", headers: H,
+      body: new URLSearchParams({ VoiceUrl: HOOK, VoiceMethod: "POST", VoiceApplicationSid: "" }) }).then((r) => r.json());
+    out.numbers.push({ number: r.phone_number, voiceUrl: r.voice_url, smsUrl: r.sms_url, voiceCapable: r.capabilities && r.capabilities.voice, err: r.message });
+  }
+  return Response.json(out, { headers: { "Cache-Control": "no-store" } });
+}
 
 export default {
   async fetch(req, env, ctx) {
@@ -187,6 +208,7 @@ export default {
 
     if (API[path]) return API[path](req, {});
     if (path === "/api/move-import") return moveImport(req);
+    if (path === "/api/twilio-voice-hook") return twilioVoiceHook(env);
     if (path === BACKGROUND) return new Response("Not found", { status: 404 }); // only Sandy calls this, internally
     if (path === "/.netlify/images") return image(req, url, env);
     if (req.method === "POST" && path === "/") return pingAlert();

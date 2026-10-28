@@ -270,7 +270,22 @@ async function claude(sys, messages) {
 
 // One message in, one text out. history = [{role, content}] (plain text turns only).
 // Returns { reply, changes: [tool calls made], history }
-export async function chat({ base, from, text, history = [] }) {
+// On a phone call (voice: true) Sandy talks instead of texting, and a change only goes through after the
+// caller has just said yes to her reading it back (Randy's rule, Oct 28 2026).
+const VOICE_RULES = `
+
+THIS IS A PHONE CALL, NOT A TEXT. These phone rules replace the texting style rules above.
+- Your words are read aloud by a speaking voice. Talk naturally in short, plain sentences. No lists, dashes, symbols or abbreviations. Say "booking 112", "Saturday, November 7th", "50 dollars".
+- Keep each answer short: one to three sentences. If there's more, give the most important part and ask if they want the rest.
+- What you hear comes from speech recognition and can be wrong, especially names, numbers, dates and amounts. If anything sounds off or unclear, ask.
+- Before ANY change to the Bookings app: repeat back exactly what you'll do (the name, booking number, and the amount, date or detail) and ask "Should I go ahead?". Do NOT use a tool until their very next answer clearly says yes. If they say no or correct you, repeat the corrected version and ask again.
+- After a change goes through, say it's done in one short sentence and that you'll text them a confirmation (the confirmation text is sent automatically).
+- When they're finished (they say bye, that's all, thanks that's it), say a short goodbye and end your answer with [HANG UP]. Never use [HANG UP] any other time.`;
+const YES = /\b(yes|yeah|yep|yup|ya|sure|correct|right|go ahead|do it|please do|absolutely|ok|okay|affirmative|sounds good)\b/i;
+const NO = /^\s*(no|nope|nah|wait|hold on|stop|don't|do not|not)\b/i;
+export const saidYes = (t) => YES.test(t) && !NO.test(t);
+
+export async function chat({ base, from, text, history = [], voice = false }) {
   const person = PEOPLE[digits(from)] || { name: "Someone", role: "an unknown number" };
   const by = "Sandy · " + person.name;
   let data = await loadData(base);
@@ -281,7 +296,7 @@ export async function chat({ base, from, text, history = [] }) {
   let reply = "";
   // The picture of the app is taken once, when the message comes in. Changes Sandy makes show up in her
   // tool results, so she doesn't mistake her own change for something that was already there.
-  const sys = system(person.role, snapshot(data, today).text + "\n\n(This snapshot was taken when this message arrived. Changes you make with tools show in the tool results, not here.)", priceList, today);
+  const sys = system(person.role, snapshot(data, today).text + "\n\n(This snapshot was taken when this message arrived. Changes you make with tools show in the tool results, not here.)", priceList, today) + (voice ? VOICE_RULES : "");
   for (let i = 0; i < 8; i++) {
     const res = await claude(sys, msgs);
     msgs.push({ role: "assistant", content: res.content });
@@ -291,7 +306,8 @@ export async function chat({ base, from, text, history = [] }) {
     const results = [];
     for (const u of uses) {
       let out;
-      try { out = await runTool(base, u.name, u.input || {}, by, data); } catch (e) { out = { error: String(e.message || e) }; }
+      if (voice && !saidYes(text)) out = { error: "Not done. On a phone call you must first read the change back and ask 'Should I go ahead?', and only make it after they say yes." };
+      else { try { out = await runTool(base, u.name, u.input || {}, by + (voice ? " (call)" : ""), data); } catch (e) { out = { error: String(e.message || e) }; } }
       changes.push({ tool: u.name, input: u.input, result: out });
       results.push({ type: "tool_result", tool_use_id: u.id, content: JSON.stringify(out).slice(0, 4000) });
     }
@@ -301,6 +317,30 @@ export async function chat({ base, from, text, history = [] }) {
   reply = clean(reply) || "Sorry, I got mixed up there. Could you say that again?";
   const newHist = history.concat({ role: "user", content: text }, { role: "assistant", content: reply }).slice(-20);
   return { reply, changes, history: newHist };
+}
+
+// Did a change really go through? (the Bookings app answers ok / num, or error / conflict / duplicate)
+export const changeWorked = (c) => { const r = c.result || {}; return !r.error && !r.conflict && !r.duplicate && !r.unchanged && !!(r.ok || r.num); };
+// One plain line per change, for the confirmation text after a call
+export function describeChange(c, data) {
+  const x = c.input || {}, b = ((data && data.bookings) || []).find((y) => y.num === x.num);
+  const who = x.num ? "#" + x.num + (b ? " " + b.name : "") + ": " : "";
+  switch (c.tool) {
+    case "deposit_received": return who + money(x.amount || 50) + " deposit received" + (x.method ? " (" + x.method + ")" : "");
+    case "paid_in_full": return who + "marked paid in full" + (x.method ? " (" + x.method + ")" : "");
+    case "add_extra": return who + "added " + money(x.amount) + " extra (" + x.what + ")";
+    case "deduct": return who + "took " + money(x.amount) + " off" + (x.why ? " (" + x.why + ")" : "");
+    case "move_date": return who + "moved to " + nice(x.date);
+    case "edit_booking": { const { num: _n, ...f } = x; return who + "changed " + Object.entries(f).map(([k, v]) => k + " to " + (k === "date" ? nice(v) : k === "total" ? money(v) : v)).join(", "); }
+    case "set_photographer": return who + "photographer set to " + x.photographer;
+    case "photographer_paid_miranda": return who + "photographer paid Miranda " + money(x.amount);
+    case "cancel_booking": return who + "cancelled" + (x.deposit === "keep" ? " (Miranda keeps the deposit)" : x.deposit === "return" ? " (deposit returned)" : "");
+    case "undo": return who + "undid the last " + String(x.what).replace("_", " ");
+    case "add_booking": return "New booking: " + [x.name, x.date ? nice(x.date) : "", x.time, x.beach, money(x.amount)].filter(Boolean).join(", ");
+    case "remove_inquiry": return "Inquiry removed: " + x.name + (x.date ? " (" + nice(x.date) + ")" : "");
+    case "clear_old_inquiries": return "Cleared " + ((c.result && c.result.cleared) || "the") + " old inquiries";
+  }
+  return c.tool;
 }
 
 // Morning check-in for Miranda. Returns null when there's nothing worth texting.
