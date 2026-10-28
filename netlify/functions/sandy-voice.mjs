@@ -19,6 +19,9 @@ import { livePass } from "./sandy-live.mjs";
 const liveOn = () => env("SANDY_LIVE_CALLS").toLowerCase() === "on";
 
 const VOICE = "Polly.Joanna-Neural";
+// Live calls (Oct 28 2026): Twilio's default live voice is a man's. Sandy is a woman, so use the same
+// woman's voice (Joanna) as the older phone line.
+const LIVE_VOICE = "Joanna-Neural";
 const HINTS = "Sandy, Miranda, Randy, Kallie, Bradyn, booking, deposit, paid in full, Venmo, Cash App, PayPal, Zelle, Pixieset, " +
   "sunrise, sunset, Mexico Beach, Port St. Joe, Cape San Blas, Panama City Beach, St. George Island, Destin, 30A, inquiry, extra, cancel";
 
@@ -80,7 +83,7 @@ export default async (req) => {
     const hello = "Hi " + person.name + ", it's Sandy. What can I do for you?";
     if (liveOn()) {
       const wss = base.replace(/^http/, "ws") + "/api/sandy-live?p=" + encodeURIComponent(livePass(call, from));
-      return xml('<Connect action="' + esc(here + "?step=after") + '"><ConversationRelay url="' + esc(wss) + '" welcomeGreeting="' + esc(hello) +
+      return xml('<Connect action="' + esc(here + "?step=after") + '"><ConversationRelay url="' + esc(wss) + '" ttsProvider="Amazon" voice="' + LIVE_VOICE + '" welcomeGreeting="' + esc(hello) +
         '" interruptible="any" interruptSensitivity="medium" welcomeGreetingInterruptible="any" hints="' + esc(HINTS) + '"/></Connect>');
     }
     await record(base, { kind: "call-start", from });
