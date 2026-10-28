@@ -11,6 +11,12 @@
 // the line ("One moment…") and picks her answer up as soon as it's ready.
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { PEOPLE, MIRANDA, digits, env, deliver, record, sandyKey, sandyStore } from "../sandy/brain.mjs";
+import { livePass } from "./sandy-live.mjs";
+
+// Live conversations (Oct 28 2026): when SANDY_LIVE_CALLS is "on", Randy's and Miranda's calls go to
+// sandy-live.mjs (talk naturally, cut in anytime). If that ever fails to start, the call drops back to
+// the turn-by-turn version below, so the line always works.
+const liveOn = () => env("SANDY_LIVE_CALLS").toLowerCase() === "on";
 
 const VOICE = "Polly.Joanna-Neural";
 const HINTS = "Sandy, Miranda, Randy, Kallie, Bradyn, booking, deposit, paid in full, Venmo, Cash App, PayPal, Zelle, Pixieset, " +
@@ -71,12 +77,27 @@ export default async (req) => {
       return xml(say("Hi, you've reached the assistant line for Miranda Rae Photography. I can't take calls from this number yet. Please send a text to this number instead, and Miranda will get back to you. Thanks for calling!") + "<Hangup/>");
     }
     await store.setJSON(key, { from, turn: 0, history: [], started: new Date().toISOString() });
+    const hello = "Hi " + person.name + ", it's Sandy. What can I do for you?";
+    if (liveOn()) {
+      const wss = base.replace(/^http/, "ws") + "/api/sandy-live?p=" + encodeURIComponent(livePass(call, from));
+      return xml('<Connect action="' + esc(here + "?step=after") + '"><ConversationRelay url="' + esc(wss) + '" welcomeGreeting="' + esc(hello) +
+        '" interruptible="any" interruptSensitivity="medium" welcomeGreetingInterruptible="any" hints="' + esc(HINTS) + '"/></Connect>');
+    }
     await record(base, { kind: "call-start", from });
-    return xml(say("Hi " + person.name + ", it's Sandy. What can I do for you?") + listen());
+    return xml(say(hello) + listen());
   }
 
   const s = (await store.get(key, { type: "json" })) || null;
   if (!s || s.from !== from) return xml(say("Sorry, I lost track of our call. Please call me back.") + "<Hangup/>");
+
+  // ----- The live conversation ended -----
+  if (step === "after") {
+    let h = {}; try { h = JSON.parse(params.HandoffData || "{}"); } catch (e) {}
+    if (h.done || params.SessionStatus === "completed" && !params.ErrorCode) return xml("<Hangup/>");
+    // It didn't start or broke partway: note why, and carry on the old turn-by-turn way
+    await record(base, { kind: "error", body: "live call ended early: " + [params.SessionStatus, params.ErrorCode, params.ErrorMessage, params.HandoffData].filter(Boolean).join(" · ") });
+    return xml(say("Sorry about that. I'm still here. What can I do for you?") + listen());
+  }
 
   // ----- They said something (or nothing) -----
   if (step === "heard") {

@@ -319,6 +319,81 @@ export async function chat({ base, from, text, history = [], voice = false }) {
   return { reply, changes, history: newHist };
 }
 
+// ---------- Live phone calls (added Oct 28 2026) ----------
+// Same brain as chat(), but Sandy's words stream out as she thinks them, so the caller hears her start
+// talking right away instead of waiting for the whole answer. onText(piece) gets each bit of speech;
+// onWorking() is called once if she has to stop and make a change (so the call can say "One sec").
+async function claudeStream(sys, messages, onText, signal, maxTokens) {
+  const key = env("ANTHROPIC_API_KEY");
+  if (!key) throw new Error("ANTHROPIC_API_KEY isn't set yet");
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST", signal,
+    headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system: sys, tools: TOOLS, messages, stream: true }),
+  });
+  if (!r.ok || !r.body) { let m = r.status; try { const j = await r.json(); m = (j.error && j.error.message) || m; } catch (e) {} throw new Error("Claude: " + m); }
+  const content = [], json = {};
+  let stop = null, buf = "";
+  const reader = r.body.getReader(), dec = new TextDecoder();
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf("\n\n")) >= 0) {
+      const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+      const dl = chunk.split("\n").find((l) => l.startsWith("data:"));
+      if (!dl) continue;
+      let e; try { e = JSON.parse(dl.slice(5)); } catch (x) { continue; }
+      if (e.type === "content_block_start") { content[e.index] = { ...e.content_block }; if (e.content_block.type === "tool_use") json[e.index] = ""; }
+      else if (e.type === "content_block_delta") {
+        const b = content[e.index];
+        if (e.delta.type === "text_delta") { b.text = (b.text || "") + e.delta.text; onText(e.delta.text); }
+        else if (e.delta.type === "input_json_delta") json[e.index] += e.delta.partial_json;
+      } else if (e.type === "content_block_stop" && json[e.index] !== undefined) {
+        try { content[e.index].input = json[e.index] ? JSON.parse(json[e.index]) : {}; } catch (x) { content[e.index].input = {}; }
+      } else if (e.type === "message_delta" && e.delta && e.delta.stop_reason) stop = e.delta.stop_reason;
+      else if (e.type === "error") throw new Error("Claude: " + ((e.error && e.error.message) || "stream error"));
+    }
+  }
+  return { content: content.filter(Boolean), stop_reason: stop };
+}
+
+// One thing the caller said in, Sandy's spoken answer streamed out. Returns { reply, changes } —
+// the caller keeps the call's history (plain text turns) and passes it back in each time.
+export async function chatLive({ base, from, text, history = [], onText, onWorking, signal, changes = [] }) {
+  const person = PEOPLE[digits(from)] || { name: "Someone", role: "an unknown number" };
+  const by = "Sandy · " + person.name + " (call)";
+  let data = await loadData(base);
+  const today = todayCT();
+  const sys = system(person.role, snapshot(data, today).text + "\n\n(This snapshot was taken when this call started talking about this. Changes you make with tools show in the tool results, not here.)", await prices(base), today) + VOICE_RULES + LIVE_RULES;
+  const msgs = history.slice(-24).concat({ role: "user", content: text });
+  let spoken = "", working = false;
+  const say = (t) => { spoken += t; onText(t); };
+  for (let i = 0; i < 8; i++) {
+    const res = await claudeStream(sys, msgs, say, signal, 700);
+    msgs.push({ role: "assistant", content: res.content });
+    const uses = res.content.filter((c) => c.type === "tool_use");
+    if (!uses.length || res.stop_reason !== "tool_use") break;
+    if (!working && onWorking) { working = true; onWorking(); }
+    const results = [];
+    for (const u of uses) {
+      let out;
+      if (!saidYes(text)) out = { error: "Not done. On a phone call you must first read the change back and ask 'Should I go ahead?', and only make it after they say yes." };
+      else { try { out = await runTool(base, u.name, u.input || {}, by, data); } catch (e) { out = { error: String(e.message || e) }; } }
+      changes.push({ tool: u.name, input: u.input, result: out });
+      results.push({ type: "tool_result", tool_use_id: u.id, content: JSON.stringify(out).slice(0, 4000) });
+    }
+    msgs.push({ role: "user", content: results });
+    data = await loadData(base);
+    if (spoken && !/\s$/.test(spoken)) say(" ");
+  }
+  return { reply: spoken.trim(), changes };
+}
+const LIVE_RULES = `
+- This is a live back-and-forth call. The caller can talk over you, so start with the answer, and keep it to a sentence or two. Never start with filler like "Great question" or "Let me check".
+- If you need to make a change after they said yes, don't announce that you're about to; just do it, then say it's done.`;
+
 // Did a change really go through? (the Bookings app answers ok / num, or error / conflict / duplicate)
 export const changeWorked = (c) => { const r = c.result || {}; return !r.error && !r.conflict && !r.duplicate && !r.unchanged && !!(r.ok || r.num); };
 // One plain line per change, for the confirmation text after a call

@@ -18,6 +18,7 @@ import sandySms from "../netlify/functions/sandy-sms.mjs";
 import sandyDaily from "../netlify/functions/sandy-daily.mjs";
 import sandyReply from "../netlify/functions/sandy-reply-background.mjs";
 import sandyVoice from "../netlify/functions/sandy-voice.mjs";
+import sandyLive from "../netlify/functions/sandy-live.mjs";
 
 const LIVE_HOST = "mirandaraephotography.com";
 const PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79"; // same as /log
@@ -31,6 +32,7 @@ const API = {
   "/api/sandy": sandyChat,
   "/api/sandy-sms": sandySms,
   "/api/sandy-voice": sandyVoice,
+  "/api/sandy-live": sandyLive, // live phone conversations (WebSocket)
 };
 
 // ---------- Sandy's background work ----------
