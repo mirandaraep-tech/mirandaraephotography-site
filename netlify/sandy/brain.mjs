@@ -288,8 +288,19 @@ export async function claude(sys, messages, tools = TOOLS) {
     body: JSON.stringify({ model: MODEL, max_tokens: 1200, system: sys, tools, messages }),
   });
   const j = await r.json();
-  if (j.type === "error" || !j.content) throw new Error("Claude: " + ((j.error && j.error.message) || r.status));
+  if (j.type === "error" || !j.content) { const m = (j.error && j.error.message) || String(r.status); await creditAlarm(m); throw new Error("Claude: " + m); }
   return j;
+}
+
+// Oct 28 2026: if Sandy's Claude credits run out, text Randy (once a day) so he can add more
+export async function creditAlarm(msg) {
+  if (!/credit balance|billing|insufficient/i.test(String(msg || ""))) return;
+  try {
+    const base = env("URL") || "https://mirandaraephotography.com", s = sandyStore(base), day = todayCT();
+    if ((await s.get("credit-alarm", { type: "json" })) === day) return;
+    await s.setJSON("credit-alarm", day);
+    await deliver(base, "2563996736", "Sandy here: Randy, my Claude credits ran out, so I can't answer texts or calls until more are added. Please add credits at console.anthropic.com (signed in as mirandaraep@gmail.com).", "credit-alarm");
+  } catch (e) {}
 }
 
 // One message in, one text out. history = [{role, content}] (plain text turns only).
@@ -355,7 +366,7 @@ async function claudeStream(sys, messages, onText, signal, maxTokens) {
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system: sys, tools: TOOLS, messages, stream: true }),
   });
-  if (!r.ok || !r.body) { let m = r.status; try { const j = await r.json(); m = (j.error && j.error.message) || m; } catch (e) {} throw new Error("Claude: " + m); }
+  if (!r.ok || !r.body) { let m = r.status; try { const j = await r.json(); m = (j.error && j.error.message) || m; } catch (e) {} await creditAlarm(m); throw new Error("Claude: " + m); }
   const content = [], json = {};
   let stop = null, buf = "";
   const reader = r.body.getReader(), dec = new TextDecoder();
