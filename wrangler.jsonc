@@ -32,7 +32,10 @@
     // Live phone conversations (Oct 28 2026): "on" sends Randy's and Miranda's calls to the live version
     "SANDY_LIVE_CALLS": "on",
     // Sandy answers customers who text her number when "on" (Oct 28 2026). "off" = real customer texts still go to Miranda; the pretend customer on /sandy works either way
-    "SANDY_CUSTOMERS": "on"
+    "SANDY_CUSTOMERS": "on",
+    // Sandy texts people who send a website request and check OK to text (Oct 28 2026).
+    // "testers" = only Randy's and Bradyn's numbers. Change to "everyone" when Randy says turn it on for everyone.
+    "SANDY_WEB_TEXTS": "testers"
   },
   // The real address (Oct 27 2026 switch night). Takes effect once Porkbun points the domain at Cloudflare.
   // keep the test address working too (wrangler turns it off when routes are set)

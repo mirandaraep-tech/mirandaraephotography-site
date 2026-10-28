@@ -150,7 +150,9 @@
       if (/^(wedding|not sure yet|other)$/i.test(beach)) beach = '';
       if (!beach) { for (var k in BEACH) { if (path.indexOf('/' + k) === 0) { beach = BEACH[k]; break; } } }
       var parts = [v('name') || 'No name', v('date') ? window.mrpDate(v('date'), true) : 'no date yet', beach, (wedding && v('collection') && !/not sure/i.test(v('collection')) ? v('collection').replace(/^(.*?) — (\$[\d,]+).*$/, '$2 $1') : window.mrpPriceLabel(window.mrpPrice(beach, wedding)))].filter(Boolean);
-      subj.value = '📩 NEW REQUEST: ' + parts.join(' · ');
+      // Oct 28 2026: requests from Randy's, Bradyn's or Miranda's own phone numbers say TEST up front
+      var testNum = /^(2563996736|2566134522|4482196539)$/.test(String(v('phone')).replace(/\D/g, '').slice(-10));
+      subj.value = (testNum ? '🧪 TEST · ' : '') + '📩 NEW REQUEST: ' + parts.join(' · ');
     } catch (err) {}
   }, true);
 })();
@@ -273,9 +275,31 @@
     try {
       var el = f.elements, v = function (k) { return el[k] && el[k].value ? String(el[k].value).trim() : ''; };
       var body = JSON.stringify({ kind: 'request', name: v('name'), date: v('date'), beach: v('beach'), phone: v('phone'),
-        detail: [n.replace(/^booking-/, '') + ' page', v('session-type'), v('heard-from')].filter(Boolean).join(' · ') });
+        detail: [n.replace(/^booking-/, '') + ' page', v('session-type'), v('heard-from'), okText(f) ? 'OK to text' : ''].filter(Boolean).join(' · ') });
       if (!(navigator.sendBeacon && navigator.sendBeacon('/api/booking-counter', new Blob([body], { type: 'application/json' }))))
         fetch('/api/booking-counter', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body });
+    } catch (err) {}
+  }, true);
+})();
+
+// Sandy texts website requests (added Oct 28 2026). When the visitor checks the OK-to-text box, the
+// request also goes to Sandy, who texts them to get anything missing and lets Miranda know.
+// The site decides who actually gets a text (for now only Randy's and Bradyn's numbers).
+function okText(f) { var c = f && f.elements && f.elements['text-consent']; return !!(c && c.checked); }
+(function () {
+  document.addEventListener('submit', function (e) {
+    var f = e.target, n = f && f.getAttribute && (f.getAttribute('name') || '');
+    if (!/^booking-/.test(n) || !okText(f)) return;
+    try {
+      var fields = {}, skip = /^(_|text-consent$|came-from$|campaign$|search-phrase$|google-ads-click-id$|referring-site$|first-page$|visits$|subject$)/;
+      [].forEach.call(f.elements, function (x) {
+        if (!x.name || skip.test(x.name) || x.type === 'hidden' || x.type === 'submit' || x.type === 'button') return;
+        if ((x.type === 'radio' || x.type === 'checkbox') && !x.checked) return;
+        var val = String(x.value || '').trim(); if (val) fields[x.name] = val.slice(0, 600);
+      });
+      var body = JSON.stringify({ form: n, page: location.pathname, consent: true, fields: fields });
+      if (!(navigator.sendBeacon && navigator.sendBeacon('/api/sandy-web', new Blob([body], { type: 'application/json' }))))
+        fetch('/api/sandy-web', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body });
     } catch (err) {}
   }, true);
 })();
