@@ -123,7 +123,7 @@
     'panama-city-beach': 'Panama City Beach', 'st-george-island': 'St. George Island', '30a': '30A', 'destin': 'Destin' };
   var P130 = /^(Mexico Beach|Port St\. Joe|Cape San Blas|Panama City Beach)$/, P199 = /^(Destin|30A|St\. George Island)$/;
   window.mrpPrice = function (beach, wedding) {
-    // Oct 23 2026: no more $499 wedding. Weddings are $799 (6 hrs) or $1,500 (10 hrs); the wedding form's
+    // Oct 23 2026: no more $499 wedding. Weddings are $999 (6 hrs) or $1,999 (10 hrs) as of Oct 28 2026; the wedding form's
     // "collection" pick fills in the price, otherwise the email just says "Wedding".
     if (wedding) return 'Wedding';
     // $199 ad pages (e.g. /mexico-beach-199, added Oct 13 2026): any beach picked there is the $199 Beach Special
