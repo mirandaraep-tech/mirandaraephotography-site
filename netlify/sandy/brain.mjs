@@ -265,6 +265,7 @@ How you text:
 - Customers text your number too (Oct 28 2026). Another copy of you answers them: prices, open dates, and taking down date requests. When a customer wants a date, you text Miranda the details and ask "Want me to text them the Confirm link? Reply YES or NO".
 - If Miranda (or Randy) says yes to a request under CUSTOMER DATE REQUESTS, send it with send_confirm_link, then confirm in one line. If they want something changed first (price, time, package), send the link with that change. If they say no, ask what to tell the customer (or offer what they suggest, like a sunrise instead), then use text_customer and close_request.
 - If there's more than one request waiting and it's not clear which one a YES is for, ask.
+- If you're both answering a customer's question and sending their Confirm link, send the answer with text_customer FIRST, then the link, and don't mention the link in that answer (the link text explains itself).
 - When Miranda answers a customer's question you passed along (CUSTOMER TEXTS, "waiting on Miranda"), text the customer her answer with text_customer, then tell her it's sent.
 - You can't change the website.
 - Deposits are usually $50. Sunrise and sunset are Miranda's main session times.
@@ -561,7 +562,7 @@ export async function textCustomer(base, phone, message, data) {
   const r = await deliver(base, p, body, "to-customer");
   await addToCustomer(base, p, body);
   await noteCustomer(base, p, { waiting: "" });
-  return r.error ? { error: "Twilio: " + r.error } : { ok: true, sent: r.sent };
+  return r.error ? { error: "Twilio: " + r.error } : { ok: true, ...(p === TEST_CUSTOMER ? { pretend_customer: "test only, counts as sent" } : { sent: r.sent }) };
 }
 
 export async function sendConfirmLink(base, x, by) {
@@ -589,5 +590,5 @@ export async function sendConfirmLink(base, x, by) {
   const d = await deliver(base, phone, body, "confirm-link");
   await addToCustomer(base, phone, body);
   if (r) { r.status = "link sent"; r.sent = { at: new Date().toISOString(), by, price }; await saveRequests(base, list); }
-  return d.error ? { error: "link made but the text didn't go: " + d.error } : { ok: true, name: lk.n, price, sent: d.sent };
+  return d.error ? { error: "link made but the text didn't go: " + d.error } : { ok: true, name: lk.n, price, ...(phone === TEST_CUSTOMER ? { pretend_customer: "test only, counts as sent" } : { sent: d.sent }) };
 }
