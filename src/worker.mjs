@@ -175,6 +175,33 @@ async function moveImport(req) {
   return j({ ok: true, mode, done });
 }
 
+
+// ---------- One-time Twilio setup (Oct 28 2026) ----------
+// Points Sandy's number (and its Messaging Service) at /api/sandy-sms using the Twilio keys already stored
+// in Cloudflare. Takes no input and only ever sets this one fixed address, so it's safe to leave reachable.
+async function twilioHook(env) {
+  const sid = env.TWILIO_ACCOUNT_SID, tok = env.TWILIO_AUTH_TOKEN;
+  if (!sid || !tok) return Response.json({ error: "Twilio keys missing" });
+  const H = { Authorization: "Basic " + btoa(sid + ":" + tok), "Content-Type": "application/x-www-form-urlencoded" };
+  const HOOK = "https://" + LIVE_HOST + "/api/sandy-sms";
+  const out = {};
+  const svc = await realFetch("https://messaging.twilio.com/v1/Services?PageSize=50", { headers: H }).then((r) => r.json());
+  out.services = [];
+  for (const s of svc.services || []) {
+    const r = await realFetch("https://messaging.twilio.com/v1/Services/" + s.sid, { method: "POST", headers: H,
+      body: new URLSearchParams({ InboundRequestUrl: HOOK, InboundMethod: "POST", UseInboundWebhookOnNumber: "false" }) }).then((r) => r.json());
+    out.services.push({ name: s.friendly_name, url: r.inbound_request_url, onNumber: r.use_inbound_webhook_on_number, err: r.message });
+  }
+  const nums = await realFetch("https://api.twilio.com/2010-04-01/Accounts/" + sid + "/IncomingPhoneNumbers.json?PhoneNumber=%2B14482173502", { headers: H }).then((r) => r.json());
+  out.numbers = [];
+  for (const n of nums.incoming_phone_numbers || []) {
+    const r = await realFetch("https://api.twilio.com/2010-04-01/Accounts/" + sid + "/IncomingPhoneNumbers/" + n.sid + ".json", { method: "POST", headers: H,
+      body: new URLSearchParams({ SmsUrl: HOOK, SmsMethod: "POST" }) }).then((r) => r.json());
+    out.numbers.push({ number: r.phone_number, smsUrl: r.sms_url, err: r.message });
+  }
+  return Response.json(out, { headers: { "Cache-Control": "no-store" } });
+}
+
 export default {
   async fetch(req, env, ctx) {
     setEnv(env); CTX_ENV = env;
@@ -186,6 +213,7 @@ export default {
 
     if (API[path]) return API[path](req, {});
     if (path === "/api/move-import") return moveImport(req);
+    if (path === "/api/twilio-hook") return twilioHook(env);
     if (path === BACKGROUND) return new Response("Not found", { status: 404 }); // only Sandy calls this, internally
     if (path === "/.netlify/images") return image(req, url, env);
     if (req.method === "POST" && path === "/") return pingAlert();
