@@ -79,6 +79,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 24px}
       <div class="who" role="group" aria-label="Who's texting">
         <button type="button" data-as="Miranda">Miranda</button>
         <button type="button" data-as="Randy">Randy</button>
+        <button type="button" data-as="Customer">Customer</button>
       </div>
       <p class="muted" id="liveNote" style="margin:0 0 8px"></p>
       <div class="thread" id="thread" aria-live="polite"></div>
@@ -109,29 +110,30 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 24px}
   var $ = function(id){ return document.getElementById(id); };
   var API = '/api/sandy', PASS = '', AS = 'Miranda', BUSY = false;
   try { PASS = localStorage.getItem('mrp-log-pass') || ''; AS = localStorage.getItem('mrp-sandy-as') || (localStorage.getItem('mrp-who') === 'Miranda' ? 'Miranda' : 'Randy'); } catch (e) {}
-  if (AS !== 'Randy' && AS !== 'Miranda') AS = 'Miranda';
+  if (AS !== 'Randy' && AS !== 'Miranda' && AS !== 'Customer') AS = 'Miranda';
   var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
   var when = function(iso){ try { var d = new Date(iso); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
-  var NAMES = { '2563996736': 'Randy', '4482196539': 'Miranda' };
+  var NAMES = { '2563996736': 'Randy', '4482196539': 'Miranda', '8505550100': 'pretend customer' };
 
   function call(body){
     return fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify(Object.assign({ as: AS }, body)) }).then(function(r){ return r.json(); });
   }
   function bubble(role, text, lbl){ return '<div class="msg ' + role + '">' + (lbl ? '<span class="lb">' + esc(lbl) + '</span>' : '') + esc(text) + '</div>'; }
   // Plain-words note for each change Sandy made in the Bookings app
-  var WORDS = { deposit_received: 'Deposit received', paid_in_full: 'Paid in full', add_extra: 'Extra added', deduct: 'Money taken off', move_date: 'Date moved', edit_booking: 'Booking edited', set_photographer: 'Photographer changed', photographer_paid_miranda: 'Photographer paid Miranda', cancel_booking: 'Cancelled', undo: 'Undone', add_booking: 'Booking added', remove_inquiry: 'Inquiry removed', clear_old_inquiries: 'Old inquiries cleared' };
+  var WORDS = { deposit_received: 'Deposit received', paid_in_full: 'Paid in full', add_extra: 'Extra added', deduct: 'Money taken off', move_date: 'Date moved', edit_booking: 'Booking edited', set_photographer: 'Photographer changed', photographer_paid_miranda: 'Photographer paid Miranda', cancel_booking: 'Cancelled', undo: 'Undone', add_booking: 'Booking added', remove_inquiry: 'Inquiry removed', clear_old_inquiries: 'Old inquiries cleared',
+    send_confirm_link: 'Confirm link texted', text_customer: 'Customer texted', close_request: 'Request closed', request_date: 'Date request sent to Miranda', ask_miranda: 'Question sent to Miranda' };
   function didLines(ch){
     return (ch || []).map(function(c){
-      var r = c.result || {}, bad = r.error || r.conflict || r.duplicate;
+      var r = c.result || {}, bad = r.error || r.conflict || r.duplicate || r.taken;
       var who = c.input && c.input.num ? ' · #' + c.input.num : c.input && c.input.name ? ' · ' + c.input.name : '';
-      return '<div class="did' + (bad ? ' no' : '') + '">' + (bad ? '✗ Couldn\'t do: ' : '✓ In the Bookings app: ') + esc((WORDS[c.tool] || c.tool) + who) + (bad ? ' (' + esc(r.error || (r.conflict ? 'that time is taken' : 'already there')) + ')' : '') + '</div>';
+      return '<div class="did' + (bad ? ' no' : '') + '">' + (bad ? '✗ Couldn\'t do: ' : '✓ ') + esc((WORDS[c.tool] || c.tool) + who) + (bad ? ' (' + esc(r.error || (r.conflict || r.taken ? 'that time is taken' : 'already there')) + ')' : '') + '</div>';
     }).join('');
   }
   function drawThread(h){
     $('thread').innerHTML = (h || []).length ? h.map(function(m){
-      if (m.role === 'user') return m.content === '[Morning check-in]' ? '' : bubble('me', m.content);
+      if (m.role === 'user') return /^\[(Morning check-in|Customer update|No new text from the customer)\]$/.test(m.content) ? '' : bubble('me', m.content);
       return bubble('sandy', m.content, 'SANDY');
-    }).join('') : '<p class="muted">Try: "What do I need to do today?" or "The Smiths paid the deposit by Venmo."</p>';
+    }).join('') : '<p class="muted">' + (AS === 'Customer' ? 'You\'re a pretend customer. Nothing is really texted. Try: "How much is a sunset session at Mexico Beach?"' : 'Try: "What do I need to do today?" or "The Smiths paid the deposit by Venmo."') + '</p>';
     $('thread').scrollTop = 1e6;
   }
   function drawStatus(s){
@@ -151,13 +153,14 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 24px}
     list = (list || []).filter(function(o){ return o.kind !== 'changes'; });
     if (!list.length) { $('outbox').innerHTML = '<p class="muted">Nothing yet.</p>'; return; }
     $('outbox').innerHTML = list.map(function(o){
-      var head = o.kind === 'incoming' ? '📥 From ' + (NAMES[o.from] || o.from) : o.kind === 'incoming-other' ? '📥 From ' + o.from + ' (not Randy or Miranda)' : o.kind === 'error' ? '⚠️ Problem' : o.kind === 'daily-skip' ? '☀️ Morning check-in skipped' : '📤 To ' + (NAMES[o.to] || o.to) + (o.kind === 'daily' ? ' · morning check-in' : '') + (o.kind === 'forwarded' ? ' · passed along' : '') + (o.error ? ' · NOT SENT: ' + o.error : o.sent ? ' · sent' : ' · not sent (texting off)');
+      var head = o.kind === 'incoming' ? '📥 From ' + (NAMES[o.from] || o.from) : o.kind === 'incoming-other' ? '📥 From customer ' + o.from : o.kind === 'error' ? '⚠️ Problem' : o.kind === 'daily-skip' ? '☀️ Morning check-in skipped' : '📤 To ' + (NAMES[o.to] || o.to) + (o.kind === 'daily' ? ' · morning check-in' : '') + (o.kind === 'forwarded' ? ' · passed along' : '') + (o.kind === 'to-miranda-test' ? ' · customer update (pretend customer, not sent)' : o.kind === 'to-miranda' ? ' · customer update' : '') + (o.kind === 'confirm-link' ? ' · Confirm link' : '') + (o.error ? ' · NOT SENT: ' + o.error : o.sent ? ' · sent' : ' · not sent (texting off)');
       return '<div class="out"><div class="h">' + esc(when(o.at)) + ' · ' + esc(head) + '</div><div class="b">' + esc(o.body || '') + '</div></div>';
     }).join('');
   }
   function pickWho(){
     Array.prototype.forEach.call(document.querySelectorAll('.who button'), function(b){ var on = b.getAttribute('data-as') === AS; b.classList.toggle('on', on); b.textContent = b.getAttribute('data-as') + (on ? ' ✓' : ''); b.setAttribute('aria-pressed', on); });
-    $('txt').placeholder = 'Text Sandy as ' + AS + '…';
+    $('txt').placeholder = AS === 'Customer' ? 'Text Sandy as a pretend customer…' : 'Text Sandy as ' + AS + '…';
+    $('daily').hidden = AS === 'Customer';
   }
   function load(){
     return call({}).then(function(j){

@@ -1,6 +1,7 @@
 // Sandy's helper that does the thinking (added Oct 21 2026). Runs in the background (up to 15 min),
 // started by sandy-sms (a text came in) or sandy-daily (morning check-in).
 import { chat, dailyCheckin, deliver, getHistory, saveHistory, record, env, MIRANDA, sandyKey, sandyStore, loadData, describeChange, changeWorked } from "../sandy/brain.mjs";
+import { customerChat } from "../sandy/customers.mjs";
 
 export default async (req) => {
   const k = await sandyKey();
@@ -13,6 +14,12 @@ export default async (req) => {
       await saveHistory(base, d.from, out.history);
       if (out.changes.length) await record(base, { kind: "changes", from: d.from, changes: out.changes });
       await deliver(base, d.from, out.reply, "reply");
+    } else if (d.kind === "customer") {
+      // A customer texted (Oct 28 2026)
+      const out = await customerChat({ base, from: d.from, text: d.text, history: await getHistory(base, d.from) });
+      await saveHistory(base, d.from, out.history);
+      if (out.changes.length) await record(base, { kind: "changes", from: d.from, changes: out.changes });
+      await deliver(base, d.from, out.reply, "to-customer");
     } else if (d.kind === "voice") {
       // One turn of a phone call (sandy-voice.mjs picks up the answer and speaks it)
       const store = sandyStore(base), key = "call-" + String(d.call || "").replace(/[^A-Za-z0-9]/g, "");
@@ -46,5 +53,9 @@ export default async (req) => {
   } catch (e) {
     await record(base, { kind: "error", body: String(e.message || e) });
     if (d.kind === "text") await deliver(base, d.from, "Sandy here. Sorry, something went wrong on my end and I couldn't do that. Randy can check what happened.", "reply");
+    if (d.kind === "customer") {
+      await deliver(base, d.from, "Sorry, I'm having trouble on my end right now. Miranda will text you back soon!", "to-customer");
+      await deliver(base, MIRANDA, "Sandy here: I had a problem answering a customer, " + d.from + ". They said:\n\"" + String(d.text || "").slice(0, 300) + "\"\nCould you text them back from your phone?", "forwarded");
+    }
   }
 };
