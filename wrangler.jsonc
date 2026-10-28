@@ -28,7 +28,9 @@
     // "yes" only once the real domain points here (switch night) — keeps the test copy from texting anyone
     "LIVE": "yes",
     // Sandy really texts (Twilio campaign approved Oct 27 2026; turned on Oct 28 2026)
-    "SANDY_TEXTING": "on"
+    "SANDY_TEXTING": "on",
+    // Live phone conversations (Oct 28 2026): "on" sends Randy's and Miranda's calls to the live version
+    "SANDY_LIVE_CALLS": "on"
   },
   // The real address (Oct 27 2026 switch night). Takes effect once Porkbun points the domain at Cloudflare.
   // keep the test address working too (wrangler turns it off when routes are set)
