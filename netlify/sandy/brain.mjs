@@ -9,18 +9,24 @@
 //   SANDY_TEXTING      — set to "on" once Twilio approves the campaign. Until then nothing is texted;
 //                        Sandy's texts only show on the private /sandy test page.
 import { getStore } from "@netlify/blobs";
+import { Buffer } from "node:buffer";
 // Sandy talks to the Bookings code directly (not over the internet), so it also works on password-protected test copies
 import bookingCounter from "../functions/booking-counter.mjs";
 import PRICES from "../../prices.json" with { type: "json" };
 
 export const MODEL = "claude-sonnet-5-5";
 export const SANDY_NUMBER = "+14482173502"; // (448) 217-3502, Twilio
-// Who may text Sandy for now (last 10 digits). Customers come later.
+// Randy and Miranda (last 10 digits). Anyone else who texts Sandy is treated as a customer
+// (customers.mjs, added Oct 28 2026).
 export const PEOPLE = {
   "2563996736": { name: "Randy", role: "Randy (Miranda's dad, the administrator who set Sandy up)" },
   "4482196539": { name: "Miranda", role: "Miranda (she runs Miranda Rae Photography and does the shooting)" },
 };
 export const MIRANDA = "4482196539";
+// Pretend customer used by the "Customer" button on the private /sandy page. Never really texted.
+export const TEST_CUSTOMER = "8505550100";
+// Customers' conversations kept by phone number; the pretend customer's stays separate
+export const histKey = (phone) => (digits(phone) === TEST_CUSTOMER ? "page-" : "chat-") + digits(phone);
 // Same fingerprint as the /log passcode (only the fingerprint is public)
 const PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79";
 
@@ -43,8 +49,8 @@ export const sandyStore = (base) => getStore({ name: isLive(base) ? "sandy" : "s
 const ymdIn = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
 export const todayCT = (now = new Date()) => ymdIn(now);
 export const hourCT = (now = new Date()) => Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", hour: "numeric", hourCycle: "h23" }).format(now));
-const addDays = (ymd, n) => { const d = new Date(ymd + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
-const nice = (ymd) => { try { return new Date(ymd + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }); } catch (e) { return ymd; } };
+export const addDays = (ymd, n) => { const d = new Date(ymd + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+export const nice = (ymd) => { try { return new Date(ymd + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }); } catch (e) { return ymd; } };
 const daysAgo = (iso, today) => { const k = Math.round((new Date(today + "T12:00:00Z") - new Date(ymdIn(new Date(iso)) + "T12:00:00Z")) / 86400000); return k <= 0 ? "today" : k === 1 ? "yesterday" : k + " days ago"; };
 
 // ---------- Money (same rules as the /log page) ----------
@@ -58,7 +64,7 @@ const handed = (b) => (b.shooterPaid || []).reduce((s, x) => s + (x.amount || 0)
 const keepOf = (b) => b.cancelled ? (b.cancelled.kept || 0) : b.photographer ? Math.min(mineOf(b), ((b.deposit && b.deposit.amount) || 0) + handed(b)) : Math.min(tot(b), ((b.deposit && b.deposit.amount) || 0) + ((b.paid && b.paid.amount) || 0));
 const shooterOwes = (b) => (!b.photographer || b.cancelled || !b.paid) ? 0 : Math.max(0, r2(mineOf(b) - keepOf(b)));
 const due = (b) => Math.max(0, r2(tot(b) - ((b.deposit && b.deposit.amount) || 0) - ((b.paid && b.paid.amount) || 0)));
-const money = (n) => "$" + (Number(n) || 0).toLocaleString("en-US", { maximumFractionDigits: 2 });
+export const money = (n) => "$" + (Number(n) || 0).toLocaleString("en-US", { maximumFractionDigits: 2 });
 const low = (s) => String(s || "").trim().toLowerCase();
 
 // Oct 22 2026: same rule as /log — a booking closes the inquiry when it's clearly the same person even if
@@ -112,7 +118,7 @@ function inquiries(data, today) {
   return Object.values(map).filter((o) => !(data.bookings || []).some((b) => bookedAs(o, b))).map((o) => ({ ...o, old: o.date ? o.date < today : (o.asked || "") < cut }));
 }
 
-const fmtPhone = (p) => { const d = digits(p); return d.length === 10 ? "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6) : ""; };
+export const fmtPhone = (p) => { const d = digits(p); return d.length === 10 ? "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6) : ""; };
 function line(b) {
   const bits = [
     b.num < 900000 ? "#" + b.num : "TEST #" + b.num, b.name, b.date ? nice(b.date) : "no date", b.time, b.beach, b.pkg,
@@ -191,6 +197,10 @@ export const TOOLS = [
   { name: "add_booking", description: "Add a client Miranda has already set up (nothing is texted to the client). A past date makes a past entry that doesn't count in totals.", input_schema: { type: "object", properties: { name: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD" }, time: { type: "string" }, beach: { type: "string" }, pkg: { type: "string" }, amount: { type: "number", description: "Session price" }, phone: { type: "string" }, photographer: { type: "string", description: "Leave empty if Miranda is shooting" }, pay: { type: "string", enum: ["none", "deposit", "full"] }, deposit: { type: "number" }, method }, required: ["name", "date", "amount", "pay"] } },
   { name: "remove_inquiry", description: "Take an inquiry off the list without booking it (they said no or never answered). Use name and date exactly as in the snapshot.", input_schema: { type: "object", properties: { name: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD, or empty if none" } }, required: ["name"] } },
   { name: "clear_old_inquiries", description: "Clear every old inquiry (date passed, or 30+ days old with no date). They stay in the record, just off the list.", input_schema: { type: "object", properties: {} } },
+  // Customers (Oct 28 2026)
+  { name: "send_confirm_link", description: "Text a customer their Confirm link (they check the details, tap Confirm and pay the deposit). ONLY after Miranda (or Randy) has clearly said yes to sending it in this conversation. Use request_id for a request listed under CUSTOMER DATE REQUESTS; any field you also send replaces what's in the request (e.g. a different price or time Miranda asked for).", input_schema: { type: "object", properties: { request_id: { type: "string" }, name: { type: "string" }, phone: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD" }, time: { type: "string", description: "Sunrise, Sunset, Midday, Wedding, Engagement or Other" }, beach: { type: "string" }, pkg: { type: "string", description: "Package name as in the price list's booking names, e.g. Beach Mini" }, price: { type: "number", description: "Total price for the link (package + travel fee + extras Miranda agreed to)" }, deposit: { type: "number", description: "Only if not the usual $50" } } } },
+  { name: "text_customer", description: "Text a customer from your number (Sandy's). Use it to pass along Miranda's answer, offer another date, or say a date isn't open. Write the text yourself in your friendly style; say it's from Miranda when it's her answer. Only to customers listed under CUSTOMER TEXTS or in the bookings/inquiries.", input_schema: { type: "object", properties: { phone: { type: "string" }, message: { type: "string" } }, required: ["phone", "message"] } },
+  { name: "close_request", description: "Mark a customer date request as handled without sending a Confirm link (Miranda said no, or it was settled another way).", input_schema: { type: "object", properties: { request_id: { type: "string" }, why: { type: "string" } }, required: ["request_id"] } },
 ];
 
 async function runTool(base, name, x, by, data) {
@@ -220,6 +230,15 @@ async function runTool(base, name, x, by, data) {
       if (!old.length) return { ok: true, cleared: 0 };
       return post(base, { kind: "dismiss", items: old.map((o) => ({ name: o.name, date: o.date, beach: o.beach || "", test: !!o.test })), by });
     }
+    case "send_confirm_link": return sendConfirmLink(base, x, by);
+    case "text_customer": return textCustomer(base, x.phone, x.message, data);
+    case "close_request": {
+      const list = await getRequests(base), r = list.find((q) => q.id === x.request_id);
+      if (!r) return { error: "no request with that id" };
+      r.status = "closed"; r.closed = { at: new Date().toISOString(), why: String(x.why || "").slice(0, 200), by };
+      await saveRequests(base, list);
+      return { ok: true };
+    }
   }
   return { error: "unknown tool" };
 }
@@ -243,7 +262,11 @@ How you text:
 - If it's not clear which booking they mean (two with the same name, etc.), ask before changing anything.
 - Before cancelling: ask them to confirm, and ask whether Miranda keeps or returns the deposit. Miranda's policy is that deposits aren't refundable, but it's her call case by case.
 - If a tool returns a conflict (slot already taken) or an error, tell them plainly and suggest what to do.
-- You can't text customers, send Confirm links, or change the website yet — Randy is working toward that. If asked, say so kindly.
+- Customers text your number too (Oct 28 2026). Another copy of you answers them: prices, open dates, and taking down date requests. When a customer wants a date, you text Miranda the details and ask "Want me to text them the Confirm link? Reply YES or NO".
+- If Miranda (or Randy) says yes to a request under CUSTOMER DATE REQUESTS, send it with send_confirm_link, then confirm in one line. If they want something changed first (price, time, package), send the link with that change. If they say no, ask what to tell the customer (or offer what they suggest, like a sunrise instead), then use text_customer and close_request.
+- If there's more than one request waiting and it's not clear which one a YES is for, ask.
+- When Miranda answers a customer's question you passed along (CUSTOMER TEXTS, "waiting on Miranda"), text the customer her answer with text_customer, then tell her it's sent.
+- You can't change the website.
 - Deposits are usually $50. Sunrise and sunset are Miranda's main session times.
 - Contracted sessions (Kallie or another photographer shooting): only bring up the photographer paying Miranda when that booking is listed under PHOTOGRAPHER OWES MIRANDA. Otherwise they owe her nothing, so don't ask about it.
 - Never share passcodes, keys, or the running dollar total unless Randy or Miranda asks about money.
@@ -255,13 +278,13 @@ PRICE LIST (website, matches Miranda's Pixieset): ${priceList}
 ${snap}`;
 }
 
-async function claude(sys, messages) {
+export async function claude(sys, messages, tools = TOOLS) {
   const key = env("ANTHROPIC_API_KEY");
   if (!key) throw new Error("ANTHROPIC_API_KEY isn't set in Netlify yet");
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model: MODEL, max_tokens: 1200, system: sys, tools: TOOLS, messages }),
+    body: JSON.stringify({ model: MODEL, max_tokens: 1200, system: sys, tools, messages }),
   });
   const j = await r.json();
   if (j.type === "error" || !j.content) throw new Error("Claude: " + ((j.error && j.error.message) || r.status));
@@ -285,7 +308,7 @@ const YES = /\b(yes|yeah|yep|yup|ya|sure|correct|right|go ahead|do it|please do|
 const NO = /^\s*(no|nope|nah|wait|hold on|stop|don't|do not|not)\b/i;
 export const saidYes = (t) => YES.test(t) && !NO.test(t);
 
-export async function chat({ base, from, text, history = [], voice = false }) {
+export async function chat({ base, from, text, history = [], voice = false, page = false }) {
   const person = PEOPLE[digits(from)] || { name: "Someone", role: "an unknown number" };
   const by = "Sandy · " + person.name;
   let data = await loadData(base);
@@ -296,7 +319,7 @@ export async function chat({ base, from, text, history = [], voice = false }) {
   let reply = "";
   // The picture of the app is taken once, when the message comes in. Changes Sandy makes show up in her
   // tool results, so she doesn't mistake her own change for something that was already there.
-  const sys = system(person.role, snapshot(data, today).text + "\n\n(This snapshot was taken when this message arrived. Changes you make with tools show in the tool results, not here.)", priceList, today) + (voice ? VOICE_RULES : "");
+  const sys = system(person.role, snapshot(data, today).text + "\n\n" + (await customerSection(base, page || !!data.test)) + "\n\n(This snapshot was taken when this message arrived. Changes you make with tools show in the tool results, not here.)", priceList, today) + (voice ? VOICE_RULES : "");
   for (let i = 0; i < 8; i++) {
     const res = await claude(sys, msgs);
     msgs.push({ role: "assistant", content: res.content });
@@ -366,7 +389,7 @@ export async function chatLive({ base, from, text, history = [], onText, onWorki
   const by = "Sandy · " + person.name + " (call)";
   let data = await loadData(base);
   const today = todayCT();
-  const sys = system(person.role, snapshot(data, today).text + "\n\n(This snapshot was taken when this call started talking about this. Changes you make with tools show in the tool results, not here.)", await prices(base), today) + VOICE_RULES + LIVE_RULES;
+  const sys = system(person.role, snapshot(data, today).text + "\n\n" + (await customerSection(base, !!data.test)) + "\n\n(This snapshot was taken when this call started talking about this. Changes you make with tools show in the tool results, not here.)", await prices(base), today) + VOICE_RULES + LIVE_RULES;
   const msgs = history.slice(-24).concat({ role: "user", content: text });
   let spoken = "", working = false;
   const say = (t) => { spoken += t; onText(t); };
@@ -414,6 +437,9 @@ export function describeChange(c, data) {
     case "add_booking": return "New booking: " + [x.name, x.date ? nice(x.date) : "", x.time, x.beach, money(x.amount)].filter(Boolean).join(", ");
     case "remove_inquiry": return "Inquiry removed: " + x.name + (x.date ? " (" + nice(x.date) + ")" : "");
     case "clear_old_inquiries": return "Cleared " + ((c.result && c.result.cleared) || "the") + " old inquiries";
+    case "send_confirm_link": return "Confirm link texted to " + ((c.result && c.result.name) || x.name || "the customer");
+    case "text_customer": return "Texted " + fmtPhone(x.phone);
+    case "close_request": return "Request closed";
   }
   return c.tool;
 }
@@ -423,9 +449,10 @@ export async function dailyCheckin({ base, history = [] }) {
   const data = await loadData(base);
   const today = todayCT();
   const snap = snapshot(data, today);
-  if (!snap.counts.loose && !snap.counts.today && !snap.counts.tomorrow) return null;
-  const sys = system(PEOPLE[MIRANDA].role, snap.text, await prices(base), today);
-  const ask = "[Automatic morning check-in — this message is from the system, not Miranda.] Write today's check-in text to Miranda. Start with a short greeting. Then: today's and tomorrow's sessions in one line each (if any), then the loose ends that need her (inquiries she hasn't sent a Confirm link to, confirmed sessions with no deposit, past sessions not marked paid, photographers who owe her). Number the loose ends so she can answer by number, and ask simple questions she can answer by text (e.g. 'Did the Smiths pay the rest?') so you can fix the app for her. Group, don't list more than 6; say how many more if there are. Keep it under 700 characters. Don't use any tools now.";
+  const waiting = (await getRequests(base)).filter((r) => r.status === "waiting" && (!!data.test || !r.test)).length;
+  if (!snap.counts.loose && !snap.counts.today && !snap.counts.tomorrow && !waiting) return null;
+  const sys = system(PEOPLE[MIRANDA].role, snap.text + "\n\n" + (await customerSection(base, !!data.test)), await prices(base), today);
+  const ask = "[Automatic morning check-in — this message is from the system, not Miranda.] Write today's check-in text to Miranda. Start with a short greeting. Then: today's and tomorrow's sessions in one line each (if any), then the loose ends that need her (customer date requests waiting on her YES, inquiries she hasn't sent a Confirm link to, confirmed sessions with no deposit, past sessions not marked paid, photographers who owe her). Number the loose ends so she can answer by number, and ask simple questions she can answer by text (e.g. 'Did the Smiths pay the rest?') so you can fix the app for her. Group, don't list more than 6; say how many more if there are. Keep it under 700 characters. Don't use any tools now.";
   const res = await claude(sys, history.slice(-10).concat({ role: "user", content: ask }));
   const reply = clean(res.content.filter((c) => c.type === "text").map((c) => c.text).join("\n"));
   if (!reply) return null;
@@ -434,7 +461,7 @@ export async function dailyCheckin({ base, history = [] }) {
 }
 
 // Strip any markdown that slipped through; texts are plain
-const clean = (s) => String(s || "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").replace(/`/g, "").trim().slice(0, 1500);
+export const clean = (s) => String(s || "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").replace(/`/g, "").trim().slice(0, 1500);
 
 // ---------- Texting (Twilio) ----------
 export const textingOn = () => env("SANDY_TEXTING").toLowerCase() === "on";
@@ -463,7 +490,104 @@ export async function record(base, entry) {
 // Deliver a text: really sends only when SANDY_TEXTING is "on" and this is the live site
 export async function deliver(base, to, body, kind) {
   let sent = false, error = "";
-  if (textingOn() && isLive(base)) { try { await sendText(to, body); sent = true; } catch (e) { error = String(e.message || e); } }
+  if (textingOn() && isLive(base) && digits(to) !== TEST_CUSTOMER) { try { await sendText(to, body); sent = true; } catch (e) { error = String(e.message || e); } }
   await record(base, { kind, to: digits(to), body, sent, ...(error ? { error } : {}) });
   return { sent, error };
+}
+
+// ---------- Customers (added Oct 28 2026) ----------
+// Date requests customers make by texting Sandy wait here for Miranda's YES before a Confirm link goes out.
+export async function getRequests(base) { return (await sandyStore(base).get("requests", { type: "json" })) || []; }
+export async function saveRequests(base, list) { await sandyStore(base).setJSON("requests", list.slice(-150)); }
+// One line per customer who texted Sandy: name (once known), last thing they said, questions waiting on Miranda
+export async function getCustomers(base) { return (await sandyStore(base).get("customers", { type: "json" })) || {}; }
+export async function noteCustomer(base, phone, patch) {
+  const s = sandyStore(base), all = (await s.get("customers", { type: "json" })) || {}, k = digits(phone);
+  all[k] = { ...(all[k] || { first: new Date().toISOString() }), ...patch, at: new Date().toISOString() };
+  const keep = Object.entries(all).sort((a, b) => String(b[1].at).localeCompare(String(a[1].at))).slice(0, 300);
+  await s.setJSON("customers", Object.fromEntries(keep));
+}
+
+// Price list lookups (prices.json is the master list)
+const PK = Object.values(PRICES.packages || {});
+export function findPackage(name) {
+  const n = low(name).replace(/^\$\d+\s*/, "");
+  if (!n) return null;
+  return PK.find((p) => low(p.booking) === n || low(p.name) === n) ||
+    PK.find((p) => n.includes(low(p.booking).split(" (")[0]) || low(p.booking).includes(n)) || null;
+}
+export const travelFee = (beach) => { const t = PRICES.travel || {}; const k = Object.keys(t).find((b) => low(beach).includes(low(b))); return k ? t[k] : 0; };
+export const longDay = (ymd) => { try { return new Date(ymd + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" }); } catch (e) { return ymd; } };
+const firstName = (n) => String(n || "").trim().split(/\s+/)[0] || "there";
+
+// What Miranda's side of Sandy sees about customers
+export async function customerSection(base, withTests) {
+  const reqs = (await getRequests(base)).filter((r) => withTests || !r.test);
+  const waiting = reqs.filter((r) => r.status === "waiting");
+  const cust = Object.entries(await getCustomers(base)).filter(([p, c]) => (withTests || !c.test) && c.at > new Date(Date.now() - 7 * 86400000).toISOString());
+  const rq = (r) => "- request_id " + r.id + ": " + [r.name, fmtPhone(r.phone), r.date ? nice(r.date) : "", r.time, r.beach, r.pkg, money(r.price) + (r.travel ? " (incl. " + money(r.travel) + " travel fee)" : ""), r.people ? r.people + " people" : "", r.notes ? "notes: " + r.notes : "", "asked " + daysAgo(r.at, todayCT()), r.test ? "TEST" : ""].filter(Boolean).join(" · ");
+  const cl = ([p, c]) => "- " + [c.name || "name not given", fmtPhone(p), "last text " + daysAgo(c.at, todayCT()) + ': "' + String(c.last || "").slice(0, 120) + '"', c.waiting ? 'WAITING ON MIRANDA: "' + c.waiting + '"' : "", c.test ? "TEST" : ""].filter(Boolean).join(" · ");
+  return "CUSTOMER DATE REQUESTS WAITING ON MIRANDA'S YES (" + waiting.length + "):\n" + (waiting.length ? waiting.map(rq).join("\n") : "- none") +
+    "\n\nCUSTOMER TEXTS (last 7 days, " + cust.length + "):\n" + (cust.length ? cust.map(cl).join("\n") : "- none");
+}
+
+// Text Miranda something about a customer, and keep it in her conversation so she can just reply YES
+export async function notifyMiranda(base, text, { page = false } = {}) {
+  const key = page ? "page-" + MIRANDA : null;
+  if (page) {
+    const s = sandyStore(base), h = (await s.get(key, { type: "json" })) || [];
+    await s.setJSON(key, h.concat({ role: "user", content: "[Customer update]" }, { role: "assistant", content: text }).slice(-20));
+    await record(base, { kind: "to-miranda-test", to: MIRANDA, body: text, sent: false });
+    return;
+  }
+  await saveHistory(base, MIRANDA, (await getHistory(base, MIRANDA)).concat({ role: "user", content: "[Customer update]" }, { role: "assistant", content: text }));
+  await deliver(base, MIRANDA, text, "to-miranda");
+}
+
+// Add Sandy's own text to a customer's conversation so she remembers it when they answer
+async function addToCustomer(base, phone, text) {
+  const s = sandyStore(base), k = histKey(phone), h = (await s.get(k, { type: "json" })) || [];
+  // keep turns alternating: a text Sandy sends on her own follows a placeholder turn
+  const add = h.length && h[h.length - 1].role === "user" ? [{ role: "assistant", content: text }] : [{ role: "user", content: "[No new text from the customer]" }, { role: "assistant", content: text }];
+  await s.setJSON(k, h.concat(add).slice(-20));
+}
+
+export async function textCustomer(base, phone, message, data) {
+  const p = digits(phone), body = String(message || "").trim().slice(0, 1200);
+  if (p.length !== 10 || !body) return { error: "need a 10-digit phone and a message" };
+  if (PEOPLE[p]) return { error: "that's Randy's or Miranda's number, not a customer" };
+  const known = !!(await getCustomers(base))[p] || ((data && data.bookings) || []).some((b) => digits(b.phone) === p) || ((data && data.log) || []).some((e) => digits(e.phone) === p);
+  if (!known) return { error: "that number hasn't texted me and isn't in the bookings, so I can't text it" };
+  const r = await deliver(base, p, body, "to-customer");
+  await addToCustomer(base, p, body);
+  await noteCustomer(base, p, { waiting: "" });
+  return r.error ? { error: "Twilio: " + r.error } : { ok: true, sent: r.sent };
+}
+
+export async function sendConfirmLink(base, x, by) {
+  const list = await getRequests(base), r = x.request_id ? list.find((q) => q.id === x.request_id) : null;
+  if (x.request_id && !r) return { error: "no request with that id" };
+  const o = { ...(r || {}), ...Object.fromEntries(Object.entries(x).filter(([k, v]) => v !== undefined && v !== "" && k !== "request_id")) };
+  const phone = digits(o.phone);
+  if (!o.name || phone.length !== 10 || !/^\d{4}-\d{2}-\d{2}$/.test(o.date || "")) return { error: "need the customer's name, 10-digit phone and the date" };
+  const p = findPackage(o.pkg);
+  const price = Number(o.price) || (p ? p.price + travelFee(o.beach) : 0);
+  if (!price) return { error: "which package or price?" };
+  const dep = Number(o.deposit) || Math.min(PRICES.deposit || 50, price);
+  // Same Confirm link the Bookings page and New Booking make
+  const lk = { v: 1, n: o.name, d: o.date, t: o.time || "Sunset", b: o.beach || "Other", pk: p ? p.booking : o.pkg || "Custom session", base: price,
+    len: p ? [p.timeWords && p.timeWords.charAt(0).toUpperCase() + p.timeWords.slice(1), ...(p.details || []).filter((d) => /outfit|location/.test(d))].filter(Boolean).join(" · ") : "",
+    ppl: p ? p.bookingPeople || (p.people ? "Up to " + p.people : "") : "", ph: p ? p.photos || (/wedding/i.test(p.booking) ? "Full gallery" : "") : "",
+    x: [], dc: 0, dr: "", note: "", by: "Sandy", total: price };
+  if (dep !== 50) lk.dep = dep;
+  const url = base.replace(/\/$/, "") + "/confirm?s=" + Buffer.from(JSON.stringify(lk), "utf8").toString("base64url");
+  // Tell the Bookings app first (so the card shows "Link texted"), like the Bookings page does
+  await post(base, { kind: "pending", by: "Sandy", name: lk.n, date: lk.d, beach: lk.b, phone, time: lk.t, pkg: lk.pk, amount: price, dep, link: url });
+  const t = low(lk.t), slot = t && t !== "other" && t !== "wedding" ? " (" + t + ")" : "", place = lk.b && lk.b !== "Other" ? " at " + lk.b : "";
+  const body = "Hi " + firstName(lk.n) + "! It's Sandy with Miranda Rae Photography. Good news, Miranda has " + longDay(lk.d) + place + slot + " open for you! " +
+    "Here are your session details. Check that everything looks right, then tap Confirm and pay your " + money(dep) + " deposit to hold your date: " + url + "\n\nAny questions, just text me back!";
+  const d = await deliver(base, phone, body, "confirm-link");
+  await addToCustomer(base, phone, body);
+  if (r) { r.status = "link sent"; r.sent = { at: new Date().toISOString(), by, price }; await saveRequests(base, list); }
+  return d.error ? { error: "link made but the text didn't go: " + d.error } : { ok: true, name: lk.n, price, sent: d.sent };
 }

@@ -30,7 +30,9 @@
     // Sandy really texts (Twilio campaign approved Oct 27 2026; turned on Oct 28 2026)
     "SANDY_TEXTING": "on",
     // Live phone conversations (Oct 28 2026): "on" sends Randy's and Miranda's calls to the live version
-    "SANDY_LIVE_CALLS": "on"
+    "SANDY_LIVE_CALLS": "on",
+    // Sandy answers customers who text her number (Oct 28 2026). "off" passes their texts to Miranda instead
+    "SANDY_CUSTOMERS": "on"
   },
   // The real address (Oct 27 2026 switch night). Takes effect once Porkbun points the domain at Cloudflare.
   // keep the test address working too (wrangler turns it off when routes are set)

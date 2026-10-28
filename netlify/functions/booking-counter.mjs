@@ -16,7 +16,7 @@ import { getStore } from "@netlify/blobs";
 
 const START = 100; // first booking becomes #101
 // Phone numbers that mean "this is a test" (last 10 digits)
-const TEST_PHONES = ["2563996736", "2566134522", "4482196539"]; // Randy, Bradyn, Miranda
+const TEST_PHONES = ["2563996736", "2566134522", "4482196539", "8505550100"]; // Randy, Bradyn, Miranda, Sandy page's pretend customer
 const DEFAULT_PHOTOGRAPHERS = ["Kallie"];
 // Split for contracted-out sessions (Oct 15 2026): Miranda's share is a percentage of the session
 // (default 25%, or $50 if that's more) or a dollar amount she types. The photographer gets the rest,
