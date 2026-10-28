@@ -220,6 +220,7 @@ export const TOOLS = [
   { name: "clear_old_inquiries", description: "Clear every old inquiry (date passed, or 30+ days old with no date). They stay in the record, just off the list.", input_schema: { type: "object", properties: {} } },
   // Customers (Oct 28 2026)
   { name: "send_confirm_link", description: "Text a customer their Confirm link (they check the details, tap Confirm and pay the deposit). ONLY after Miranda (or Randy) has clearly said yes to sending it in this conversation. Use request_id for a request listed under CUSTOMER DATE REQUESTS; any field you also send replaces what's in the request (e.g. a different price or time Miranda asked for).", input_schema: { type: "object", properties: { request_id: { type: "string" }, name: { type: "string" }, phone: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD" }, time: { type: "string", description: "Sunrise, Sunset, Midday, Wedding, Engagement or Other" }, beach: { type: "string" }, pkg: { type: "string", description: "Package name as in the price list's booking names, e.g. Beach Mini" }, price: { type: "number", description: "Total price for the link (package + travel fee + extras Miranda agreed to)" }, deposit: { type: "number", description: "Only if not the usual $50" } } } },
+  { name: "pass_message", description: "Pass a message between Randy and Miranda (Oct 28 2026). Use it when Randy says to tell Miranda something (or Miranda says to tell her dad/Randy something). Keep their words; just tidy them up. Can be anything, not only bookings.", input_schema: { type: "object", properties: { to: { type: "string", enum: ["Miranda", "Randy"] }, message: { type: "string", description: "The message, in their words" } }, required: ["to", "message"] } },
   { name: "text_customer", description: "Text a customer from your number (Sandy's). Use it to pass along Miranda's answer, offer another date, or say a date isn't open. Write the text yourself in your friendly style; say it's from Miranda when it's her answer. Only to customers listed under CUSTOMER TEXTS or in the bookings/inquiries.", input_schema: { type: "object", properties: { phone: { type: "string" }, message: { type: "string" } }, required: ["phone", "message"] } },
   { name: "set_day_off", description: "Mark days or times Miranda is off, so they show on the Bookings calendar and you won't offer them to customers. For a range, give date and to. part: all (whole day), sunrise, sunset or midday.", input_schema: { type: "object", properties: { date: { type: "string", description: "YYYY-MM-DD" }, to: { type: "string", description: "YYYY-MM-DD, last day of a range (optional)" }, part: { type: "string", enum: ["all", "sunrise", "sunset", "midday"] }, note: { type: "string", description: "Optional reason, e.g. vacation" } }, required: ["date"] } },
   { name: "remove_day_off", description: "Undo a day off (she's available again). Leave part out to clear the whole day.", input_schema: { type: "object", properties: { date: { type: "string" }, to: { type: "string" }, part: { type: "string", enum: ["all", "sunrise", "sunset", "midday"] } }, required: ["date"] } },
@@ -257,6 +258,7 @@ async function runTool(base, name, x, by, data) {
     case "remove_day_off": return post(base, { kind: "dayoff", action: "remove", date: x.date, to: x.to || x.date, ...(x.part ? { part: x.part } : {}), by });
     case "send_confirm_link": return sendConfirmLink(base, x, by);
     case "text_customer": return textCustomer(base, x.phone, x.message, data);
+    case "pass_message": return passMessage(base, x.to, x.message, by);
     case "close_request": {
       const list = await getRequests(base), r = list.find((q) => q.id === x.request_id);
       if (!r) return { error: "no request with that id" };
@@ -292,6 +294,7 @@ How you text:
 - If there's more than one request waiting and it's not clear which one a YES is for, ask.
 - Website requests (Oct 28 2026): when someone sends a request form on the website and checks OK to text, you text them to get anything missing, then it comes to Miranda like any other date request. Anything marked TEST came from Randy's, Bradyn's or Miranda's own phone; handle it exactly like a real one (they're testing), and say TEST when you mention it.
 - If you're both answering a customer's question and sending their Confirm link, send the answer with text_customer FIRST, then the link, and don't mention the link in that answer (the link text explains itself).
+- Messages between Randy and Miranda (Oct 28 2026): when Randy says "tell Miranda ..." (or Miranda says "tell Dad/Randy ..."), send it with pass_message in their words, then confirm in one line. It can be about anything. If Miranda replies to a message from Randy and wants it passed back, use pass_message to Randy.
 - When Miranda answers a customer's question you passed along (CUSTOMER TEXTS, "waiting on Miranda"), text the customer her answer with text_customer, then tell her it's sent.
 - Days off: when Miranda says she's off (a day, a range, or just a sunrise/sunset), mark it with set_day_off and confirm the dates back. If she's available again, use remove_day_off. Days off are listed under MIRANDA'S DAYS OFF. If a customer request already waiting is on a day she just took off, mention it.
 - You can't change the website.
@@ -478,6 +481,7 @@ export function describeChange(c, data) {
     case "clear_old_inquiries": return "Cleared " + ((c.result && c.result.cleared) || "the") + " old inquiries";
     case "send_confirm_link": return "Confirm link texted to " + ((c.result && c.result.name) || x.name || "the customer");
     case "text_customer": return "Texted " + fmtPhone(x.phone);
+    case "pass_message": return "Passed your message to " + (x.to || "them");
     case "close_request": return "Request closed";
     case "set_day_off": return "Day off: " + nice(x.date) + (x.to && x.to !== x.date ? " to " + nice(x.to) : "") + (x.part && x.part !== "all" ? " (" + x.part + ")" : "");
     case "remove_day_off": return "Available again: " + nice(x.date) + (x.to && x.to !== x.date ? " to " + nice(x.to) : "");
@@ -583,6 +587,22 @@ export async function notifyMiranda(base, text, { page = false } = {}) {
   }
   await saveHistory(base, MIRANDA, (await getHistory(base, MIRANDA)).concat({ role: "user", content: "[Customer update]" }, { role: "assistant", content: text }));
   await deliver(base, MIRANDA, text, "to-miranda");
+}
+
+// Randy <-> Miranda messages (Oct 28 2026): "Tell Miranda ..." / "Tell Dad ..."
+async function passMessage(base, to, message, by) {
+  const msg = String(message || "").trim().slice(0, 1200);
+  if (!msg) return { error: "what's the message?" };
+  const toNum = Object.keys(PEOPLE).find((k) => PEOPLE[k].name === to);
+  if (!toNum) return { error: "I can only pass messages to Miranda or Randy" };
+  const fromName = /Randy/.test(by) ? "Randy" : /Miranda/.test(by) ? "Miranda" : "";
+  if (!fromName) return { error: "only Randy and Miranda can send messages this way" };
+  if (fromName === to) return { error: "that's the person you're talking to" };
+  const body = "Sandy here. Message from " + (fromName === "Randy" ? "your dad" : "Miranda") + ":\n" + msg + "\n\n(Reply here if you want me to pass anything back.)";
+  // Keep it in their conversation so Sandy knows what they're answering if they reply
+  await saveHistory(base, toNum, (await getHistory(base, toNum)).concat({ role: "user", content: "[Message from " + fromName + "]" }, { role: "assistant", content: body }));
+  const r = await deliver(base, toNum, body, "passed-message");
+  return r.error ? { error: "Twilio: " + r.error } : { ok: true, sent_to: to, sent: r.sent };
 }
 
 // Add Sandy's own text to a customer's conversation so she remembers it when they answer
