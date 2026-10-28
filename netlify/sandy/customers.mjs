@@ -71,6 +71,7 @@ ${mine.length ? "THIS CUSTOMER'S OWN BOOKINGS (matched by their phone number):\n
 
 How you text:
 - Plain text only, no markdown or asterisks. Short and warm, like a friendly front desk. Usually 1 to 3 short sentences, under 320 characters. One question at a time.
+- Don't downsell (Oct 28 2026). If they came from a $199 Beach Special ad page, or they mention $199, the Beach Special or the Classic, they want the $199 Beach Special: treat that as their package and don't bring up the $130 Beach Mini. Only mention the Mini if they ask for something cheaper, shorter or smaller. If they came from a $130 Beach Mini page, the Mini is their package unless they ask about something bigger.
 - Answer what they asked. Help them pick. At Mexico Beach, Port St. Joe, Cape San Blas and Panama City Beach they can choose the Beach Mini ($130: 30 minutes, 15 photos, up to 6 people) or the Beach Special, also called the Classic ($199: 45–60 minutes, 30–35 photos, up to 11 people, an outfit change), with no travel fee. At Destin, 30A and St. George Island it's the Beach Special ($199) plus the $30 travel fee. The Family, Deluxe, Engagement, Proposal and Wedding packages are available too, as listed.
 - To request a date you need: their name, the date, sunrise or sunset, the beach, the package (ask how many people if it helps pick).
 - The beach: if they haven't said, ask where they're staying or which beach they'd like their photos at. Many people only know their rental's town or area; that's fine. Match it to the nearest beach Miranda covers (for example Indian Pass goes with Port St. Joe/Cape San Blas, Santa Rosa Beach or Seaside is 30A, Panama City is Panama City Beach). If you're not sure which beach they mean, ask. If it's outside the beaches listed, take it down anyway with their town in notes and tell them Miranda will let them know if she can travel there.
@@ -184,7 +185,8 @@ export async function webRequest({ base, form = {}, page = false }) {
   // Randy (or Miranda) testing from their own phone: their replies go to the customer side for 3 hours
   if (PEOPLE[phone]) await setCustomerMode(base, phone, true);
   const lines = Object.entries(f).filter(([k, v]) => v && k !== "phone").map(([k, v]) => "- " + (FIELD_NAMES[k] || k) + ": " + String(v).slice(0, 400));
-  const text = "[Website request form, sent from " + String(form.page || "the website").slice(0, 60) + ". They checked OK to text.]\n" + lines.join("\n");
+  const offer = pageOffer(form.page);
+  const text = "[Website request form, sent from " + String(form.page || "the website").slice(0, 60) + (offer ? ", " + offer : "") + ". They checked OK to text.]\n" + lines.join("\n");
   const out = await customerChat({ base, from: phone, text, history: await getCustHistory(base, phone), page, web: true });
   await saveCustHistory(base, phone, out.history);
   if (out.changes.length) await record(base, { kind: "changes", from: phone, changes: out.changes });
@@ -196,4 +198,12 @@ export async function webRequest({ base, form = {}, page = false }) {
       [when, f.beach].filter(Boolean).join(", ") + "\nThey said OK to text, so I texted them to get the rest. I'll let you know when they're ready for a Confirm link.", { page });
   }
   return { ok: true, reply: out.reply };
+}
+
+// Which offer a landing page is selling (Oct 28 2026), so Sandy doesn't downsell a $199 page to the $130 Mini
+export function pageOffer(page) {
+  const p = String(page || "").toLowerCase().replace(/\.html$/, "").replace(/\/$/, "");
+  if (/-199$/.test(p) || /^\/(30a|st-george-island)-photographer$/.test(p)) return "the $199 Beach Special ad page (their package is the $199 Beach Special)";
+  if (/^\/(mexico-beach|port-st-joe|cape-san-blas|panama-city-beach)-photographer$/.test(p)) return "the $130 Beach Mini ad page (their package is the $130 Beach Mini)";
+  return "";
 }
