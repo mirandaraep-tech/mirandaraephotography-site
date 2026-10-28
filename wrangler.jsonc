@@ -26,7 +26,12 @@
   "vars": {
     "URL": "https://mirandaraephotography.com",
     // "yes" only once the real domain points here (switch night) — keeps the test copy from texting anyone
-    "LIVE": "no"
+    "LIVE": "yes"
   },
+  // The real address (Oct 27 2026 switch night). Takes effect once Porkbun points the domain at Cloudflare.
+  "routes": [
+    { "pattern": "mirandaraephotography.com", "custom_domain": true },
+    { "pattern": "www.mirandaraephotography.com", "custom_domain": true }
+  ],
   "observability": { "enabled": true }
 }
