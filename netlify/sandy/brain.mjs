@@ -325,7 +325,7 @@ const clean = (s) => String(s || "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#
 export const textingOn = () => env("SANDY_TEXTING").toLowerCase() === "on";
 export async function sendText(to, body) {
   const sid = env("TWILIO_ACCOUNT_SID"), tok = env("TWILIO_AUTH_TOKEN");
-  if (!sid || !tok) throw new Error("Twilio keys aren't set in Netlify yet");
+  if (!sid || !tok) throw new Error("Twilio keys aren't set in Cloudflare yet");
   const r = await fetch("https://api.twilio.com/2010-04-01/Accounts/" + sid + "/Messages.json", {
     method: "POST",
     headers: { Authorization: "Basic " + btoa(sid + ":" + tok), "Content-Type": "application/x-www-form-urlencoded" },

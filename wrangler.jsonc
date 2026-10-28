@@ -26,7 +26,9 @@
   "vars": {
     "URL": "https://mirandaraephotography.com",
     // "yes" only once the real domain points here (switch night) — keeps the test copy from texting anyone
-    "LIVE": "yes"
+    "LIVE": "yes",
+    // Sandy really texts (Twilio campaign approved Oct 27 2026; turned on Oct 28 2026)
+    "SANDY_TEXTING": "on"
   },
   // The real address (Oct 27 2026 switch night). Takes effect once Porkbun points the domain at Cloudflare.
   // keep the test address working too (wrangler turns it off when routes are set)
