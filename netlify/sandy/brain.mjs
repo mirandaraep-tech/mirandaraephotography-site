@@ -149,6 +149,7 @@ export function snapshot(data, today = todayCT()) {
   const open = inq.filter((o) => !o.old).sort((a, b) => (a.date || "9999").localeCompare(b.date || "9999"));
   const old = inq.filter((o) => o.old);
   const recentCut = addDays(today, -21);
+  const offs = (data.daysOff || []).filter((o) => o.date >= today);
   const recent = sorted(B.filter((b) => (b.cancelled || b.past || (b.date && b.date < today && due(b) <= 0)) && (b.date || "") >= recentCut)).reverse();
 
   const inqLine = (o) => "- " + [o.name, o.date ? "wants " + nice(o.date) : "no date given", o.beach, o.time, o.pkg, o.amount ? money(o.amount) : "", o.phone ? "phone " + fmtPhone(o.phone) : "",
@@ -165,6 +166,7 @@ export function snapshot(data, today = todayCT()) {
     sect("OTHER UPCOMING BOOKINGS", upcoming),
     sect("RECENT (last 3 weeks: finished, cancelled or past entries)", recent),
     "OLD INQUIRIES that could be cleared (date passed or 30+ days old): " + old.length,
+    "MIRANDA'S DAYS OFF (" + offs.length + "):\n" + (offs.length ? offs.map((o) => "- " + nice(o.date) + " (" + o.date + "): " + (o.part === "all" ? "whole day" : o.part + " only") + (o.note ? " · " + o.note : "")).join("\n") : "- none"),
   ];
   const loose = open.length + noDeposit.length + needs.length + owes.length;
   return { text: parts.join("\n\n"), counts: { today: todays.length, tomorrow: tomorrows.length, open: open.length, noDeposit: noDeposit.length, needs: needs.length, owes: owes.length, loose } };
@@ -200,6 +202,8 @@ export const TOOLS = [
   // Customers (Oct 28 2026)
   { name: "send_confirm_link", description: "Text a customer their Confirm link (they check the details, tap Confirm and pay the deposit). ONLY after Miranda (or Randy) has clearly said yes to sending it in this conversation. Use request_id for a request listed under CUSTOMER DATE REQUESTS; any field you also send replaces what's in the request (e.g. a different price or time Miranda asked for).", input_schema: { type: "object", properties: { request_id: { type: "string" }, name: { type: "string" }, phone: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD" }, time: { type: "string", description: "Sunrise, Sunset, Midday, Wedding, Engagement or Other" }, beach: { type: "string" }, pkg: { type: "string", description: "Package name as in the price list's booking names, e.g. Beach Mini" }, price: { type: "number", description: "Total price for the link (package + travel fee + extras Miranda agreed to)" }, deposit: { type: "number", description: "Only if not the usual $50" } } } },
   { name: "text_customer", description: "Text a customer from your number (Sandy's). Use it to pass along Miranda's answer, offer another date, or say a date isn't open. Write the text yourself in your friendly style; say it's from Miranda when it's her answer. Only to customers listed under CUSTOMER TEXTS or in the bookings/inquiries.", input_schema: { type: "object", properties: { phone: { type: "string" }, message: { type: "string" } }, required: ["phone", "message"] } },
+  { name: "set_day_off", description: "Mark days or times Miranda is off, so they show on the Bookings calendar and you won't offer them to customers. For a range, give date and to. part: all (whole day), sunrise, sunset or midday.", input_schema: { type: "object", properties: { date: { type: "string", description: "YYYY-MM-DD" }, to: { type: "string", description: "YYYY-MM-DD, last day of a range (optional)" }, part: { type: "string", enum: ["all", "sunrise", "sunset", "midday"] }, note: { type: "string", description: "Optional reason, e.g. vacation" } }, required: ["date"] } },
+  { name: "remove_day_off", description: "Undo a day off (she's available again). Leave part out to clear the whole day.", input_schema: { type: "object", properties: { date: { type: "string" }, to: { type: "string" }, part: { type: "string", enum: ["all", "sunrise", "sunset", "midday"] } }, required: ["date"] } },
   { name: "close_request", description: "Mark a customer date request as handled without sending a Confirm link (Miranda said no, or it was settled another way).", input_schema: { type: "object", properties: { request_id: { type: "string" }, why: { type: "string" } }, required: ["request_id"] } },
 ];
 
@@ -230,6 +234,8 @@ async function runTool(base, name, x, by, data) {
       if (!old.length) return { ok: true, cleared: 0 };
       return post(base, { kind: "dismiss", items: old.map((o) => ({ name: o.name, date: o.date, beach: o.beach || "", test: !!o.test })), by });
     }
+    case "set_day_off": return post(base, { kind: "dayoff", date: x.date, to: x.to || x.date, part: x.part || "all", note: x.note || "", by });
+    case "remove_day_off": return post(base, { kind: "dayoff", action: "remove", date: x.date, to: x.to || x.date, ...(x.part ? { part: x.part } : {}), by });
     case "send_confirm_link": return sendConfirmLink(base, x, by);
     case "text_customer": return textCustomer(base, x.phone, x.message, data);
     case "close_request": {
@@ -267,6 +273,7 @@ How you text:
 - If there's more than one request waiting and it's not clear which one a YES is for, ask.
 - If you're both answering a customer's question and sending their Confirm link, send the answer with text_customer FIRST, then the link, and don't mention the link in that answer (the link text explains itself).
 - When Miranda answers a customer's question you passed along (CUSTOMER TEXTS, "waiting on Miranda"), text the customer her answer with text_customer, then tell her it's sent.
+- Days off: when Miranda says she's off (a day, a range, or just a sunrise/sunset), mark it with set_day_off and confirm the dates back. If she's available again, use remove_day_off. Days off are listed under MIRANDA'S DAYS OFF. If a customer request already waiting is on a day she just took off, mention it.
 - You can't change the website.
 - Deposits are usually $50. Sunrise and sunset are Miranda's main session times.
 - Contracted sessions (Kallie or another photographer shooting): only bring up the photographer paying Miranda when that booking is listed under PHOTOGRAPHER OWES MIRANDA. Otherwise they owe her nothing, so don't ask about it.
@@ -452,6 +459,8 @@ export function describeChange(c, data) {
     case "send_confirm_link": return "Confirm link texted to " + ((c.result && c.result.name) || x.name || "the customer");
     case "text_customer": return "Texted " + fmtPhone(x.phone);
     case "close_request": return "Request closed";
+    case "set_day_off": return "Day off: " + nice(x.date) + (x.to && x.to !== x.date ? " to " + nice(x.to) : "") + (x.part && x.part !== "all" ? " (" + x.part + ")" : "");
+    case "remove_day_off": return "Available again: " + nice(x.date) + (x.to && x.to !== x.date ? " to " + nice(x.to) : "");
   }
   return c.tool;
 }

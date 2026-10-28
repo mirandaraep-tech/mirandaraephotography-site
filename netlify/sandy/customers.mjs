@@ -42,7 +42,9 @@ function calendar(data, today) {
   const end = addDays(today, 150);
   const taken = (data.bookings || []).filter((b) => !b.cancelled && !b.past && !b.photographer && (data.test || !b.test) && b.date && b.date >= today && b.date <= end)
     .sort((a, b) => a.date.localeCompare(b.date)).map((b) => "- " + nice(b.date) + " (" + b.date + "): " + (b.time || "time not set") + " taken");
-  return taken.length ? taken.join("\n") : "- nothing booked yet";
+  const off = (data.daysOff || []).filter((o) => o.date >= today && o.date <= end).map((o) => "- " + nice(o.date) + " (" + o.date + "): " + (o.part === "all" ? "Miranda is not available all day" : o.part + " not available"));
+  const all = taken.concat(off);
+  return all.length ? all.join("\n") : "- nothing booked yet";
 }
 
 function system(data, today, mine, reqs, first) {
@@ -59,7 +61,7 @@ About the business:
 PRICE LIST (the only prices you may quote):
 ${priceText()}
 
-MIRANDA'S CALENDAR (booked sessions; anything not listed looks open, but Miranda confirms every date):
+MIRANDA'S CALENDAR (booked sessions and times she's not available; anything not listed looks open, but Miranda confirms every date. Never say why a time isn't available):
 ${calendar(data, today)}
 
 ${mine.length ? "THIS CUSTOMER'S OWN BOOKINGS (matched by their phone number):\n" + mine.join("\n") + "\n\n" : ""}${reqs.length ? "THIS CUSTOMER'S DATE REQUESTS:\n" + reqs.join("\n") + "\n\n" : ""}Today is ${longDay(today)} (${today}), Central time.
@@ -121,6 +123,8 @@ async function requestDate(base, phone, x, data, today, { page, test }) {
   const t = low(x.time);
   const clash = (data.bookings || []).find((b) => !b.cancelled && !b.past && !b.photographer && (data.test || !b.test) && b.date === x.date && low(b.time) === t && (t === "sunrise" || t === "sunset"));
   if (clash) return { taken: true, note: x.time + " on " + nice(x.date) + " is already booked. Offer the other time that day or another date." };
+  const off = (data.daysOff || []).find((o) => o.date === x.date && (o.part === "all" || o.part === t));
+  if (off) return { taken: true, note: "Miranda isn't available " + (off.part === "all" ? "that day" : "for the " + off.part + " that day") + ". Offer another time or date (don't say why)." };
   const p = findPackage(x.pkg);
   const travel = p && p.price < 1000 ? travelFee(x.beach) : 0;
   const price = p ? p.price + travel : 0;
