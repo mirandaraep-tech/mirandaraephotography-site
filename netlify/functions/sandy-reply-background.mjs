@@ -1,7 +1,8 @@
 // Sandy's helper that does the thinking (added Oct 21 2026). Runs in the background (up to 15 min),
 // started by sandy-sms (a text came in) or sandy-daily (morning check-in).
 import { chat, dailyCheckin, deliver, getHistory, saveHistory, record, env, MIRANDA, sandyKey, sandyStore, loadData, describeChange, changeWorked } from "../sandy/brain.mjs";
-import { customerChat } from "../sandy/customers.mjs";
+import { customerChat, webRequest } from "../sandy/customers.mjs";
+import { getCustHistory, saveCustHistory } from "../sandy/brain.mjs";
 
 export default async (req) => {
   const k = await sandyKey();
@@ -16,10 +17,13 @@ export default async (req) => {
       await deliver(base, d.from, out.reply, "reply");
     } else if (d.kind === "customer") {
       // A customer texted (Oct 28 2026)
-      const out = await customerChat({ base, from: d.from, text: d.text, history: await getHistory(base, d.from) });
-      await saveHistory(base, d.from, out.history);
+      const out = await customerChat({ base, from: d.from, text: d.text, history: await getCustHistory(base, d.from) });
+      await saveCustHistory(base, d.from, out.history);
       if (out.changes.length) await record(base, { kind: "changes", from: d.from, changes: out.changes });
       await deliver(base, d.from, out.reply, "to-customer");
+    } else if (d.kind === "web") {
+      // Someone sent a website request and checked OK to text (Oct 28 2026)
+      await webRequest({ base, form: d.form || {} });
     } else if (d.kind === "voice") {
       // One turn of a phone call (sandy-voice.mjs picks up the answer and speaks it)
       const store = sandyStore(base), key = "call-" + String(d.call || "").replace(/[^A-Za-z0-9]/g, "");

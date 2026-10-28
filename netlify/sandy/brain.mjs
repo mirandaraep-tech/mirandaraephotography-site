@@ -27,6 +27,25 @@ export const MIRANDA = "4482196539";
 export const TEST_CUSTOMER = "8505550100";
 // Customers' conversations kept by phone number; the pretend customer's stays separate
 export const histKey = (phone) => (digits(phone) === TEST_CUSTOMER ? "page-" : "chat-") + digits(phone);
+// A customer's conversation. Randy's (or Miranda's) own number testing as a customer keeps a separate
+// "cust-" conversation so it never mixes with their regular texts with Sandy (Oct 28 2026).
+export const custKey = (phone) => { const d = digits(phone); return d === TEST_CUSTOMER ? "page-" + d : PEOPLE[d] ? "cust-" + d : "chat-" + d; };
+export async function getCustHistory(base, phone) { return (await sandyStore(base).get(custKey(phone), { type: "json" })) || []; }
+export async function saveCustHistory(base, phone, h) { await sandyStore(base).setJSON(custKey(phone), h.slice(-20)); }
+
+// ---------- Website requests (Oct 28 2026) ----------
+// Sandy texts people who send a request form on the site and check the OK-to-text box.
+// Until Randy says to turn it on for everyone (SANDY_WEB_TEXTS = "everyone" in wrangler.jsonc),
+// only these numbers get Sandy's texts: Randy and Bradyn.
+export const WEB_TESTERS = ["2563996736", "2566134522"];
+// Our own numbers (Randy, Bradyn, Miranda): their requests and Sandy's texts to Miranda about them say TEST
+export const OUR_NUMBERS = ["2563996736", "2566134522", "4482196539"];
+export const isOurs = (phone) => OUR_NUMBERS.includes(digits(phone));
+export const webTextsFor = (phone) => env("SANDY_WEB_TEXTS").toLowerCase() === "everyone" || WEB_TESTERS.includes(digits(phone));
+// Randy testing as a customer: for 3 hours after he sends a website request, his texts go to the customer
+// side of Sandy. Texting "DONE" ends it sooner.
+export async function customerMode(base, phone) { const u = await sandyStore(base).get("custmode-" + digits(phone), { type: "json" }); return !!(u && u > Date.now()); }
+export async function setCustomerMode(base, phone, on) { await sandyStore(base).setJSON("custmode-" + digits(phone), on ? Date.now() + 3 * 3600000 : 0); }
 // Same fingerprint as the /log passcode (only the fingerprint is public)
 const PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79";
 
@@ -271,6 +290,7 @@ How you text:
 - Customers text your number too (Oct 28 2026). Another copy of you answers them: prices, open dates, and taking down date requests. When a customer wants a date, you text Miranda the details and ask "Want me to text them the Confirm link? Reply YES or NO".
 - If Miranda (or Randy) says yes to a request under CUSTOMER DATE REQUESTS, send it with send_confirm_link, then confirm in one line. If they want something changed first (price, time, package), send the link with that change. If they say no, ask what to tell the customer (or offer what they suggest, like a sunrise instead), then use text_customer and close_request.
 - If there's more than one request waiting and it's not clear which one a YES is for, ask.
+- Website requests (Oct 28 2026): when someone sends a request form on the website and checks OK to text, you text them to get anything missing, then it comes to Miranda like any other date request. Anything marked TEST came from Randy's, Bradyn's or Miranda's own phone; handle it exactly like a real one (they're testing), and say TEST when you mention it.
 - If you're both answering a customer's question and sending their Confirm link, send the answer with text_customer FIRST, then the link, and don't mention the link in that answer (the link text explains itself).
 - When Miranda answers a customer's question you passed along (CUSTOMER TEXTS, "waiting on Miranda"), text the customer her answer with text_customer, then tell her it's sent.
 - Days off: when Miranda says she's off (a day, a range, or just a sunrise/sunset), mark it with set_day_off and confirm the dates back. If she's available again, use remove_day_off. Days off are listed under MIRANDA'S DAYS OFF. If a customer request already waiting is on a day she just took off, mention it.
@@ -546,8 +566,8 @@ export async function customerSection(base, withTests) {
   const reqs = (await getRequests(base)).filter((r) => withTests || !r.test);
   const waiting = reqs.filter((r) => r.status === "waiting");
   const cust = Object.entries(await getCustomers(base)).filter(([p, c]) => (withTests || !c.test) && c.at > new Date(Date.now() - 7 * 86400000).toISOString());
-  const rq = (r) => "- request_id " + r.id + ": " + [r.name, fmtPhone(r.phone), r.date ? nice(r.date) : "", r.time, r.beach, r.pkg, money(r.price) + (r.travel ? " (incl. " + money(r.travel) + " travel fee)" : ""), r.people ? r.people + " people" : "", r.notes ? "notes: " + r.notes : "", "asked " + daysAgo(r.at, todayCT()), r.test ? "TEST" : ""].filter(Boolean).join(" · ");
-  const cl = ([p, c]) => "- " + [c.name || "name not given", fmtPhone(p), "last text " + daysAgo(c.at, todayCT()) + ': "' + String(c.last || "").slice(0, 120) + '"', c.waiting ? 'WAITING ON MIRANDA: "' + c.waiting + '"' : "", c.test ? "TEST" : ""].filter(Boolean).join(" · ");
+  const rq = (r) => "- request_id " + r.id + ": " + [r.name, fmtPhone(r.phone), r.date ? nice(r.date) : "", r.time, r.beach, r.pkg, money(r.price) + (r.travel ? " (incl. " + money(r.travel) + " travel fee)" : ""), r.people ? r.people + " people" : "", r.notes ? "notes: " + r.notes : "", "asked " + daysAgo(r.at, todayCT()), r.test || r.mark ? "TEST" : ""].filter(Boolean).join(" · ");
+  const cl = ([p, c]) => "- " + [c.name || "name not given", fmtPhone(p), "last text " + daysAgo(c.at, todayCT()) + ': "' + String(c.last || "").slice(0, 120) + '"', c.waiting ? 'WAITING ON MIRANDA: "' + c.waiting + '"' : "", c.test || isOurs(p) ? "TEST" : ""].filter(Boolean).join(" · ");
   return "CUSTOMER DATE REQUESTS WAITING ON MIRANDA'S YES (" + waiting.length + "):\n" + (waiting.length ? waiting.map(rq).join("\n") : "- none") +
     "\n\nCUSTOMER TEXTS (last 7 days, " + cust.length + "):\n" + (cust.length ? cust.map(cl).join("\n") : "- none");
 }
@@ -567,7 +587,7 @@ export async function notifyMiranda(base, text, { page = false } = {}) {
 
 // Add Sandy's own text to a customer's conversation so she remembers it when they answer
 async function addToCustomer(base, phone, text) {
-  const s = sandyStore(base), k = histKey(phone), h = (await s.get(k, { type: "json" })) || [];
+  const s = sandyStore(base), k = custKey(phone), h = (await s.get(k, { type: "json" })) || [];
   // keep turns alternating: a text Sandy sends on her own follows a placeholder turn
   const add = h.length && h[h.length - 1].role === "user" ? [{ role: "assistant", content: text }] : [{ role: "user", content: "[No new text from the customer]" }, { role: "assistant", content: text }];
   await s.setJSON(k, h.concat(add).slice(-20));
@@ -576,7 +596,7 @@ async function addToCustomer(base, phone, text) {
 export async function textCustomer(base, phone, message, data) {
   const p = digits(phone), body = String(message || "").trim().slice(0, 1200);
   if (p.length !== 10 || !body) return { error: "need a 10-digit phone and a message" };
-  if (PEOPLE[p]) return { error: "that's Randy's or Miranda's number, not a customer" };
+  if (PEOPLE[p] && !(await customerMode(base, p))) return { error: "that's Randy's or Miranda's number, not a customer" };
   const known = !!(await getCustomers(base))[p] || ((data && data.bookings) || []).some((b) => digits(b.phone) === p) || ((data && data.log) || []).some((e) => digits(e.phone) === p);
   if (!known) return { error: "that number hasn't texted me and isn't in the bookings, so I can't text it" };
   const r = await deliver(base, p, body, "to-customer");

@@ -3,7 +3,7 @@
 // https://mirandaraephotography.com/api/sandy-sms (HTTP POST).
 // Twilio waits only 15 seconds, so this answers right away and Sandy replies by her own text a moment later.
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { PEOPLE, MIRANDA, digits, env, deliver, record, sandyKey, sandyStore } from "../sandy/brain.mjs";
+import { PEOPLE, MIRANDA, digits, env, deliver, record, sandyKey, sandyStore, customerMode, setCustomerMode } from "../sandy/brain.mjs";
 import { OPT_WORDS } from "../sandy/customers.mjs";
 
 const empty = () => new Response('<?xml version="1.0" encoding="UTF-8"?><Response></Response>', { headers: { "Content-Type": "text/xml" } });
@@ -26,7 +26,18 @@ export default async (req) => {
   const from = digits(params.From), text = String(params.Body || "").trim().slice(0, 1500);
   const base = new URL(req.url).origin;
   if (!text) return empty();
-  if (!PEOPLE[from]) {
+  // Randy testing a website request from his own phone (Oct 28 2026): for 3 hours his texts get the
+  // customer side of Sandy, like a real customer would. "DONE" switches him back right away.
+  let asCustomer = false;
+  if (PEOPLE[from] && (await customerMode(base, from))) {
+    if (/^\s*done( testing)?\s*[.!]*\s*$/i.test(text)) {
+      await setCustomerMode(base, from, false);
+      await deliver(base, from, "Sandy here. Got it, you're done testing as a customer. I'm back to regular Sandy for you.", "reply");
+      return empty();
+    }
+    asCustomer = true;
+  }
+  if (!PEOPLE[from] || asCustomer) {
     // A customer (Oct 28 2026): Sandy answers them herself when SANDY_CUSTOMERS is "on"
     await record(base, { kind: "incoming-other", from, body: text });
     if (env("SANDY_CUSTOMERS").toLowerCase() !== "on") {
