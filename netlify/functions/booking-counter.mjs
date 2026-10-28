@@ -146,7 +146,7 @@ export default async (req) => {
   const url = new URL(req.url);
   if (req.method === "GET" && url.searchParams.get("log")) {
     if (!(await okPass(req))) return json({ error: "passcode" });
-    return json({ bookings: await getList("bookings"), log: (await getList("log")).slice(-300), test: !live });
+    return json({ bookings: await getList("bookings"), log: (await getList("log")).slice(-300), daysOff: await getList("daysoff"), test: !live });
   }
   if (req.method === "GET") {
     const list = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS;
@@ -169,6 +169,25 @@ export default async (req) => {
 
   let data = {};
   try { data = await req.json(); } catch (e) {}
+  // Days off (Oct 28 2026): Miranda tells Sandy which days or times she's off; they show on the calendar
+  // and Sandy won't offer them to customers. part = all, sunrise, sunset or midday.
+  if (data.kind === "dayoff") {
+    if (!(await okPass(req, data))) return json({ error: "passcode" });
+    const ymd = /^\d{4}-\d{2}-\d{2}$/, from = day(data.date), to = day(data.to || data.date);
+    if (!ymd.test(from) || !ymd.test(to) || to < from) return json({ error: "dates" });
+    const dates = [];
+    for (let d = new Date(from + "T12:00:00Z"); d.toISOString().slice(0, 10) <= to && dates.length < 62; d.setUTCDate(d.getUTCDate() + 1)) dates.push(d.toISOString().slice(0, 10));
+    const part = ["all", "sunrise", "sunset", "midday"].includes(data.part) ? data.part : "all";
+    let list = (await getList("daysoff")).filter((x) => x.date >= new Date(Date.now() - 86400000).toISOString().slice(0, 10));
+    if (data.action === "remove") list = list.filter((x) => !(dates.includes(x.date) && (data.part ? x.part === part : true)));
+    else {
+      list = list.filter((x) => !(dates.includes(x.date) && (x.part === part || part === "all")));
+      dates.forEach((d) => list.push({ date: d, part, note: clip(data.note, 100), by: clip(data.by, 40), at: new Date().toISOString() }));
+    }
+    list.sort((a, b) => a.date.localeCompare(b.date));
+    await store.setJSON("daysoff", list.slice(0, 400));
+    return json({ ok: true, days: dates.length, daysOff: list });
+  }
   // Master page buttons: Deposit Received / Paid in Full / Cancel (+ undo)
   if (data.kind === "status") {
     if (!(await okPass(req, data))) return json({ error: "passcode" });

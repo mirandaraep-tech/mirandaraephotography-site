@@ -42,7 +42,9 @@ function calendar(data, today) {
   const end = addDays(today, 150);
   const taken = (data.bookings || []).filter((b) => !b.cancelled && !b.past && !b.photographer && (data.test || !b.test) && b.date && b.date >= today && b.date <= end)
     .sort((a, b) => a.date.localeCompare(b.date)).map((b) => "- " + nice(b.date) + " (" + b.date + "): " + (b.time || "time not set") + " taken");
-  return taken.length ? taken.join("\n") : "- nothing booked yet";
+  const off = (data.daysOff || []).filter((o) => o.date >= today && o.date <= end).map((o) => "- " + nice(o.date) + " (" + o.date + "): " + (o.part === "all" ? "Miranda is not available all day" : o.part + " not available"));
+  const all = taken.concat(off);
+  return all.length ? all.join("\n") : "- nothing booked yet";
 }
 
 function system(data, today, mine, reqs, first) {
@@ -59,15 +61,17 @@ About the business:
 PRICE LIST (the only prices you may quote):
 ${priceText()}
 
-MIRANDA'S CALENDAR (booked sessions; anything not listed looks open, but Miranda confirms every date):
+MIRANDA'S CALENDAR (booked sessions and times she's not available; anything not listed looks open, but Miranda confirms every date. Never say why a time isn't available):
 ${calendar(data, today)}
 
 ${mine.length ? "THIS CUSTOMER'S OWN BOOKINGS (matched by their phone number):\n" + mine.join("\n") + "\n\n" : ""}${reqs.length ? "THIS CUSTOMER'S DATE REQUESTS:\n" + reqs.join("\n") + "\n\n" : ""}Today is ${longDay(today)} (${today}), Central time.
 
 How you text:
 - Plain text only, no markdown or asterisks. Short and warm, like a friendly front desk. Usually 1 to 3 short sentences, under 320 characters. One question at a time.
-- Answer what they asked. Help them pick: a Beach Mini ($130) at Mexico Beach, Port St. Joe, Cape San Blas or Panama City Beach for up to 6 people; the Beach Special ($199 + $30 travel fee) for Destin, 30A or St. George Island or bigger groups; Family, Deluxe, Engagement, Proposal and Wedding packages as listed.
-- To request a date you need: their name, the date, sunrise or sunset, the beach, the package (ask how many people if it helps pick). Then use request_date and tell them Miranda will text their Confirm link soon. Don't promise a date is theirs; say it looks open.
+- Answer what they asked. Help them pick. At Mexico Beach, Port St. Joe, Cape San Blas and Panama City Beach they can choose the Beach Mini ($130: 30 minutes, 15 photos, up to 6 people) or the Beach Special, also called the Classic ($199: 45–60 minutes, 30–35 photos, up to 11 people, an outfit change), with no travel fee. At Destin, 30A and St. George Island it's the Beach Special ($199) plus the $30 travel fee. The Family, Deluxe, Engagement, Proposal and Wedding packages are available too, as listed.
+- To request a date you need: their name, the date, sunrise or sunset, the beach, the package (ask how many people if it helps pick).
+- The beach: if they haven't said, ask where they're staying or which beach they'd like their photos at. Many people only know their rental's town or area; that's fine. Match it to the nearest beach Miranda covers (for example Indian Pass goes with Port St. Joe/Cape San Blas, Santa Rosa Beach or Seaside is 30A, Panama City is Panama City Beach). If you're not sure which beach they mean, ask. If it's outside the beaches listed, take it down anyway with their town in notes and tell them Miranda will let them know if she can travel there.
+- Don't pick an exact spot or access point. Miranda texts the meeting spot before the session. If they have a favorite spot or a beach access near their rental, put it in notes. Then use request_date and tell them Miranda will text their Confirm link soon. Don't promise a date is theirs; say it looks open.
 - If the time they want is listed as taken, say so kindly and offer the other time that day or a nearby date.
 - Never make up prices, discounts, policies or availability. If something isn't covered above (a discount, a custom package, photo delivery time, changing or cancelling a booking, a complaint), say you'll check with Miranda, use ask_miranda, and tell them she'll get back to them.
 - Weddings: share the wedding packages and take down the date like any other request; put details (guest count, venue, hours) in notes.
@@ -119,6 +123,8 @@ async function requestDate(base, phone, x, data, today, { page, test }) {
   const t = low(x.time);
   const clash = (data.bookings || []).find((b) => !b.cancelled && !b.past && !b.photographer && (data.test || !b.test) && b.date === x.date && low(b.time) === t && (t === "sunrise" || t === "sunset"));
   if (clash) return { taken: true, note: x.time + " on " + nice(x.date) + " is already booked. Offer the other time that day or another date." };
+  const off = (data.daysOff || []).find((o) => o.date === x.date && (o.part === "all" || o.part === t));
+  if (off) return { taken: true, note: "Miranda isn't available " + (off.part === "all" ? "that day" : "for the " + off.part + " that day") + ". Offer another time or date (don't say why)." };
   const p = findPackage(x.pkg);
   const travel = p && p.price < 1000 ? travelFee(x.beach) : 0;
   const price = p ? p.price + travel : 0;
