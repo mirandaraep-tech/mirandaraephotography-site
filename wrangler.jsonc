@@ -29,6 +29,9 @@
     "LIVE": "yes"
   },
   // The real address (Oct 27 2026 switch night). Takes effect once Porkbun points the domain at Cloudflare.
+  // keep the test address working too (wrangler turns it off when routes are set)
+  "workers_dev": true,
+  "preview_urls": true,
   "routes": [
     { "pattern": "mirandaraephotography.com", "custom_domain": true },
     { "pattern": "www.mirandaraephotography.com", "custom_domain": true }
