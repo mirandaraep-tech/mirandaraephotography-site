@@ -32,7 +32,7 @@ export const CUSTOMER_TOOLS = [
     best_time: { type: "string", description: "When to call, short, as it reads after their number, e.g. \"after 5 PM\", \"tomorrow morning\", \"anytime today\", \"between 12 and 2 PM Friday\"" },
     about: { type: "string", description: "One short sentence for Miranda about what they want to talk about, e.g. \"She wants to talk about a sunset session Nov 14 at Mexico Beach.\" Use She/He/They to match the person (They if you can't tell). Include date, beach and package if known." },
   }, required: ["name", "best_time", "about"] } },
-  { name: "ask_miranda", description: "Pass a question to Miranda that you can't answer from what you know (a discount, a custom package, changing or cancelling their booking, a complaint, when photos will be ready, anything you're unsure of). She answers and you text them her answer.", input_schema: { type: "object", properties: { question: { type: "string", description: "Their question in a sentence or two, with any details Miranda needs" } }, required: ["question"] } },
+  { name: "ask_miranda", description: "Pass a question to Miranda that you can't answer from what you know (a discount, a custom package, changing or cancelling their booking, a complaint, when photos will be ready, anything you're unsure of). She answers and you text them her answer.", input_schema: { type: "object", properties: { question: { type: "string", description: "Their question written out in full, in a sentence or two, with any details Miranda needs (name, date, beach, package). Never just their short reply like \"no\" or \"yes\" — Miranda can't see your conversation" } }, required: ["question"] } },
 ];
 
 // The price list in plain words (prices.json is the master list)
@@ -171,7 +171,16 @@ async function requestDate(base, phone, x, data, today, { page, test, mark, web 
 async function askMiranda(base, phone, question, history, text, { page, test, mark }) {
   const q = String(question || "").trim().slice(0, 500);
   if (!q) return { error: "what's the question?" };
-  const msg = tag(mark) + "Sandy here. A customer, " + fmtPhone(phone) + ", asked something I can't answer:\n\"" + q + "\"\nWhat should I tell them? Just text me your answer and I'll pass it on.";
+  if (q.split(/\s+/).length < 4) return { error: "write the question out in a full sentence with the details Miranda needs, not just their short reply" };
+  // Oct 29 2026: Miranda got a bare "no" with no idea what it answered. Always show what Sandy last
+  // asked them and exactly what they texted back, so a short reply makes sense on its own.
+  const last = [...history].reverse().find((m) => m.role === "assistant" && typeof m.content === "string");
+  const who = PEOPLE[phone] ? PEOPLE[phone].name + " (testing as a customer)" : "A customer, " + fmtPhone(phone) + ",";
+  const said = String(text || "").trim().slice(0, 300);
+  const msg = tag(mark) + "Sandy here. " + who + " asked something I can't answer:\n\"" + q + "\"" +
+    (last ? "\n\nI had asked them: \"" + String(last.content).slice(0, 300) + "\"" : "") +
+    (said && !/^\[/.test(said) ? "\nThey texted back: \"" + said + "\"" : "") +
+    "\n\nWhat should I tell them? Just text me your answer and I'll pass it on.";
   await notifyMiranda(base, msg, { page: page || test });
   await noteCustomer(base, phone, { waiting: q.slice(0, 200) });
   return { ok: true, passed_to_miranda: true };
