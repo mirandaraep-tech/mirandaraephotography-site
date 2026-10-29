@@ -326,7 +326,7 @@ footer a{color:#fff}
     </div>
     <div class="top-btns">
       <a class="btn btn-ghost btn-sm" href="#check-date">Check Date</a>
-      <a class="btn btn-text btn-sm sms" href="sms:+14482196539" onclick="return textTap();"><span class="ico">💬</span> Text Miranda</a>
+      <a class="btn btn-text btn-sm sms" href="sms:+14482173502" onclick="return textTap();"><span class="ico">💬</span> Text Miranda</a>
     </div>
   </div>
 </div>
@@ -474,6 +474,12 @@ footer a{color:#fff}
         <option>Saw her photographing on the beach</option>
         <option>Other</option>
       </select>
+      <!-- Oct 29 2026: OK-to-text box (same wording as /book). Unchecked by default and NOT required. When checked, Sandy can text them about their request. -->
+      <label class="text-consent" style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;font-weight:400;margin:14px 0 12px;cursor:pointer;text-align:left">
+        <input type="checkbox" name="text-consent" value="Yes - agreed to texts" style="width:20px;height:20px;min-width:20px;margin:2px 0 0;accent-color:#1d5b6b">
+        <span>Yes, Miranda Rae Photography can text me about my session request, booking confirmations and reminders. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help. See our <a href="/terms?from=maternity" style="color:inherit;text-decoration:underline">Text Terms</a> and <a href="/privacy?from=maternity" style="color:inherit;text-decoration:underline">Privacy Notice</a>.</span>
+      </label>
+
 
       <button class="btn btn-text" type="submit">Send My Request</button>
       <p class="fine">No payment, no obligation — you're just asking. Miranda will personally confirm your date.</p>
@@ -518,7 +524,7 @@ footer a{color:#fff}
 <footer>
   <p>Miranda Rae Photography · Maternity Beach Photographer · Florida Gulf Coast</p>
   <p>Serving Panama City Beach, Mexico Beach, Port St. Joe, Cape San Blas, Indian Pass, St. George Island, Destin, Santa Rosa Beach, Seaside, Rosemary Beach &amp; WaterColor</p>
-  <p><a class="sms" href="sms:+14482196539" onclick="return textTap();">💬 Text Miranda</a> · <a href="/photos?from=maternity">See Photos</a></p>
+  <p><a class="sms" href="sms:+14482173502" onclick="return textTap();">💬 Text Miranda</a> · <a href="/photos?from=maternity">See Photos</a></p>
   <p>© 2026 Miranda Rae Photography</p>
 </footer>
 
@@ -536,9 +542,9 @@ footer a{color:#fff}
 
 <script>
   (function(){
-    var body = encodeURIComponent("Hi Miranda! I'd like to check a date for maternity beach photos. My beach and dates are: ");
+    var body = encodeURIComponent("Hi! I'd like to check a date for maternity beach photos. My beach and dates are: ");
     var ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    document.querySelectorAll('a.sms').forEach(function(a){ a.href = 'sms:+14482196539' + (ios ? '&' : '?') + 'body=' + body; });
+    document.querySelectorAll('a.sms').forEach(function(a){ a.href = 'sms:+14482173502' + (ios ? '&' : '?') + 'body=' + body; });
   })();
 
   function showWB(){ var b=document.getElementById('welcome-back'); if(b && !b.classList.contains('show')){ b.classList.add('show'); gtag('event','returned_from_link',{page:PAGE}); try{sessionStorage.removeItem('mrp-left')}catch(e){} } }
