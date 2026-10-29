@@ -191,6 +191,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .acol .b-con{background:#e1f0f3;color:var(--teal);border:1.5px solid #bcdce3}
 .acol .b-paid{background:#fff;color:#1f6b3a;border:2px solid #1f6b3a}
 .acol .b-rem{background:#fff;color:#7a4f00;border:2px solid #e0a32b}
+.acol .b-rev{background:#b67d39;color:#fff;border-color:#b67d39}
 .cxb{margin-top:12px}
 
 /* Bottom sheets (forms that slide up) */
@@ -624,6 +625,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (b.paid) L += '<div class="kv">Paid in full – <b>' + money(b.paid.amount) + '</b>' + (b.paid.method ? ' · ' + esc(b.paid.method) : '') + ' · ' + esc(short(b.paid.at)) + '</div>';
     if (b.cancelled) L += '<div class="kv">Cancelled ' + esc(short(b.cancelled.at)) + (b.cancelled.by ? ' by ' + esc(b.cancelled.by) : '') + (b.cancelled.kept ? ' · kept ' + money(b.cancelled.kept) : b.cancelled.returned ? ' · returned ' + money(b.cancelled.returned) : '') + '</div>';
     if (b.notes) L += '<div class="kv">Notes – <b>' + esc(b.notes) + '</b></div>';
+    if (b.reviewAsked) L += '<div class="kv">⭐ Review asked – <b>' + esc(b.reviewAsked.site) + '</b> · ' + esc(short(b.reviewAsked.at)) + '</div>';
     if (b.movedFrom) L += '<div class="kv">Moved from ' + esc(nice(b.movedFrom)) + '</div>';
     if (!b.cancelled) L += '<div class="smb"><button class="btn ghost" data-a="extra">+ Extra</button><button class="btn ghost" data-a="deduct">− Deduct</button></div>' +
       '<button class="btn red cxb" data-a="cancel">Cancel booking</button>';
@@ -638,6 +640,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (!b.past) R += '<button class="btn ghost" data-a="move">Move date</button>';
       R += '<button class="btn ghost" data-a="edit">Edit</button>';
       R += '<button class="btn ghost" data-a="shooter">Photographer</button>';
+      if (b.paid || b.past || (b.date && b.date < TODAY)) R += '<button class="btn ' + (b.reviewAsked ? 'ghost' : 'b-rev') + '" data-a="review">' + (b.reviewAsked ? 'Review asked ✓' : 'Ask for review') + '</button>';
     }
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
   }
@@ -696,7 +699,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('mt').innerHTML = line('📸 From her own sessions', own) + line('📷 Her share from contracted sessions' + (n ? ' <span class="muted">(' + n + ')</span>' : ''), share) +
       line('Total to Miranda', own + share, true) + '<p class="muted" style="margin:10px 0 0">Paid to photographers: <b>' + money(paidOut) + '</b>' + (who ? ' (' + who + ')' : '') + '</p>';
   }
-  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', 'shooter-paid': '💸 Photographer paid Miranda', 'undo-shooter-paid': '↩️ Photographer payment undone' };
+  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', 'shooter-paid': '💸 Photographer paid Miranda', review: '⭐ Review asked', 'undo-shooter-paid': '↩️ Photographer payment undone' };
   function feed(tests){
     var log = DATA.log || [], done = {};
     log.forEach(function(e){ if (e.kind === 'confirm' || e.kind === 'added') done[low(e.name) + '|' + (e.date || '')] = 1; });
@@ -911,6 +914,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'paid') return paidSheet(b);
     if (a === 'move') return moveSheet(b);
     if (a === 'edit') return editSheet(b);
+    if (a === 'review') return reviewSheet(b);
     if (a === 'shooter') return shooterSheet(b);
     if (a === 'extra') return extraSheet(b);
     if (a === 'deduct') return deductSheet(b);
@@ -970,6 +974,19 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     /*/prices:booking-pk*/
     ['Custom session', '', '', '', '']];
   var opts = function(list, sel){ var has = false, h = list.map(function(x){ var s = x === sel; if (s) has = true; return '<option value="' + esc(x) + '"' + (s ? ' selected' : '') + '>' + esc(x || 'No time') + '</option>'; }).join(''); return (!has && sel ? '<option selected>' + esc(sel) + '</option>' : '') + h; };
+  // Ask for review (Oct 29 2026): one review per customer. Google for most; Facebook for customers who found Miranda there.
+  var REVIEW = { Google: 'https://g.page/r/CaFf0dP6BNa3EBM/review', Facebook: 'https://www.facebook.com/profile.php?id=61591669718246&sk=reviews' };
+  function msgReview(b, site){ return 'Hi ' + first(b.name) + '! Thank you so much for letting me take your photos. If you have a minute, would you leave me a quick ' + site + ' review? It really helps my small business. ' + REVIEW[site]; }
+  function reviewSheet(b){
+    sheet('<h3>Ask ' + esc(first(b.name)) + ' for a review</h3>' +
+      (b.reviewAsked ? '<p class="muted">Already asked for a ' + esc(b.reviewAsked.site) + ' review ' + esc(short(b.reviewAsked.at)) + '.</p>' : '<p class="muted">Pick one. Google for most customers, Facebook if they found you on Facebook.</p>') +
+      '<div class="choice"><button class="btn" data-site="Google">Google review</button><button class="btn ghost" data-site="Facebook">Facebook review</button><button class="btn ghost" data-x>Never mind</button></div>',
+      function(e, v, close){
+        var t = e.target.closest('[data-site]'); if (!t) return;
+        var site = t.getAttribute('data-site'); close();
+        act(b, 'review', { site: site }).then(function(nb){ compose(nb || b, site + ' review request', msgReview(nb || b, site)); });
+      });
+  }
   function editSheet(b){
     sheet('<h3>Edit booking</h3>' +
       '<label class="l">Name</label><input data-f="name" value="' + esc(b.name) + '">' +
