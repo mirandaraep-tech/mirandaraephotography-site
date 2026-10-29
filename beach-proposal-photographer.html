@@ -253,7 +253,7 @@ footer a{color:#fff}
       "name": "Will my partner find out?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Not from Miranda. When you check \"Surprise proposal\" on the form, Miranda only contacts you, by the phone number or email you give her. Nothing gets sent to your partner."
+        "text": "Not from Miranda. When you pick \"Surprise proposal\" on the form, Miranda only contacts you, by the phone number or email you give her. Nothing gets sent to your partner."
       }
     },
     {
@@ -336,8 +336,8 @@ footer a{color:#fff}
 <!--/prices:json-offers-->
 <style>
 .why{background:#fff}
-.hgal{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
-.hgal img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px}
+.hgal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
+.hgal img{width:100%;height:auto;min-width:0;aspect-ratio:4/5;object-fit:cover;border-radius:10px}
 .pk{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px auto 0;text-align:left;max-width:820px}
 .pk div{border:1px solid var(--line);border-radius:14px;padding:18px;background:var(--cream)}
 .pk b{display:block;font:21px Georgia,serif}
@@ -347,9 +347,9 @@ footer a{color:#fff}
 .pk ul{margin:8px 0 0;padding-left:18px;font-size:14px;color:#2b4150}
 .secret{background:#fff6e6;border:1px solid #f0d9b5;border-radius:10px;padding:10px 12px;font-size:13px;margin-top:8px;display:none}
 .steps5{grid-template-columns:repeat(4,1fr)}
-@media(max-width:860px){.pk{grid-template-columns:1fr}.hgal{grid-template-columns:1fr 1fr}.steps5{grid-template-columns:1fr}}
+@media(max-width:860px){.pk{grid-template-columns:1fr}.hgal{grid-template-columns:repeat(2,minmax(0,1fr))}.steps5{grid-template-columns:1fr}}
 @media(min-width:861px){.hero{background:#f3d9c4}.hero::before{left:30%;background-position:50% 60%}.hero::after{background:linear-gradient(90deg,#f3d9c4 30%,rgba(243,217,196,.55) 40%,rgba(243,217,196,0) 52%)}}
-@media(max-width:860px){.hero::before{background-position:58% 100%}}
+@media(max-width:860px){.hero{background:#fbf3ea}.hero::before{top:auto;bottom:0;height:340px;background-position:56% 62%}.hero::after{top:auto;bottom:0;height:340px;background:linear-gradient(180deg,#fbf3ea 0%,rgba(251,243,234,0) 22%)}.hero-grid{padding:26px 0 350px}}
 </style>
 </head>
 <body>
@@ -452,7 +452,7 @@ footer a{color:#fff}
   <div class="shell">
     <h2 class="center">How a surprise proposal works</h2>
     <div class="steps steps5">
-      <article><span>1</span><h3>Tell Miranda your plan</h3><p>Send your date and beach with the form below. Check "Surprise proposal" and she'll only contact you.</p></article>
+      <article><span>1</span><h3>Tell Miranda your plan</h3><p>Send your date and beach with the form below. Pick "Surprise proposal" and she'll only contact you.</p></article>
       <article><span>2</span><h3>Pick the spot &amp; time</h3><p>Miranda helps you choose the place, the light and a simple signal. A <data data-p="deposit">$50</data> deposit holds your date.</p></article>
       <article><span>3</span><h3>Ask the question</h3><p>Miranda's nearby, looking like anyone else on the beach, and catches every second.</p></article>
       <article><span>4</span><h3>Celebrate</h3><p>Engagement portraits right after, then your edited photos in a private online gallery.</p></article>
@@ -550,7 +550,7 @@ footer a{color:#fff}
     <h2 style="text-align:center">Proposal photography questions</h2>
     <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">How much does a proposal photographer cost?</summary><p style="margin:8px 0 0">Miranda's Surprise Proposal is <span data-p="proposal.price">$199</span>. It includes <span data-p="proposal.photos">30</span> edited photos, help planning the spot and timing, discreet coverage of the proposal, engagement portraits right after, and no set time limit. Already engaged? The Engagement Session is <span data-p="engagement.price">$199</span> with <span data-p="engagement.photos">35+</span> edited photos.</p></details>
     <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">How will Miranda stay hidden during the proposal?</summary><p style="margin:8px 0 0">Before the day, you and Miranda agree on the exact spot, the time and a simple signal. On the day, she's nearby looking like anyone else enjoying the beach, so your partner won't suspect a thing. When you see her ready, it's your moment.</p></details>
-    <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">Will my partner find out?</summary><p style="margin:8px 0 0">Not from Miranda. When you check "Surprise proposal" on the form, Miranda only contacts you, by the phone number or email you give her. Nothing gets sent to your partner.</p></details>
+    <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">Will my partner find out?</summary><p style="margin:8px 0 0">Not from Miranda. When you pick "Surprise proposal" on the form, Miranda only contacts you, by the phone number or email you give her. Nothing gets sent to your partner.</p></details>
     <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">Should we do the proposal at sunset or sunrise?</summary><p style="margin:8px 0 0">Sunset is the favorite, with soft golden light and warm colors. Sunrise is just as pretty and the beach is usually much quieter, which is great if you'd rather not have an audience.</p></details>
     <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">Which beaches can I propose at?</summary><p style="margin:8px 0 0">Panama City Beach, Mexico Beach, Port St. Joe, Cape San Blas, Indian Pass, St. George Island, Destin and 30A, including Santa Rosa Beach, Seaside, Rosemary Beach and WaterColor. Not sure where? Miranda can help you pick a spot.</p></details>
     <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">What if the weather doesn't cooperate?</summary><p style="margin:8px 0 0">Just reach out. Miranda will do her best to find a new date or time that works for you, so your proposal still happens the way you pictured it.</p></details>
