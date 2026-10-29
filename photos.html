@@ -563,6 +563,9 @@ footer a{color:#fff}
   if (from) [].forEach.call(document.querySelectorAll('a[href="#check-date"]'), function(a){ a.href = '/' + from + '#check-date'; });
   // Oct 20 2026: visitors coming from /book already texted Miranda, so hide the Text Miranda buttons for them
   if (from === 'book') [].forEach.call(document.querySelectorAll('a.sms'), function(a){ a.style.display = 'none'; });
+  // Oct 29 2026: ad visitors text Sandy (Miranda's AI texting assistant), same as on the ad page they came from
+  if (/^(proposal|maternity|holiday-family|holiday-family-photos|gulf-coast-199|(panama-city-beach|mexico-beach|port-st-joe|cape-san-blas)-199)$/.test(from))
+    [].forEach.call(document.querySelectorAll('a.sms'), function(a){ a.href = a.href.replace('14482196539', '14482173502').replace('body=Hi%20Miranda!%20', 'body=Hi!%20'); });
   // Privacy notice: keep the visitor's way back to the landing page (Oct 14 2026)
   if (from) [].forEach.call(document.querySelectorAll('a[href="/privacy"]'), function(a){ a.href = '/privacy?from=' + from; });
 })();
