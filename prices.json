@@ -1,6 +1,6 @@
 {
   "_readme": "MASTER PRICE LIST for mirandaraephotography.com. Change a number here, then run `node tools/prices.mjs` and every page (home, Prices page, /book, beach pages, New Booking, /log, llms.txt) is rewritten to match. Keep this matching Miranda's Pixieset Services page.",
-  "updated": "2026-10-23",
+  "updated": "2026-10-29",
   "deposit": 50,
   "packages": {
     "mini": {
@@ -30,9 +30,11 @@
         "1 location",
         "1 outfit change"
       ],
-      "where": "Destin · 30A · St. George Island",
+      "where": "Every beach",
       "blurb": "Miranda's most popular session, filled with movement, conversation, sandy feet, snack breaks and letting kids be kids.",
-      "more": []
+      "more": [
+        "Offered at every beach: no travel fee at Mexico Beach, Port St. Joe, Cape San Blas & Panama City Beach; $30 travel fee in Destin, 30A & St. George Island"
+      ]
     },
     "family": {
       "name": "Family Session",
@@ -154,5 +156,6 @@
     "Destin": 30,
     "30A": 30,
     "St. George Island": 30
-  }
+  },
+  "travelNote": "Home beaches (Mexico Beach, Port St. Joe, Cape San Blas, Panama City Beach) have no travel fee. Only Destin, 30A and St. George Island add the $30 travel fee. The $199 Beach Special (Classic) is offered at every beach, home beaches included; the $130 Mini is home beaches only."
 }
