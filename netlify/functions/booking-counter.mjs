@@ -254,6 +254,11 @@ export default async (req) => {
       data.detail = "Changed " + changed.join(", ");
       b.edited = { at: now, by: who };
     }
+    else if (a === "review") {
+      // Ask for review button (Oct 29 2026): notes that Miranda texted this customer a review link
+      b.reviewAsked = { at: now, by: who, site: clip(data.site, 20) === "Facebook" ? "Facebook" : "Google" };
+      data.detail = b.reviewAsked.site + " review link texted";
+    }
     else if (a === "photographer") {
       // Photographer button (Oct 20 2026): hand a session to Kallie (or anyone), or back to Miranda.
       // The new photographer's same-time sessions are checked so nobody is double-booked.
@@ -305,7 +310,7 @@ export default async (req) => {
     const cxd = a === "cancel" && b.cancelled.deposit ? (b.cancelled.deposit === "kept" ? "Deposit kept" + (b.cancelled.kept ? " $" + b.cancelled.kept : "") : "Deposit returned" + (b.cancelled.returned ? " $" + b.cancelled.returned : "")) : "";
     await logIt({ kind: a === "move" ? "moved" : a, num: b.num, name: b.name, amount: amt, by: who, test: !!b.test,
       ...(a === "move" ? { date: b.date, detail: "Moved from " + b.movedFrom } : a === "deduct" ? { detail: b.deducts[b.deducts.length - 1].why }
-        : a === "edit" || a === "photographer" || a === "shooter-paid" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
+        : a === "edit" || a === "photographer" || a === "shooter-paid" || a === "review" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
     return json({ ok: true, booking: b });
   }
   // Master page "Clear all tests" button (Oct 15 2026): removes test bookings and test entries from
