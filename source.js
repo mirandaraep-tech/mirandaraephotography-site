@@ -149,7 +149,8 @@
       var wedding = /wedding/i.test(path) || /wedding/i.test(beach) || /wedding/i.test(v('session'));
       if (/^(wedding|not sure yet|other)$/i.test(beach)) beach = '';
       if (!beach) { for (var k in BEACH) { if (path.indexOf('/' + k) === 0) { beach = BEACH[k]; break; } } }
-      var parts = [v('name') || 'No name', v('date') ? window.mrpDate(v('date'), true) : 'no date yet', beach, (wedding && v('collection') && !/not sure/i.test(v('collection')) ? v('collection').replace(/^(.*?) — (\$[\d,]+).*$/, '$2 $1') : window.mrpPriceLabel(window.mrpPrice(beach, wedding)))].filter(Boolean);
+      var parts = [v('name') || 'No name', v('date') ? window.mrpDate(v('date'), true) : 'no date yet', beach, (v('price-label') || (wedding && v('collection') && !/not sure/i.test(v('collection')) ? v('collection').replace(/^(.*?) — (\$[\d,]+).*$/, '$2 $1') : window.mrpPriceLabel(window.mrpPrice(beach, wedding))))].filter(Boolean);
+      // Oct 29 2026: pages with their own price (e.g. the proposal pages) send a hidden "price-label" field that wins
       // Oct 28 2026: requests from Randy's, Bradyn's or Miranda's own phone numbers say TEST up front
       var testNum = /^(2563996736|2566134522|4482196539)$/.test(String(v('phone')).replace(/\D/g, '').slice(-10));
       subj.value = (testNum ? '🧪 TEST · ' : '') + '📩 NEW REQUEST: ' + parts.join(' · ');
