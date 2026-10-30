@@ -181,6 +181,8 @@ export default async (req) => {
     const log = (await getList("log")).slice(-300);
     // Oct 30 2026: everything the customer filled in on the form shows on their Inquiry card
     try { await addForms(live, log); } catch (e) {}
+    // Oct 30 2026: details filled in later (e.g. copied from an older request's email) go on the same card
+    try { const ex = await getList("details"); for (const e of log) { if (e.kind !== "request") continue; const x = ex.find((d) => d.key === String(e.name || "").trim().toLowerCase() + "|" + (e.date || "")); if (!x) continue; if (!e.phone && x.phone) e.phone = x.phone; if (x.form) e.form = { ...x.form, ...(e.form || {}) }; } } catch (e) {}
     let sandy = null; try { sandy = await sandyInfo(live); } catch (e) {}
     return json({ bookings: await getList("bookings"), log, daysOff: await getList("daysoff"), test: !live, ...(sandy ? { sandy } : {}) });
   }
@@ -367,6 +369,16 @@ export default async (req) => {
     if (b) { b.cancelled = { at: now, by: clip(data.by, 40) || "Sandy" }; await store.setJSON("bookings", list); await logIt({ kind: "cancel", num: b.num, name: b.name, by: clip(data.by, 40), detail: "Miranda said no (no deposit yet)", test: !!b.test }); }
     await logIt({ kind: "void", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), by: clip(data.by, 40), detail: "Confirm link cancelled: Miranda said no", test: isTestName(data.name) });
     return json({ ok: true, cancelled: b ? b.num : null });
+  }
+  // Oct 30 2026: add details to an inquiry card after the fact (an older request sent before the app kept the whole form)
+  if (data.kind === "details") {
+    if (!(await okPass(req, data))) return json({ error: "passcode" });
+    const key = clip(data.name, 60).trim().toLowerCase() + "|" + day(data.date), f = data.form || {}, form = {};
+    for (const k of ["email", "people", "who", "message"]) if (String(f[k] || "").trim()) form[k] = clip(f[k], k === "message" ? 2000 : 300).trim();
+    const list = (await getList("details")).filter((d) => d.key !== key);
+    list.push({ key, phone: digits(data.phone), form, at: new Date().toISOString() });
+    await store.setJSON("details", list.slice(-300));
+    return json({ ok: true });
   }
   // Master page "Clear all tests" button (Oct 15 2026): removes test bookings and test entries from
   // the master page only. Real bookings, totals and booking numbers are never touched.

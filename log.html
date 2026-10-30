@@ -693,7 +693,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' +
       '</div><div class="rt">' + (o.time ? sessBtn(o, true) : '') + (o.amount ? '<span class="amt a-inq">' + money(o.amount) + '</span>' : '') +
       (o.pen ? '<button class="dep na pen" type="button" tabindex="-1">✏️ Penciled in ' + esc(slotTxt(o.sreq)) + ', waiting on your OK</button>'
-        : '<button class="dep na" type="button" tabindex="-1">' + (sent ? 'Waiting on customer to confirm' : o.texting ? '💬 Sandy is texting them' : 'Needs reply from Miranda, chop&nbsp;chop!') + '</button>') +
+        : '<button class="dep na" type="button" tabindex="-1">' + (sent ? 'Waiting on customer to confirm' : o.texting ? '💬 Sandy is texting them' : 'Needs reply') + '</button>') +
       (o.asked ? '<span class="came">' + (o.request ? 'Came in ' : 'Added ') + esc(shortDay(o.asked)) + '<br>' + ago(o.asked) + '</span>' : '') + '</div></div>';
     if (!open) return h + '</div>';
     var L = '';
