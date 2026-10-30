@@ -298,6 +298,12 @@ export default async (req) => {
       data.detail = "Changed " + changed.join(", ");
       b.edited = { at: now, by: who };
     }
+    else if (a === "ad") {
+      // Advertising button (Oct 30 2026): what an ad cost for this booking, a % of the session or a $ amount. 0 clears it.
+      const mode = data.mode === "amt" ? "amt" : "pct", val = Math.max(0, Math.min(mode === "pct" ? 100 : 10000, Number(data.val) || 0));
+      if (val) b.ad = { mode, val: cents(val) }; else delete b.ad;
+      data.detail = val ? "Advertising " + (mode === "pct" ? val + "%" : "$" + val) : "Advertising cleared";
+    }
     else if (a === "review") {
       // Ask for review button (Oct 29 2026): notes that Miranda texted this customer a review link
       b.reviewAsked = { at: now, by: who, site: clip(data.site, 20) === "Facebook" ? "Facebook" : "Google" };
@@ -353,7 +359,7 @@ export default async (req) => {
     const cxd = a === "cancel" && b.cancelled.deposit ? (b.cancelled.deposit === "kept" ? "Deposit kept" + (b.cancelled.kept ? " $" + b.cancelled.kept : "") : "Deposit returned" + (b.cancelled.returned ? " $" + b.cancelled.returned : "")) : "";
     await logIt({ kind: a === "move" ? "moved" : a, num: b.num, name: b.name, amount: amt, by: who, test: !!b.test,
       ...(a === "move" ? { date: b.date, detail: "Moved from " + b.movedFrom } : a === "deduct" ? { detail: b.deducts[b.deducts.length - 1].why }
-        : a === "edit" || a === "photographer" || a === "shooter-paid" || a === "review" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
+        : a === "edit" || a === "photographer" || a === "shooter-paid" || a === "review" || a === "ad" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
     return json({ ok: true, booking: b });
   }
   // Sandy (Oct 30 2026): Miranda said no to a time after Bradyn's yes, before the deposit. The Confirm link that

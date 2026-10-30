@@ -708,6 +708,25 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     });
     chain.then(function(){ toast('Price updated'); load(); }).catch(function(){ alert("That didn't all save. Please check the card and try again."); load(); });
   }
+  // Advertising (Oct 30 2026): set up like the photographer split, a % of the session or a $ amount; starts at 0
+  function adOf(b){ var a = b.ad; if (!a || !a.val) return 0; return Math.round(Math.min(tot(b), a.mode === 'amt' ? a.val : tot(b) * a.val / 100) * 100) / 100; }
+  function adSheet(b){
+    var a = b.ad || { mode: 'pct', val: 0 };
+    var s = sheet('<h3>Advertising</h3><p class="muted">' + esc(b.name) + ' · ' + money(tot(b)) + '</p><label class="l">Ad cost for this booking</label>' +
+      '<div class="chips"><button class="chip' + (a.mode !== 'amt' ? ' on' : '') + '" type="button" data-mode="pct">%</button><button class="chip' + (a.mode === 'amt' ? ' on' : '') + '" type="button" data-mode="amt">$</button></div>' +
+      '<div class="money" style="margin-top:8px"><b data-sym>' + (a.mode === 'amt' ? '$' : '%') + '</b><input data-v type="number" inputmode="decimal" value="' + (a.val || 0) + '"></div><div class="note" data-c></div>' +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>',
+      function(e, v, close){
+        var md = e.target.closest('[data-mode]');
+        if (md) { Array.prototype.forEach.call(v.querySelectorAll('[data-mode]'), function(x){ x.classList.toggle('on', x === md); }); v.querySelector('[data-sym]').textContent = md.getAttribute('data-mode') === 'amt' ? '$' : '%'; calc(); return; }
+        if (!e.target.closest('[data-save]')) return;
+        close(); act(b, 'ad', pick());
+      });
+    var V = s.el;
+    function pick(){ return { mode: V.querySelector('[data-mode].on').getAttribute('data-mode'), val: parseFloat(V.querySelector('[data-v]').value) || 0 }; }
+    function calc(){ var p = pick(), amt = adOf({ ad: p, total: b.total, addons: b.addons, deducts: b.deducts }); V.querySelector('[data-c]').innerHTML = 'Ad cost <b>' + money(amt) + '</b> · Miranda keeps <b>' + money(Math.max(0, mineOf(b) - amt)) + '</b>'; }
+    V.addEventListener('input', calc); calc();
+  }
   // One Text button (Oct 30 2026): pick what to send; each opens Messages with the text ready
   function textMenu(b){
     var done = b.paid || b.past || (b.date && b.date < TODAY);
@@ -779,6 +798,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (so) R2 += row('💸 ' + esc(b.photographer) + ' owes Miranda', money(so), 'tt');
       else if (b.paid && !b.cancelled) R2 += '<div class="tt"><span>✓ All settled with ' + esc(b.photographer) + '</span><span></span></div>';
     }
+    // Advertising (Oct 30 2026): what an ad cost for this booking, taken from Miranda's part
+    if (b.ad && b.ad.val) {
+      var adAmt = adOf(b);
+      R2 += '<div class="sp" style="color:#7a4f00">📣 Advertising</div>' + row('Ad cost' + (b.ad.mode === 'pct' ? ' (' + b.ad.val + '%)' : ''), '−' + money(adAmt)) + row('Miranda keeps', money(Math.max(0, mineOf(b) - adAmt)), 'tt');
+    }
     L += '<div class="rcpt">' + R2 + '</div>';
     if (b.photographer && so) L += '<button class="btn" data-a="shooter-paid" style="width:100%;margin-bottom:8px">' + esc(b.photographer) + ' paid me ' + money(so) + '</button>';
     if (b.cancelled) L += '<div class="kv">Cancelled ' + esc(short(b.cancelled.at)) + (b.cancelled.by ? ' by ' + esc(b.cancelled.by) : '') + (b.cancelled.kept ? ' · kept ' + money(b.cancelled.kept) : b.cancelled.returned ? ' · returned ' + money(b.cancelled.returned) : '') + '</div>';
@@ -789,7 +813,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<button class="btn red cxb" data-a="cancel">Cancel booking</button>';
     var R = '';
     if (b.cancelled) R = '<button class="btn ghost" data-a="undo-cancel">Undo cancel</button>';
-    else R = '<button class="btn b-con" data-a="textmenu">💬 Text</button><button class="btn ghost" data-a="edit">Edit</button><button class="btn ghost" data-a="shooter">Photographer</button>';
+    else R = '<button class="btn b-con" data-a="textmenu">💬 Text</button><button class="btn ghost" data-a="edit">Edit</button><button class="btn ghost" data-a="shooter">Photographer</button><button class="btn ghost" data-a="ad">Advertising</button>';
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
   }
   // What the customer filled in on the form (Oct 30 2026): only the lines they filled in
@@ -862,7 +886,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('mt').innerHTML = line('📸 From her own sessions', own) + line('📷 Her share from contracted sessions' + (n ? ' <span class="muted">(' + n + ')</span>' : ''), share) +
       line('Total to Miranda', own + share, true) + '<p class="muted" style="margin:10px 0 0">Paid to photographers: <b>' + money(paidOut) + '</b>' + (who ? ' (' + who + ')' : '') + '</p>';
   }
-  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', 'shooter-paid': '💸 Photographer paid Miranda', review: '⭐ Review asked', 'undo-shooter-paid': '↩️ Photographer payment undone' };
+  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', 'shooter-paid': '💸 Photographer paid Miranda', review: '⭐ Review asked', ad: '📣 Advertising', 'undo-shooter-paid': '↩️ Photographer payment undone' };
   function feed(tests){
     var log = DATA.log || [], done = {};
     log.forEach(function(e){ if (e.kind === 'confirm' || e.kind === 'added') done[low(e.name) + '|' + (e.date || '')] = 1; });
@@ -1074,6 +1098,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'money') return moneySheet(b);
     if (a === 'textmenu') return textMenu(b);
     if (a === 'price') return priceSheet(b);
+    if (a === 'ad') return adSheet(b);
     if (a === 'dep') return depositSheet(b);
     if (a === 'dep-undo') return ask('Undo the deposit?', 'This marks ' + esc(b.name) + "'s " + money(b.deposit.amount) + ' deposit as not received.', 'Undo deposit', 'Keep it', function(){ act(b, 'undo-deposit'); });
     if (a === 'undo-paid-ask') return ask('Undo paid in full?', esc(b.name) + ' goes back to owing ' + money((b.paid && b.paid.amount) || 0) + '.', 'Undo paid', 'Keep it', function(){ act(b, 'undo-paid'); });
