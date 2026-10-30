@@ -36,6 +36,27 @@
         "Offered at every beach: no travel fee at Mexico Beach, Port St. Joe, Cape San Blas & Panama City Beach; $30 travel fee in Destin, 30A & St. George Island"
       ]
     },
+    "senior": {
+      "name": "Senior Portrait Session",
+      "booking": "Senior Portrait",
+      "price": 199,
+      "time": "45–60 min",
+      "timeWords": "45–60 minutes",
+      "photos": "30–35",
+      "people": null,
+      "details": [
+        "2 outfit changes"
+      ],
+      "where": "Every beach",
+      "blurb": "One last big moment before graduation: relaxed, lightly guided senior pictures on the beach.",
+      "more": [
+        "Bring your cap and gown, letterman jacket, jersey or anything that's you",
+        "A few photos with a parent or best friend included",
+        "Yearbook-ready picks marked for you",
+        "No travel fee at Mexico Beach, Port St. Joe, Cape San Blas & Panama City Beach; $30 travel fee in Destin, 30A & St. George Island"
+      ],
+      "bookingPeople": "1 + a parent or friend"
+    },
     "family": {
       "name": "Family Session",
       "booking": "Family Session",
