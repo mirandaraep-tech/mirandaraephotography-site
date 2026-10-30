@@ -55,6 +55,9 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .frow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .fb{border:2px solid var(--line);background:#fff;color:var(--teal);border-radius:14px;min-height:46px;padding:4px 6px;font-size:15px;cursor:pointer;line-height:1.15}
 .fb.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:bold}
+/* Oct 30 2026: Confirmed = dark green with ✓, Not confirmed = bright yellow with ✕ (light vs dark, plus the marks) */
+#fCon.on{background:#15603a;border-color:#15603a;color:#fff}
+#fCon.no{background:#ffd84d;border:2px solid #7a5c00;color:#3d2e00;font-weight:bold}
 .fb .ct{display:inline-block;background:#fff;color:var(--teal);border-radius:999px;font-size:12px;padding:0 6px;margin-left:4px;font-weight:bold}
 .crow{display:flex;gap:8px;margin-top:8px;align-items:stretch;position:relative}
 .cbtn{display:flex;align-items:center;gap:10px;border:2px solid var(--line);background:#fff;border-radius:14px;padding:4px 12px 4px 4px;color:var(--teal);font-size:15px;cursor:pointer;min-height:46px}
@@ -516,7 +519,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
     // Filter buttons show what they're set to
     var fc = $('fCon'), fd = $('fDep'), fn = $('fNeed');
-    fc.classList.toggle('on', !!CON); fc.innerHTML = CON === 'yes' ? 'Confirmed ✓' : CON === 'no' ? 'Not confirmed ✓' : 'Confirmed ↻';
+    // Oct 30 2026: one button for both. Shows "Confirmed / Not confirmed" until tapped; then a ✓ (filled) or ✕ (thick outline), never color alone
+    fc.classList.toggle('on', CON === 'yes'); fc.classList.toggle('no', CON === 'no');
+    fc.innerHTML = CON === 'yes' ? '✓ Confirmed ↻' : CON === 'no' ? '✕ Not confirmed ↻' : 'Confirmed? ↻';
     fd.classList.toggle('on', !!DEP); fd.innerHTML = DEP === 'in' ? 'Deposit in ✓' : DEP === 'none' ? 'No deposit ✓' : 'Deposit ↻';
     // Needs a look = past sessions not yet Paid in Full; the number shows how many
     var nl = all.filter(function(b){ return real(b) && flagged(b); }).length;
@@ -528,7 +533,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     // Oct 20 2026: one tap back to everything when Confirmed / Deposit / Needs a look is on
     var fOn = [CON ? $('fCon').textContent : '', DEP ? $('fDep').textContent : '', MORE.status === 'needs' ? 'Needs a look' : ''].filter(Boolean);
     $('fChip').hidden = !!DAY || !fOn.length;
-    if (fOn.length) $('fTxt').innerHTML = 'Showing only <b>' + esc(fOn.join(' + ').replace(/[↻✓]/g, '').replace(/\s+/g, ' ').trim()) + '</b>';
+    if (fOn.length) $('fTxt').innerHTML = 'Showing only <b>' + esc(fOn.join(' + ').replace(/[↻✓✕]/g, '').replace(/\s+/g, ' ').trim()) + '</b>';
     if (DAY) { var sn = sun(DAY); $('dayTxt').innerHTML = 'Showing <b>' + esc(longDay(DAY)) + '</b><br><span class="muted">🌅 ' + sn[0] + ' · 🌇 ' + sn[1] + ' (Mexico Beach)</span>'; }
 
     // Which bookings show
