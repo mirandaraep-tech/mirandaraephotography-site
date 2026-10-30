@@ -712,7 +712,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function adOf(b){ var a = b.ad; if (!a || !a.val) return 0; return Math.round(Math.min(tot(b), a.mode === 'amt' ? a.val : tot(b) * a.val / 100) * 100) / 100; }
   function adSheet(b){
     var a = b.ad || { mode: 'pct', val: 0 };
-    var s = sheet('<h3>Advertising</h3><p class="muted">' + esc(b.name) + ' · ' + money(tot(b)) + '</p><label class="l">Ad cost for this booking</label>' +
+    var s = sheet('<h3>Advertising</h3><p class="muted">' + esc(b.name) + ' · ' + money(tot(b)) + '</p><label class="l">&nbsp;</label>' +
       '<div class="chips"><button class="chip' + (a.mode !== 'amt' ? ' on' : '') + '" type="button" data-mode="pct">%</button><button class="chip' + (a.mode === 'amt' ? ' on' : '') + '" type="button" data-mode="amt">$</button></div>' +
       '<div class="money" style="margin-top:8px"><b data-sym>' + (a.mode === 'amt' ? '$' : '%') + '</b><input data-v type="number" inputmode="decimal" value="' + (a.val || 0) + '"></div><div class="note" data-c></div>' +
       '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>',
@@ -725,7 +725,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var V = s.el;
     function pick(){ return { mode: V.querySelector('[data-mode].on').getAttribute('data-mode'), val: parseFloat(V.querySelector('[data-v]').value) || 0 }; }
     function calc(){ var p = pick(), amt = adOf({ ad: p, total: b.total, addons: b.addons, deducts: b.deducts }); V.querySelector('[data-c]').innerHTML = 'Ad cost <b>' + money(amt) + '</b> · Miranda keeps <b>' + money(Math.max(0, mineOf(b) - amt)) + '</b>'; }
-    V.addEventListener('input', calc); calc();
+    // Oct 30 2026: the line under the box stays blank for now (Randy will decide what goes there)
   }
   // One Text button (Oct 30 2026): pick what to send; each opens Messages with the text ready
   function textMenu(b){
@@ -801,7 +801,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     // Advertising (Oct 30 2026): what an ad cost for this booking, taken from Miranda's part
     if (b.ad && b.ad.val) {
       var adAmt = adOf(b);
-      R2 += '<div class="sp" style="color:#7a4f00">📣 Advertising</div>' + row('Ad cost' + (b.ad.mode === 'pct' ? ' (' + b.ad.val + '%)' : ''), '−' + money(adAmt)) + row('Miranda keeps', money(Math.max(0, mineOf(b) - adAmt)), 'tt');
+      R2 += '<div class="sp" style="color:#7a4f00">📣 Advertising</div>' + row(b.ad.mode === 'pct' ? b.ad.val + '%' : '', '−' + money(adAmt));
     }
     L += '<div class="rcpt">' + R2 + '</div>';
     if (b.photographer && so) L += '<button class="btn" data-a="shooter-paid" style="width:100%;margin-bottom:8px">' + esc(b.photographer) + ' paid me ' + money(so) + '</button>';
