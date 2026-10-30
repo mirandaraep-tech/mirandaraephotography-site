@@ -23,7 +23,7 @@ export default async (req) => {
       const h = (await store.get(hkey, { type: "json" })) || [];
       const out = cust ? await customerChat({ base, from: phone, text, history: h, page: true }) : await chat({ base, from: phone, text, history: h, page: true });
       await store.setJSON(hkey, out.history);
-      return json({ reply: out.reply, changes: out.changes, history: out.history, status });
+      return json({ reply: out.reply || "(Sandy texted the Confirm link)", changes: out.changes, history: out.history, status });
     }
     if (d.action === "daily") {
       const out = await dailyCheckin({ base, history: [] });
