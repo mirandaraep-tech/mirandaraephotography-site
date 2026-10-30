@@ -42,13 +42,15 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 /* Oct 20 2026: while a card is open, the money boxes slide up out of the way; they come back when it closes */
 .head.compact .card{max-height:0;opacity:0;margin-bottom:0;padding-top:0;padding-bottom:0;box-shadow:none}
 .asof{font-size:14px;color:var(--muted);margin:0 2px 8px}
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.tile{border:1px solid var(--line);border-radius:14px;padding:8px 12px;background:#fff;text-align:left;font:inherit;color:inherit;cursor:pointer;min-height:84px}
-.tile b{display:block;font:bold 25px/1.1 Georgia,serif;margin:2px 0}
+/* Oct 30 2026: three small boxes side by side */
+.tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.tile{border:1px solid var(--line);border-radius:12px;padding:6px 8px;background:#fff;text-align:left;font:inherit;color:inherit;cursor:pointer;min-height:0}
+.tile b{display:block;font:bold 21px/1.1 Georgia,serif;margin:2px 0}
+.tile .hd{display:block;white-space:nowrap}
 .tile .lb{font-size:13px;color:var(--muted)}
 .tile .hd{font-size:13px;font-weight:bold;color:var(--teal)}
 .tile .nx{font-size:13px;color:var(--teal);margin-top:1px}
-.tile.bk1{border:2px solid var(--teal)}
+.tile.bk1{border:2px solid var(--teal)}.tile .nx{display:none}
 .tile.grn{background:#eef8f1;border-color:#bfe3cb;cursor:default}.tile.grn b{color:var(--ok)}
 .tile.dueT{cursor:default}
 .tile.blu{background:#e9f4f6;border-color:#bcdce3}.tile.blu.on{border:2px solid var(--teal)}.tile.blu b{color:var(--teal)}
@@ -178,7 +180,13 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .a-red{background:var(--bad);color:#ffe066}
 .a-yel{background:#ffd84d;color:#111}
 .a-grn{background:#bfe8cb;color:#123f8c}
-.a-gry{background:#eceff1;color:#455a64}
+.a-gry{background:#eceff1;color:#455a64;text-align:center;line-height:1.2}
+.amt.mb{border:0;cursor:pointer;font:inherit;font-size:15px;font-weight:bold;text-align:center;line-height:1.2;padding:7px 12px;border-radius:14px;min-width:116px}
+.amt small{font-size:12px;font-weight:bold}
+.rcpt{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:14px}
+.rcpt div{display:flex;justify-content:space-between;gap:8px;padding:2px 0}.rcpt div span:last-child{white-space:nowrap}
+.rcpt div.tt{border-top:1px solid var(--line);margin-top:4px;padding-top:5px;font-weight:bold}
+a.tel{color:var(--teal);font-weight:bold;text-decoration:none}
 .a-inq{background:#fff;color:#7a4f00;border:1.5px solid #f0d58f}
 .dep{border:1.5px solid var(--line);background:#fff;color:var(--teal);border-radius:12px;min-width:122px;min-height:40px;font-size:14px;cursor:pointer;padding:0 10px}
 .dep.in{background:#15603a;border-color:#15603a;color:#fff;font-weight:bold}
@@ -236,7 +244,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .tline.big{font-weight:bold;font-size:18px}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 .who-card .chips .chip{font-size:16px;padding:10px 18px}
-@media (max-width:370px){.rt,.acol{min-width:108px}.acol .btn{width:108px}.sess,.dep{min-width:104px}.tile b{font-size:22px}}
+@media (max-width:370px){.rt,.acol{min-width:108px}.acol .btn{width:108px}.sess,.dep{min-width:104px}.tile b{font-size:18px}}
 </style>
 </head>
 <body>
@@ -272,9 +280,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
             <span class="lb" id="tBookedN">Booked</span>
             <div class="nx" id="tNext"></div>
           </button>
-          <div class="tile grn"><b id="tCollected">–</b><span class="lb">Collected</span></div>
-          <div class="tile dueT"><b id="tDue">–</b><span class="lb">Still to collect</span></div>
-          <button class="tile blu" id="tUpTile" type="button"><b id="tUp">–</b><span class="lb">Upcoming sessions</span></button>
+          <div class="tile grn"><span class="hd">&nbsp;</span><b id="tCollected">–</b><span class="lb">Collected</span></div>
+          <div class="tile dueT"><span class="hd">&nbsp;</span><b id="tDue">–</b><span class="lb">Still to collect</span></div>
+          <!-- Oct 30 2026: Upcoming sessions box removed (the Booked tab shows the count) -->
+          <button class="tile blu" id="tUpTile" type="button" hidden><b id="tUp">–</b><span class="lb">Upcoming sessions</span></button>
         </div>
       </div>
     <div class="head" id="head">
@@ -507,9 +516,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     pool.forEach(function(b){ keep += keepOf(b); if (b.cancelled) return; n++;
       if (b.photographer) { booked += mineOf(b); owe += Math.max(0, mineOf(b) - keepOf(b)); } else { booked += tot(b); owe += due(b); } });
     var up = all.filter(function(b){ return real(b) && !b.cancelled && (b.date || '') >= TODAY; }).length;
-    $('tPer').textContent = (DAY ? nice(DAY) : PERIODS[PI][1]) + ' ↻';
+    var SHORT = { current: 'Current', today: 'Today', tomorrow: 'Tomorrow', week: 'This week', month: 'This month', year: 'This year', lastyear: 'Last year', all: 'All' };
+    $('tPer').textContent = (DAY ? nice(DAY) : SHORT[PERIODS[PI][0]]) + ' ↻';
     $('tBooked').textContent = money(booked);
-    $('tBookedN').textContent = 'Booked · ' + n + ' session' + (n === 1 ? '' : 's');
+    $('tBookedN').textContent = 'Booked';
     $('tNext').textContent = DAY ? 'Tap for Current →' : 'Tap for ' + PERIODS[(PI + 1) % PERIODS.length][1] + ' →';
     $('tCollected').textContent = money(keep); $('tDue').textContent = money(owe); $('tUp').textContent = up;
 
@@ -631,6 +641,37 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (o <= 0) return '<span class="amt a-grn">Paid ✓ ' + money(tot(b)) + '</span>';
     return '<span class="amt ' + (b.deposit ? 'a-yel' : 'a-red') + '">Owes ' + money(o) + '</span>';
   }
+  // Oct 30 2026: one money badge per card, e.g. "Owes $80 / ✓ deposit in". Tap it for the payment buttons.
+  function moneyBtn(b){
+    if (b.cancelled) return '<span class="amt a-gry">' + (b.cancelled.deposit === 'kept' ? 'Cancelled<br><small>deposit kept</small>' : b.cancelled.deposit === 'returned' ? 'Cancelled<br><small>deposit returned</small>' : 'Cancelled') + '</span>';
+    var o = due(b);
+    if (o <= 0) return '<button class="amt mb a-grn" type="button" data-a="money">Paid ✓ ' + money(tot(b)) + '</button>';
+    return '<button class="amt mb ' + (b.deposit ? 'a-yel' : 'a-red') + '" type="button" data-a="money">Owes ' + money(o) + '<br><small>' + (b.past ? 'past entry' : b.deposit ? '✓ deposit in' : '✕ no deposit') + '</small></button>';
+  }
+  // One Text button (Oct 30 2026): pick what to send; each opens Messages with the text ready
+  function textMenu(b){
+    var done = b.paid || b.past || (b.date && b.date < TODAY);
+    var h = '<h3>Text ' + esc(first(b.name)) + '</h3><div class="choice">' +
+      '<button class="btn" data-t="confirm">Confirmation</button>' +
+      (b.date && b.date >= TODAY ? '<button class="btn ghost" data-t="remind">Reminder' + (b.date === TOMORROW ? ' (tomorrow)' : '') + '</button>' : '') +
+      (done ? '<button class="btn ghost" data-t="review">Review request' + (b.reviewAsked ? ' (sent ✓)' : '') + '</button>' : '') +
+      '<button class="btn ghost" data-t="blank">Blank text</button><button class="btn ghost" data-x>Cancel</button></div>';
+    sheet(h, function(e, v, close){ var t = e.target.closest('[data-t]'); if (!t) return; close(); var k = t.getAttribute('data-t');
+      if (k === 'confirm') compose(b, 'Confirmation text', msgConfirm(b));
+      else if (k === 'remind') compose(b, 'Reminder', b.date === TOMORROW ? msgRemind(b) : 'Hi ' + first(b.name) + '! Just a reminder about your ' + tWord(b) + 'session on ' + longDay(b.date) + at(b) + '. Text me if anything changes. See you then!');
+      else if (k === 'review') bookingAction(b, 'review');
+      else compose(b, 'Text ' + first(b.name), 'Hi ' + first(b.name) + '! ');
+    });
+  }
+  function moneySheet(b){
+    var o = due(b), h = '<h3>' + esc(b.name) + '</h3><p class="muted">' + (o > 0 ? 'Owes ' + money(o) : 'Paid in full') + (b.deposit ? ' · ' + money(b.deposit.amount) + ' deposit in' : '') + '</p><div class="choice">';
+    if (!b.deposit && !b.paid && !b.past) h += '<button class="btn" data-m="dep">Deposit received</button>';
+    if (o > 0) h += '<button class="btn" data-m="paid">' + (b.paid ? 'Mark ' + money(o) + ' paid' : 'Paid in full') + '</button>';
+    if (b.deposit) h += '<button class="btn ghost" data-m="dep-undo">Undo deposit</button>';
+    if (b.paid) h += '<button class="btn ghost" data-m="undo-paid-ask">Undo paid</button>';
+    h += '<button class="btn ghost" data-x>Cancel</button></div>';
+    sheet(h, function(e, v, close){ var m = e.target.closest('[data-m]'); if (!m) return; close(); bookingAction(b, m.getAttribute('data-m')); });
+  }
   function depBtn(b){
     if (b.cancelled) return '<button class="dep na" type="button" tabindex="-1">' + (b.cancelled.deposit === 'kept' ? 'Deposit kept' : b.cancelled.deposit === 'returned' ? 'Deposit returned' : 'Cancelled') + '</button>';
     if (b.paid && !b.deposit) return '<button class="dep in" type="button" data-a="undo-paid-ask">Paid all at once</button>';
@@ -642,30 +683,35 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var tags = (b.photographer ? '<span class="tg k">📷 ' + esc(b.photographer) + '</span>' : '') + (b.test ? '<span class="tg t">TEST</span>' : '');
     var h = '<div class="bk' + (open ? ' open' : '') + (fl ? ' fl' : '') + (b.cancelled ? ' cx' : '') + '" data-num="' + b.num + '">' +
       '<div class="sum" data-tog role="button" tabindex="0" aria-expanded="' + open + '"><div class="lt">' +
-      '<span class="pm">' + (open ? '−' : '+') + '</span><span class="st ' + s[1] + '">' + s[0] + '</span>' + tags +
-      '<div class="nm">' + esc(b.name) + '</div>' +
-      '<div class="sub">' + esc([b.date ? nice(b.date) : 'No date', b.beach].filter(Boolean).join(' · ')) + '</div>' +
+      // Oct 30 2026: no "Confirmed" tag (the Booked tab says it); a tag only when something's different
+      '<span class="pm">' + (open ? '−' : '+') + '</span>' + (s[1] === 's-con' ? '' : '<span class="st ' + s[1] + '">' + s[0] + '</span>') + tags +
+      '<div class="nm"' + (s[1] === 's-con' && !tags ? ' style="margin-top:0"' : '') + '>' + esc(b.name) + '</div>' +
+      // Oct 30 2026: the session time goes in the date line (change it with Edit)
+      '<div class="sub">' + esc([b.date ? nice(b.date) : 'No date', b.time ? SESS_LBL[sessType(b)] === 'Other' ? b.time : SESS_LBL[sessType(b)].replace('♥ ', '') : '', b.beach].filter(Boolean).join(' · ')) + '</div>' +
       (fl ? '<div class="flag">⚠️ Date passed — shot or moved?</div>' : '') +
       (so ? '<div class="flag owes">💸 ' + esc(b.photographer) + ' owes Miranda ' + money(so) + '</div>' : '') +
-      '</div><div class="rt">' + sessBtn(b, b.cancelled || b.past) + amtBadge(b) + (b.past ? '' : depBtn(b)) + '</div></div>';
+      '</div><div class="rt">' + moneyBtn(b) + '</div></div>';
     if (!open) return h + '</div>';
-    // Details: only what isn't already on the card's top half
-    var L = '<div class="ln">' + esc(b.pkg || 'Session') + ' · ' + money(b.total || 0) + ' · ' + (b.past ? 'past entry' : b.num < 101 ? 'early booking' : b.num < 900000 ? '#' + b.num : 'test') + '</div>';
-    if (b.by) L += '<div class="ln mut">Set up by ' + esc(b.by) + '</div>';
-    if (b.phone) L += '<div class="ln mut">📱 ' + esc(fmtPhone(b.phone)) + '</div>';
-    L += '<hr>';
+    // Inside the card (Oct 30 2026): a money receipt, a tappable phone, and three buttons (Text, Edit, Photographer)
+    var L = '<div class="ln mut">' + (b.past ? 'Past entry' : b.num < 101 ? 'Early booking' : b.num < 900000 ? '#' + b.num : 'Test') + (b.by ? ' · set up by ' + esc(b.by) : '') + (b.photographer ? ' · 📷 ' + esc(b.photographer) : '') + '</div>';
+    if (b.phone) L += '<div class="ln"><a class="tel" href="tel:+1' + esc(String(b.phone).replace(/\D/g, '').slice(-10)) + '">📱 ' + esc(fmtPhone(b.phone)) + ' · Call</a></div>';
+    var row = function(l, v, cls){ return '<div' + (cls ? ' class="' + cls + '"' : '') + '><span>' + l + '</span><span>' + v + '</span></div>'; };
+    var R2 = row(esc(b.pkg || 'Session'), money(b.total || 0));
+    if (b.addons) R2 += row('Extras', '+' + money(b.addons));
+    (b.deducts || []).forEach(function(x, i, arr){ R2 += row('Taken off' + (x.why ? ' (' + esc(x.why) + ')' : '') + (i === arr.length - 1 && !b.cancelled ? ' <button class="lnk" data-a="undo-deduct">undo</button>' : ''), '−' + money(x.amount)); });
+    if (b.addons || (b.deducts || []).length) R2 += row('Total', money(total), 'tt');
+    if (b.deposit) R2 += row('Deposit paid' + (b.deposit.method ? ' (' + esc(b.deposit.method) + ')' : ''), '−' + money(b.deposit.amount));
+    if (b.paid) R2 += row('Paid' + (b.paid.method ? ' (' + esc(b.paid.method) + ')' : '') + ' ' + esc(short(b.paid.at)), '−' + money(b.paid.amount));
+    if (!b.cancelled) R2 += row(owed > 0 ? 'Left to pay' : 'Paid in full ✓', money(owed), 'tt');
+    L += '<div class="rcpt">' + R2 + '</div>';
     if (b.photographer) {
       var how = b.split ? (b.split.mode === 'amt' ? '' : ' (' + b.split.val + '%' + (b.split.min ? ' or ' + money(b.split.min) : '') + ')') : '';
       L += '<div class="rc"><div><span>Session total</span><span>' + money(total) + '</span></div><div><span>' + esc(b.photographer) + "'s pay</span><span>−" + money(payOf(b)) + '</span></div><div><span>Miranda\'s share' + how + '</span><span>' + money(mineOf(b)) + '</span></div></div>';
       (b.shooterPaid || []).forEach(function(x, i, arr){ L += '<div class="kv">' + esc(b.photographer) + ' paid Miranda – <b>' + money(x.amount) + '</b> · ' + esc(short(x.at)) + (i === arr.length - 1 ? ' <button class="lnk" data-a="undo-shooter-paid">undo</button>' : '') + '</div>'; });
       if (so) L += '<div class="owebox">💸 <b>' + esc(b.photographer) + ' owes Miranda ' + money(so) + '</b><br><span class="muted">' + esc(b.photographer) + ' collected the balance. This is the rest of Miranda\'s share.</span>' +
         '<button class="btn" data-a="shooter-paid" style="width:100%;margin-top:8px">' + esc(b.photographer) + ' paid me ' + money(so) + '</button></div>';
+      if (b.deposit && owed > 0 && !b.cancelled) L += '<div class="kv">Balance – <b>' + esc(b.photographer) + ' collects ' + money(owed) + '</b> at the session</div>';
     }
-    if (b.addons) L += '<div class="kv">Extras – <b>+' + money(b.addons) + '</b></div>';
-    (b.deducts || []).forEach(function(x, i, arr){ L += '<div class="kv">Deducted – <b>−' + money(x.amount) + '</b>' + (x.why ? ' · ' + esc(x.why) : '') + (i === arr.length - 1 && !b.cancelled ? ' <button class="lnk" data-a="undo-deduct">undo</button>' : '') + '</div>'; });
-    if (b.photographer && b.deposit && due(b) > 0 && !b.cancelled) L += '<div class="kv">Balance – <b>' + esc(b.photographer) + ' collects ' + money(due(b)) + '</b> at the session</div>';
-    if (b.deposit) L += '<div class="kv">Deposit – <b>' + money(b.deposit.amount) + '</b>' + (b.deposit.method ? ' · ' + esc(b.deposit.method) : '') + '</div>';
-    if (b.paid) L += '<div class="kv">Paid in full – <b>' + money(b.paid.amount) + '</b>' + (b.paid.method ? ' · ' + esc(b.paid.method) : '') + ' · ' + esc(short(b.paid.at)) + '</div>';
     if (b.cancelled) L += '<div class="kv">Cancelled ' + esc(short(b.cancelled.at)) + (b.cancelled.by ? ' by ' + esc(b.cancelled.by) : '') + (b.cancelled.kept ? ' · kept ' + money(b.cancelled.kept) : b.cancelled.returned ? ' · returned ' + money(b.cancelled.returned) : '') + '</div>';
     if (b.notes) L += '<div class="kv">Notes – <b>' + esc(b.notes) + '</b></div>';
     if (b.reviewAsked) L += '<div class="kv">⭐ Review asked – <b>' + esc(b.reviewAsked.site) + '</b> · ' + esc(short(b.reviewAsked.at)) + '</div>';
@@ -674,17 +720,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<button class="btn red cxb" data-a="cancel">Cancel booking</button>';
     var R = '';
     if (b.cancelled) R = '<button class="btn ghost" data-a="undo-cancel">Undo cancel</button>';
-    else {
-      R += '<button class="btn b-con" data-a="confirmed">Confirmed ✓</button>';
-      R += '<button class="btn ghost" data-a="text">Text</button>';
-      if (b.date === TOMORROW) R += '<button class="btn b-rem" data-a="remind">Text reminder</button>';
-      if (owed > 0) R += '<button class="btn b-paid" data-a="paid">' + (b.paid ? 'Mark ' + money(owed) + ' paid' : 'Paid in Full') + '</button>';
-      if (b.paid) R += '<button class="btn ghost" data-a="undo-paid-ask">Undo paid</button>';
-      if (!b.past) R += '<button class="btn ghost" data-a="move">Move date</button>';
-      R += '<button class="btn ghost" data-a="edit">Edit</button>';
-      R += '<button class="btn ghost" data-a="shooter">Photographer</button>';
-      if (b.paid || b.past || (b.date && b.date < TODAY)) R += '<button class="btn ' + (b.reviewAsked ? 'ghost' : 'b-rev') + '" data-a="review">' + (b.reviewAsked ? 'Review asked ✓' : 'Ask for review') + '</button>';
-    }
+    else R = '<button class="btn b-con" data-a="textmenu">💬 Text</button><button class="btn ghost" data-a="edit">Edit</button><button class="btn ghost" data-a="shooter">Photographer</button>';
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
   }
   // What the customer filled in on the form (Oct 30 2026): only the lines they filled in
@@ -704,11 +740,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<span class="pm">' + (open ? '−' : '+') + '</span><span class="st s-inq">Inquiry</span>' + (o.test ? '<span class="tg t">TEST</span>' : '') +
       (o.pen ? '<span class="tg pen">✏️ Penciled in</span>' : '<span class="tg w">' + (sent ? '💬 Link texted' : '📩 New request') + '</span>') +
       '<div class="nm">' + esc(o.name) + '</div>' +
-      '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' +
-      '</div><div class="rt">' + (o.time ? sessBtn(o, true) : '') + (o.amount ? '<span class="amt a-inq">' + money(o.amount) + '</span>' : '') +
+      '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.time ? (SESS_LBL[sessType(o)] === 'Other' ? o.time : SESS_LBL[sessType(o)].replace('♥ ', '')) : '', o.beach].filter(Boolean).join(' · ')) + '</div>' +
+      '</div><div class="rt">' + (o.amount ? '<span class="amt a-inq">' + money(o.amount) + '</span>' : '') +
       (o.pen ? '<button class="dep na pen" type="button" tabindex="-1">✏️ Penciled in ' + esc(slotTxt(o.sreq)) + ', waiting on your OK</button>'
         : '<button class="dep na" type="button" tabindex="-1">' + (sent ? 'Waiting on customer to confirm' : o.texting ? '💬 Sandy is texting them' : 'Needs reply') + '</button>') +
-      (o.asked ? '<span class="came">' + (o.request ? 'Came in ' : 'Added ') + esc(shortDay(o.asked)) + '<br>' + ago(o.asked) + '</span>' : '') + '</div></div>';
+      (o.asked ? '<span class="came">' + (o.request ? 'Came in ' : 'Added ') + ago(o.asked) + '</span>' : '') + '</div></div>';
     if (!open) return h + '</div>';
     var L = '';
     if (o.request) L += '<div class="ln">Asked ' + esc(short(o.request.at)) + '</div>' + (o.detail ? '<div class="ln mut">' + esc(o.detail) + '</div>' : '');
@@ -965,6 +1001,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       var next = cyc[(idx + 1) % cyc.length];
       return act(b, 'edit', { fields: { time: next } });
     }
+    if (a === 'money') return moneySheet(b);
+    if (a === 'textmenu') return textMenu(b);
     if (a === 'dep') return depositSheet(b);
     if (a === 'dep-undo') return ask('Undo the deposit?', 'This marks ' + esc(b.name) + "'s " + money(b.deposit.amount) + ' deposit as not received.', 'Undo deposit', 'Keep it', function(){ act(b, 'undo-deposit'); });
     if (a === 'undo-paid-ask') return ask('Undo paid in full?', esc(b.name) + ' goes back to owing ' + money((b.paid && b.paid.amount) || 0) + '.', 'Undo paid', 'Keep it', function(){ act(b, 'undo-paid'); });
