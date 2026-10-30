@@ -1,6 +1,6 @@
 {
   "_readme": "MASTER PRICE LIST for mirandaraephotography.com. Change a number here, then run `node tools/prices.mjs` and every page (home, Prices page, /book, beach pages, New Booking, /log, llms.txt) is rewritten to match. Keep this matching Miranda's Pixieset Services page.",
-  "updated": "2026-10-29",
+  "updated": "2026-10-30",
   "deposit": 50,
   "packages": {
     "mini": {
@@ -95,6 +95,22 @@
         "Discreet coverage of the proposal",
         "Engagement portraits right after",
         "No set time limit"
+      ]
+    },
+    "elopement": {
+      "name": "Beach Elopement",
+      "booking": "Beach Elopement",
+      "price": 549,
+      "time": "2 hours",
+      "timeWords": "2 hours",
+      "photos": "100+",
+      "people": null,
+      "details": [],
+      "blurb": "A small, relaxed beach ceremony with just your favorite people, photographed from the first look to the last light.",
+      "more": [
+        "Your ceremony, family photos and sunset portraits",
+        "Help choosing the spot and timing",
+        "Help finding an officiant"
       ]
     },
     "wedding6": {
