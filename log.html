@@ -56,8 +56,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .fb{border:2px solid var(--line);background:#fff;color:var(--teal);border-radius:14px;min-height:46px;padding:4px 6px;font-size:15px;cursor:pointer;line-height:1.15}
 .fb.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:bold}
 /* Oct 30 2026: Confirmed = dark green with ✓, Not confirmed = bright yellow with ✕ (light vs dark, plus the marks) */
-#fCon.on{background:#15603a;border-color:#15603a;color:#fff}
-#fCon.no{background:#ffd84d;border:2px solid #7a5c00;color:#3d2e00;font-weight:bold}
+.fb.on{box-shadow:0 2px 0 #0d4250}
 .fb .ct{display:inline-block;background:#fff;color:var(--teal);border-radius:999px;font-size:12px;padding:0 6px;margin-left:4px;font-weight:bold}
 .crow{display:flex;gap:8px;margin-top:8px;align-items:stretch;position:relative}
 .cbtn{display:flex;align-items:center;gap:10px;border:2px solid var(--line);background:#fff;border-radius:14px;padding:4px 12px 4px 4px;color:var(--teal);font-size:15px;cursor:pointer;min-height:46px}
@@ -280,9 +279,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       </div>
     <div class="head" id="head">
       <div class="frow">
-        <button class="fb" id="fCon" type="button">Confirmed ↻</button>
-        <button class="fb" id="fDep" type="button">Deposit ↻</button>
-        <button class="fb" id="fNeed" type="button">Needs a look</button>
+        <!-- Oct 30 2026: three plain tabs instead of buttons that change when tapped -->
+        <button class="fb" id="vBk" type="button" data-v="booked">Booked</button>
+        <button class="fb" id="vInq" type="button" data-v="inq">Inquiries</button>
+        <button class="fb" id="vTodo" type="button" data-v="todo">To do</button>
       </div>
       <div class="crow" id="crow">
         <div class="calpop" id="calPop" hidden></div>
@@ -451,6 +451,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
   // ---------- Filters ----------
   var PERIODS = [['current', 'Current bookings'], ['today', 'Today'], ['tomorrow', 'Tomorrow'], ['week', 'This week'], ['month', 'This month'], ['year', 'This year'], ['lastyear', 'Last year'], ['all', 'All']];
+  var VIEW = 'booked'; // Oct 30 2026 tabs: booked | inq | todo
+  // To do: upcoming sessions with no deposit yet, and past sessions not marked paid
+  function todoB(b){ return !b.past && !b.cancelled && (flagged(b) || ((b.date || '') >= TODAY && !b.deposit && !b.paid && tot(b) > 0)); }
+  // ...and inquiries penciled in, or nobody has answered yet
+  function todoI(o){ return !o.old && (o.pen || (!o.sent && !o.texting)); }
   var PI = 0, CON = '', DEP = '', MORE = { bal: '', status: '', type: '', loc: '', shooter: '', tests: false }, DAY = '', Q = '', INQOPEN = false, TABLE = false, OPEN = null;
   function inPeriod(d, per){
     if (per === 'all') return true;
@@ -514,21 +519,23 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var whoMade = last ? (last.kind === 'confirm' ? 'Client confirmed' + (last.name ? ': ' + last.name : '') : last.kind === 'request' ? 'Website request' + (last.name ? ': ' + last.name : '') : last.by || '') : '';
     $('asof').textContent = (DATA.test ? 'TEST COPY · ' : '') + 'Updated: ' + (last ? when(last.at) : '—') + (whoMade ? ' · ' + whoMade : '');
 
-    // Filter buttons show what they're set to
-    var fc = $('fCon'), fd = $('fDep'), fn = $('fNeed');
-    // Oct 30 2026: one button for both. Shows "Confirmed / Not confirmed" until tapped; then a ✓ (filled) or ✕ (thick outline), never color alone
-    fc.classList.toggle('on', CON === 'yes'); fc.classList.toggle('no', CON === 'no');
-    fc.innerHTML = CON === 'yes' ? '✓ Confirmed ↻' : CON === 'no' ? '✕ Not confirmed ↻' : 'Confirmed? ↻';
-    fd.classList.toggle('on', !!DEP); fd.innerHTML = DEP === 'in' ? 'Deposit in ✓' : DEP === 'none' ? 'No deposit ✓' : 'Deposit ↻';
-    // Needs a look = past sessions not yet Paid in Full; the number shows how many
-    var nl = all.filter(function(b){ return real(b) && flagged(b); }).length;
-    fn.classList.toggle('on', MORE.status === 'needs'); fn.innerHTML = 'Needs a look' + (nl ? '<span class="ct">' + nl + '</span>' : '') + (MORE.status === 'needs' ? ' ✓' : '');
+    // Tabs (Oct 30 2026): the one you're on is filled in with a ✓; each shows how many are in it
+    CON = VIEW === 'inq' ? 'no' : VIEW === 'booked' ? 'yes' : ''; DEP = '';
+    var vis = function(b){ return tests || !b.test; };
+    var nB = all.filter(function(b){ return vis(b) && !b.cancelled && fitsPeriod(b); }).length;
+    var nI = INQ.filter(function(o){ return !o.old; }).length;
+    var nTd = all.filter(function(b){ return vis(b) && todoB(b); }).length + INQ.filter(todoI).length;
+    [['vBk', 'booked', 'Booked', nB], ['vInq', 'inq', 'Inquiries', nI], ['vTodo', 'todo', 'To do', nTd]].forEach(function(t){
+      var on = VIEW === t[1] && !DAY && !Q;
+      $(t[0]).classList.toggle('on', on);
+      $(t[0]).innerHTML = (on ? '✓ ' : '') + t[2] + '<span class="ct">' + t[3] + '</span>';
+    });
     $('tUpTile').classList.toggle('on', MORE.status === 'upcoming');
     var cm = dt(DAY || TODAY); $('calMon').textContent = cm.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(); $('calDay').textContent = cm.getDate();
     $('calBtn').classList.toggle('on', !!DAY);
     $('dayChip').hidden = !DAY;
     // Oct 20 2026: one tap back to everything when Confirmed / Deposit / Needs a look is on
-    var fOn = [CON ? $('fCon').textContent : '', DEP ? $('fDep').textContent : '', MORE.status === 'needs' ? 'Needs a look' : ''].filter(Boolean);
+    var fOn = [];
     $('fChip').hidden = !!DAY || !fOn.length;
     if (fOn.length) $('fTxt').innerHTML = 'Showing only <b>' + esc(fOn.join(' + ').replace(/[↻✓✕]/g, '').replace(/\s+/g, ' ').trim()) + '</b>';
     if (DAY) { var sn = sun(DAY); $('dayTxt').innerHTML = 'Showing <b>' + esc(longDay(DAY)) + '</b><br><span class="muted">🌅 ' + sn[0] + ' · 🌇 ' + sn[1] + ' (Mexico Beach)</span>'; }
@@ -542,6 +549,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (MORE.status === 'cancelled') return !!b.cancelled && fitsPeriodAny(b);
       if (MORE.status === 'pastentries') return !!b.past;
       if (b.cancelled) return false;
+      if (VIEW === 'todo') return todoB(b);
       if (!fitsPeriod(b)) return false;
       if (CON === 'no') return false;
       if (DEP === 'in' && !(b.deposit || b.paid)) return false;
@@ -555,22 +563,27 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var inq = INQ.filter(function(o){
       if (q) return low(o.name).indexOf(q) >= 0;
       if (DAY) return o.date === DAY || (o.pen && o.sreq.date === DAY);
+      if (VIEW === 'todo') return todoI(o);
       if (CON === 'yes' || DEP || MORE.bal || (MORE.status && MORE.status !== 'upcoming') || MORE.shooter) return false;
       if (CON === 'no') return true;
       if (!fitsPeriod(o)) return false;
       return fitsMore(o);
     }).sort(function(a, b){
-      // Oct 30 2026: newest requests at the top (bookings stay in session-date order)
+      // Oct 30 2026: penciled-in first, then newest requests at the top (bookings stay in session-date order)
+      if (!!a.pen !== !!b.pen) return a.pen ? -1 : 1;
       return (b.request ? b.request.at : b.asked || '').localeCompare(a.request ? a.request.at : a.asked || '');
     });
 
-    $('listLbl').textContent = q ? 'Search' : DAY ? nice(DAY) : CON === 'no' ? 'Inquiries' : PERIODS[PI][1];
+    $('listLbl').textContent = q ? 'Search' : DAY ? nice(DAY) : VIEW === 'inq' ? 'Inquiries' : VIEW === 'todo' ? 'Needs Miranda' : PERIODS[PI][1];
     $('dayHd').innerHTML = '';
     var ih = '';
     var after = '';
     if (DAY) {
       // Oct 20 2026: on a tapped day, booked sessions come first; inquiries go below under "Not booked yet"
       if (inq.length) after = '<div class="nbhd">Not booked yet</div>' + inq.map(function(o){ return inqCard(o); }).join('');
+    } else if (VIEW === 'todo') {
+      // To do: inquiries waiting on Miranda first, then bookings to check
+      if (inq.length) ih = '<div class="nbhd" style="border:0;margin-top:0;padding-top:0">Inquiries</div>' + inq.map(function(o){ return inqCard(o); }).join('') + (rows.length ? '<div class="nbhd">Bookings</div>' : '');
     } else if (CON === 'no' || q) {
       ih = inq.map(function(o){ return inqCard(o); }).join('');
       if (CON === 'no' && !q) {
@@ -585,7 +598,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     }
     $('inqBox').innerHTML = ih;
     $('inqAfter').innerHTML = after;
-    var EMPTY = DAY ? 'Nothing booked this day.' : q ? 'No one by that name.' : CON === 'no' ? '' : 'Nothing here with these filters.';
+    var EMPTY = DAY ? 'Nothing booked this day.' : q ? 'No one by that name.' : CON === 'no' ? '' : VIEW === 'todo' ? (inq.length ? '' : 'Nothing needs Miranda right now.') : 'Nothing here with these filters.';
     $('list').innerHTML = TABLE ? table(rows) : rows.length ? rows.map(function(b){ return card(b); }).join('') : (EMPTY ? '<p class="muted" style="margin:6px 4px 14px">' + EMPTY + '</p>' : '');
     $('tblTog').textContent = TABLE ? 'Back to cards' : 'Spreadsheet view';
     // Oct 20 2026: tests (Randy's/Miranda's/Bradyn's numbers or "test" in the name) hide unless this is on; never in totals
@@ -839,12 +852,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
   // ---------- Top buttons ----------
   $('tBookedTile').addEventListener('click', function(){ if (DAY) { DAY = ''; PI = 0; } else PI = (PI + 1) % PERIODS.length; OPEN = null; draw(); });
-  $('tUpTile').addEventListener('click', function(){ DAY = ''; PI = 0; CON = ''; DEP = ''; MORE.status = MORE.status === 'upcoming' ? '' : 'upcoming'; Q = ''; $('q').value = ''; draw(); });
+  $('tUpTile').addEventListener('click', function(){ VIEW = 'booked'; DAY = ''; PI = 0; CON = ''; DEP = ''; MORE.status = MORE.status === 'upcoming' ? '' : 'upcoming'; Q = ''; $('q').value = ''; draw(); });
   $('fClr').addEventListener('click', function(){ CON = ''; DEP = ''; MORE.status = ''; OPEN = null; draw(); });
-  $('fCon').addEventListener('click', function(){ CON = CON === '' ? 'yes' : CON === 'yes' ? 'no' : ''; DAY = ''; draw(); });
-  $('fDep').addEventListener('click', function(){ DEP = DEP === '' ? 'in' : DEP === 'in' ? 'none' : ''; DAY = ''; draw(); });
+  ['vBk', 'vInq', 'vTodo'].forEach(function(id){ $(id).addEventListener('click', function(){ VIEW = $(id).getAttribute('data-v'); DAY = ''; Q = ''; $('q').value = ''; $('q').hidden = true; $('srchBtn').classList.remove('on'); MORE.status = ''; OPEN = null; draw(); window.scrollTo({ top: 0 }); }); });
   // Tap once to see only sessions that need a look; tap again to go back to all bookings
-  $('fNeed').addEventListener('click', function(){ MORE.status = MORE.status === 'needs' ? '' : 'needs'; DAY = ''; Q = ''; $('q').value = ''; OPEN = null; draw(); });
+  // (Needs a look and Deposit buttons replaced by the To do tab, Oct 30 2026)
   $('srchBtn').addEventListener('click', function(){
     var q = $('q'); if (q.hidden) { q.hidden = false; $('srchBtn').classList.add('on'); q.focus(); }
     else { q.value = ''; Q = ''; q.hidden = true; $('srchBtn').classList.remove('on'); draw(); }
