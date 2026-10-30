@@ -813,7 +813,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<button class="btn red cxb" data-a="cancel">Cancel booking</button>';
     var R = '';
     if (b.cancelled) R = '<button class="btn ghost" data-a="undo-cancel">Undo cancel</button>';
-    else R = '<button class="btn b-con" data-a="textmenu">💬 Text</button><button class="btn ghost" data-a="edit">Edit</button><button class="btn ghost" data-a="shooter">Photographer</button><button class="btn ghost" data-a="ad">Advertising</button>';
+    else R = '<button class="btn b-con" data-a="textmenu">💬 Text</button><button class="btn ghost" data-a="edit">Edit</button><button class="btn ghost" data-a="shooter">Photographer</button><button class="btn ghost" data-a="ad" aria-label="Advertising">&nbsp;</button>';
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
   }
   // What the customer filled in on the form (Oct 30 2026): only the lines they filled in
