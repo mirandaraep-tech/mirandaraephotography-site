@@ -301,8 +301,10 @@ export default async (req) => {
     else if (a === "ad") {
       // Advertising button (Oct 30 2026): what an ad cost for this booking, a % of the session or a $ amount. 0 clears it.
       const mode = data.mode === "amt" ? "amt" : "pct", val = Math.max(0, Math.min(mode === "pct" ? 100 : 10000, Number(data.val) || 0));
-      if (val) b.ad = { mode, val: cents(val) }; else delete b.ad;
-      data.detail = val ? "Advertising " + (mode === "pct" ? val + "%" : "$" + val) : "Advertising cleared";
+      // plus lines with a name and a $ amount for each ad
+      const items = (Array.isArray(data.items) ? data.items : []).slice(0, 10).map((i) => ({ what: clip(i && i.what, 60), amt: cents(Math.max(0, Math.min(10000, Number(i && i.amt) || 0))) })).filter((i) => i.amt > 0);
+      if (val || items.length) b.ad = { mode, val: cents(val), ...(items.length ? { items } : {}) }; else delete b.ad;
+      data.detail = val || items.length ? "Advertising " + [val ? (mode === "pct" ? val + "%" : "$" + val) : "", ...items.map((i) => (i.what ? i.what + " " : "") + "$" + i.amt)].filter(Boolean).join(", ") : "Advertising cleared";
     }
     else if (a === "review") {
       // Ask for review button (Oct 29 2026): notes that Miranda texted this customer a review link
