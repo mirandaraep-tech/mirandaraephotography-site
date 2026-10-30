@@ -201,7 +201,7 @@ export const OPT_WORDS = /^\s*(stop|stopall|unsubscribe|cancel|end|quit|revoke|o
 // ---------- Website requests (added Oct 28 2026) ----------
 // Someone sent a request form on the site and checked OK to text. Sandy texts them first (to get
 // anything missing), then lets Miranda know. sandy-web.mjs decides who may get a text.
-const FIELD_NAMES = { name: "Name", phone: "Phone", email: "Email", date: "Date", beach: "Beach", who: "Who", people: "How many people",
+const FIELD_NAMES = { name: "Name", phone: "Phone", email: "Email", date: "Date", time: "Sunset or sunrise", beach: "Beach", who: "Who", people: "How many people",
   "session-type": "Session type", session: "Session", collection: "Wedding package", "contact-pref": "Prefers replies by", reply: "Prefers replies by",
   "heard-from": "Heard about Miranda from", message: "Message" };
 export async function webRequest({ base, form = {}, page = false }) {
