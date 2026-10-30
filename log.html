@@ -183,6 +183,12 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .a-gry{background:#eceff1;color:#455a64;text-align:center;line-height:1.2}
 .amt.mb{border:0;cursor:pointer;font:inherit;font-size:15px;font-weight:bold;text-align:center;line-height:1.2;padding:7px 12px;border-radius:14px;min-width:116px}
 .amt small{font-size:12px;font-weight:bold}
+.pxr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:16px}
+.pxp{width:64px !important;padding:4px 6px !important;font-size:15px !important;min-height:0 !important;display:inline-block}
+.step{display:flex;align-items:center;gap:10px}
+.step button{width:44px;height:44px;border-radius:12px;border:2px solid var(--teal);background:#fff;color:var(--teal);font-size:24px;font-weight:bold;cursor:pointer}
+.step b{min-width:22px;text-align:center;font-size:20px}
+.pxtot{display:flex;justify-content:space-between;font-size:18px;margin-top:12px}
 .rcpt{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:14px}
 .rcpt div{display:flex;justify-content:space-between;gap:8px;padding:2px 0}.rcpt div span:last-child{white-space:nowrap}
 .rcpt div.tt{border-top:1px solid var(--line);margin-top:4px;padding-top:5px;font-weight:bold}
@@ -648,6 +654,55 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (o <= 0) return '<button class="amt mb a-grn" type="button" data-a="money">Paid ✓ ' + money(tot(b)) + '</button>';
     return '<button class="amt mb ' + (b.deposit ? 'a-yel' : 'a-red') + '" type="button" data-a="money">Owes ' + money(o) + '<br><small>' + (b.past ? 'past entry' : b.deposit ? '✓ deposit in' : '✕ no deposit') + '</small></button>';
   }
+  // Change price (Oct 30 2026, replaces + Extra and − Deduct): − and + for people, photos and time at her
+  // price-list prices (tap a price to change it for this customer), rush editing, and Other for anything else.
+  // − only goes down to zero; money off goes in Other with a reason.
+  var XP = [['people', 'Extra people', 15, 'each'], ['photos', 'Extra photos', 10, 'each'], ['time', 'Extra time', 30, 'per 20 min']];
+  function priceSheet(b){
+    var h = '<h3>Change price</h3><p class="muted">' + esc(b.name) + ' · now ' + money(tot(b)) + '</p>';
+    XP.forEach(function(x){
+      h += '<div class="pxr"><div><b>' + x[1] + '</b><br><span class="muted">$<input class="pxp" data-p="' + x[0] + '" type="number" inputmode="decimal" value="' + x[2] + '"> ' + x[3] + '</span></div>' +
+        '<div class="step"><button type="button" data-s="' + x[0] + '" data-d="-1" aria-label="less">−</button><b data-n="' + x[0] + '">0</b><button type="button" data-s="' + x[0] + '" data-d="1" aria-label="more">+</button></div></div>';
+    });
+    h += '<div class="pxr"><label style="display:flex;gap:10px;align-items:center;margin:0"><input type="checkbox" data-rush style="width:22px;height:22px"><span><b>Rush editing</b><br><span class="muted">$<input class="pxp" data-p="rush" type="number" inputmode="decimal" value="50"></span></span></label></div>' +
+      '<div class="pxr" style="display:block"><b>Other</b> <span class="muted">(use − for money off)</span><div class="row" style="margin-top:6px"><div class="money"><b>$</b><input data-o type="number" inputmode="decimal" placeholder="-20"></div><input data-ow maxlength="80" placeholder="Why (like fewer photos)"></div></div>' +
+      '<div class="pxtot">New total <b data-tot>' + money(tot(b)) + '</b></div>' +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>';
+    var N = { people: 0, photos: 0, time: 0 };
+    var s = sheet(h, function(e, v, close){
+      var st = e.target.closest('[data-s]');
+      if (st) { var k = st.getAttribute('data-s'); N[k] = Math.max(0, N[k] + Number(st.getAttribute('data-d'))); v.querySelector('[data-n="' + k + '"]').textContent = N[k]; calc(); return; }
+      if (!e.target.closest('[data-save]')) return;
+      var items = items_();
+      if (!items.length) { close(); return; }
+      close(); saveItems(b, items);
+    });
+    var V = s.el;
+    function pr(k){ return Math.max(0, Math.round((parseFloat(V.querySelector('[data-p="' + k + '"]').value) || 0) * 100) / 100); }
+    function items_(){
+      var out = [];
+      XP.forEach(function(x){ if (N[x[0]]) out.push({ amt: N[x[0]] * pr(x[0]), what: '+' + N[x[0]] + ' ' + (x[0] === 'people' ? (N[x[0]] === 1 ? 'person' : 'people') : x[0] === 'photos' ? (N[x[0]] === 1 ? 'photo' : 'photos') : '× 20 min') + ' (' + money(pr(x[0])) + ' ' + x[3] + ')' }); });
+      if (V.querySelector('[data-rush]').checked) out.push({ amt: pr('rush'), what: 'Rush editing' });
+      var o = Math.round((parseFloat(V.querySelector('[data-o]').value) || 0) * 100) / 100, ow = V.querySelector('[data-ow]').value.trim();
+      if (o) out.push({ amt: o, what: ow || (o > 0 ? 'Other' : 'Money off') });
+      return out;
+    }
+    function calc(){ var t = tot(b); items_().forEach(function(i){ t += i.amt; }); V.querySelector('[data-tot]').textContent = money(Math.max(0, t)); }
+    V.addEventListener('input', calc); V.addEventListener('change', calc);
+  }
+  // Each item is saved like the old + Extra / − Deduct buttons did (same receipt lines and emails)
+  function saveItems(b, items){
+    var chain = Promise.resolve();
+    items.forEach(function(i){
+      chain = chain.then(function(){
+        if (i.amt > 0) return post({ kind: 'addon', amount: i.amt, ref: b.num, name: b.name, what: i.what }).then(function(){
+          if (!b.test) mail({ name: b.name, 'booking-number': '#' + b.num, 'extra-amount': '+' + money(i.amt), 'what-was-added': i.what, 'session-date': b.date ? nice(b.date) : '', 'added-by': WHO }, '➕ ADD-ON: ' + [b.name, '#' + b.num, '+' + money(i.amt)].join(' · '));
+        });
+        return post({ kind: 'status', num: b.num, action: 'deduct', amount: -i.amt, why: i.what, by: WHO }).then(function(j){ if (j && j.ok) emailFor(b, 'deduct', { amount: -i.amt, why: i.what }, j.booking); });
+      });
+    });
+    chain.then(function(){ toast('Price updated'); load(); }).catch(function(){ alert("That didn't all save. Please check the card and try again."); load(); });
+  }
   // One Text button (Oct 30 2026): pick what to send; each opens Messages with the text ready
   function textMenu(b){
     var done = b.paid || b.past || (b.date && b.date < TODAY);
@@ -697,7 +752,12 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (b.phone) L += '<div class="ln"><a class="tel" href="tel:+1' + esc(String(b.phone).replace(/\D/g, '').slice(-10)) + '">📱 ' + esc(fmtPhone(b.phone)) + ' · Call</a></div>';
     var row = function(l, v, cls){ return '<div' + (cls ? ' class="' + cls + '"' : '') + '><span>' + l + '</span><span>' + v + '</span></div>'; };
     var R2 = row(esc(b.pkg || 'Session'), money(b.total || 0));
-    if (b.addons) R2 += row('Extras', '+' + money(b.addons));
+    // Each extra on its own line (from the history), e.g. "+2 people ($15 each)"
+    if (b.addons) {
+      var ad = ((DATA && DATA.log) || []).filter(function(e){ return e.kind === 'addon' && e.num === b.num && e.amount; }), adSum = ad.reduce(function(t, e){ return t + e.amount; }, 0);
+      if (ad.length && Math.abs(adSum - b.addons) < 0.01) ad.forEach(function(e){ R2 += row(esc(e.detail || 'Extra'), '+' + money(e.amount)); });
+      else R2 += row('Extras', '+' + money(b.addons));
+    }
     (b.deducts || []).forEach(function(x, i, arr){ R2 += row('Taken off' + (x.why ? ' (' + esc(x.why) + ')' : '') + (i === arr.length - 1 && !b.cancelled ? ' <button class="lnk" data-a="undo-deduct">undo</button>' : ''), '−' + money(x.amount)); });
     if (b.addons || (b.deducts || []).length) R2 += row('Total', money(total), 'tt');
     if (b.deposit) R2 += row('Deposit paid' + (b.deposit.method ? ' (' + esc(b.deposit.method) + ')' : ''), '−' + money(b.deposit.amount));
@@ -716,7 +776,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (b.notes) L += '<div class="kv">Notes – <b>' + esc(b.notes) + '</b></div>';
     if (b.reviewAsked) L += '<div class="kv">⭐ Review asked – <b>' + esc(b.reviewAsked.site) + '</b> · ' + esc(short(b.reviewAsked.at)) + '</div>';
     if (b.movedFrom) L += '<div class="kv">Moved from ' + esc(nice(b.movedFrom)) + '</div>';
-    if (!b.cancelled) L += '<div class="smb"><button class="btn ghost" data-a="extra">+ Extra</button><button class="btn ghost" data-a="deduct">− Deduct</button></div>' +
+    if (!b.cancelled) L += '<div class="smb"><button class="btn ghost" data-a="price">± Change price</button></div>' +
       '<button class="btn red cxb" data-a="cancel">Cancel booking</button>';
     var R = '';
     if (b.cancelled) R = '<button class="btn ghost" data-a="undo-cancel">Undo cancel</button>';
@@ -1003,6 +1063,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     }
     if (a === 'money') return moneySheet(b);
     if (a === 'textmenu') return textMenu(b);
+    if (a === 'price') return priceSheet(b);
     if (a === 'dep') return depositSheet(b);
     if (a === 'dep-undo') return ask('Undo the deposit?', 'This marks ' + esc(b.name) + "'s " + money(b.deposit.amount) + ' deposit as not received.', 'Undo deposit', 'Keep it', function(){ act(b, 'undo-deposit'); });
     if (a === 'undo-paid-ask') return ask('Undo paid in full?', esc(b.name) + ' goes back to owing ' + money((b.paid && b.paid.amount) || 0) + '.', 'Undo paid', 'Keep it', function(){ act(b, 'undo-paid'); });
