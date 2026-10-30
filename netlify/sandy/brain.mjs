@@ -638,7 +638,7 @@ export async function sendConfirmLink(base, x, by) {
   const t = low(lk.t), slot = t && t !== "other" && t !== "wedding" ? " (" + t + ")" : "", place = lk.b && lk.b !== "Other" ? " at " + lk.b : "";
   // Oct 30 2026: Miranda okayed it; the date isn't held until the deposit is in
   const body = "Hi " + firstName(lk.n) + "! It's Sandy with Miranda Rae Photography. Good news, Miranda okayed " + longDay(lk.d) + place + slot + " for you! " +
-    "Here's your confirmation page. Check that your details look right, then tap Confirm and pay your " + money(dep) + " deposit to secure your date: " + url + "\n\nJust so you know, your date isn't held until the deposit is in. Any questions, just text me back!";
+    "I'm sending your confirmation page now. Tap the link below to check that your details look right, then tap Confirm and pay your " + money(dep) + " deposit to secure your date:\n" + url + "\n\nJust so you know, your date isn't held until the deposit is in. Any questions, just text me back!";
   const d = await deliver(base, phone, body, "confirm-link");
   await addToCustomer(base, phone, body);
   if (r) { r.status = "link sent"; r.sent = { at: new Date().toISOString(), by, price }; await saveRequests(base, list); }
