@@ -637,7 +637,7 @@ export async function sendConfirmLink(base, x, by) {
   await post(base, { kind: "pending", by: "Sandy", name: lk.n, date: lk.d, beach: lk.b, phone, time: lk.t, pkg: lk.pk, amount: price, dep, link: url });
   const t = low(lk.t), slot = t && t !== "other" && t !== "wedding" ? " (" + t + ")" : "", place = lk.b && lk.b !== "Other" ? " at " + lk.b : "";
   // Oct 30 2026: Miranda okayed it; the date isn't held until the deposit is in
-  const body = "Hi " + firstName(lk.n) + "! It's Sandy with Miranda Rae Photography. Good news, Miranda okayed " + longDay(lk.d) + place + slot + " for you! " +
+  const body = "Hi " + firstName(lk.n) + "! It's Sandy with Miranda Rae Photography. Good news, Miranda okayed " + longDay(lk.d) + place + slot + " for your " + money(price) + " " + lk.pk + "! " +
     "Check your session details, then tap Confirm and pay your " + money(dep) + " deposit to secure your date: " + url + "\n\nJust so you know, your date isn't held until the deposit is in. Any questions, just text me back!";
   const d = await deliver(base, phone, body, "confirm-link");
   await addToCustomer(base, phone, body);
