@@ -16,7 +16,7 @@ import { getStore } from "@netlify/blobs";
 
 const START = 100; // first booking becomes #101
 // Phone numbers that mean "this is a test" (last 10 digits)
-const TEST_PHONES = ["2563996736", "2566134522", "4482196539"]; // Randy, Bradyn, Miranda
+const TEST_PHONES = ["2563996736", "2566134522", "4482196539", "8505550100"]; // Randy, Bradyn, Miranda, Sandy page's pretend customer
 const DEFAULT_PHOTOGRAPHERS = ["Kallie"];
 // Split for contracted-out sessions (Oct 15 2026): Miranda's share is a percentage of the session
 // (default 25%, or $50 if that's more) or a dollar amount she types. The photographer gets the rest,
@@ -146,7 +146,7 @@ export default async (req) => {
   const url = new URL(req.url);
   if (req.method === "GET" && url.searchParams.get("log")) {
     if (!(await okPass(req))) return json({ error: "passcode" });
-    return json({ bookings: await getList("bookings"), log: (await getList("log")).slice(-300), test: !live });
+    return json({ bookings: await getList("bookings"), log: (await getList("log")).slice(-300), daysOff: await getList("daysoff"), test: !live });
   }
   if (req.method === "GET") {
     const list = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS;
@@ -169,6 +169,25 @@ export default async (req) => {
 
   let data = {};
   try { data = await req.json(); } catch (e) {}
+  // Days off (Oct 28 2026): Miranda tells Sandy which days or times she's off; they show on the calendar
+  // and Sandy won't offer them to customers. part = all, sunrise, sunset or midday.
+  if (data.kind === "dayoff") {
+    if (!(await okPass(req, data))) return json({ error: "passcode" });
+    const ymd = /^\d{4}-\d{2}-\d{2}$/, from = day(data.date), to = day(data.to || data.date);
+    if (!ymd.test(from) || !ymd.test(to) || to < from) return json({ error: "dates" });
+    const dates = [];
+    for (let d = new Date(from + "T12:00:00Z"); d.toISOString().slice(0, 10) <= to && dates.length < 62; d.setUTCDate(d.getUTCDate() + 1)) dates.push(d.toISOString().slice(0, 10));
+    const part = ["all", "sunrise", "sunset", "midday"].includes(data.part) ? data.part : "all";
+    let list = (await getList("daysoff")).filter((x) => x.date >= new Date(Date.now() - 86400000).toISOString().slice(0, 10));
+    if (data.action === "remove") list = list.filter((x) => !(dates.includes(x.date) && (data.part ? x.part === part : true)));
+    else {
+      list = list.filter((x) => !(dates.includes(x.date) && (x.part === part || part === "all")));
+      dates.forEach((d) => list.push({ date: d, part, note: clip(data.note, 100), by: clip(data.by, 40), at: new Date().toISOString() }));
+    }
+    list.sort((a, b) => a.date.localeCompare(b.date));
+    await store.setJSON("daysoff", list.slice(0, 400));
+    return json({ ok: true, days: dates.length, daysOff: list });
+  }
   // Master page buttons: Deposit Received / Paid in Full / Cancel (+ undo)
   if (data.kind === "status") {
     if (!(await okPass(req, data))) return json({ error: "passcode" });
@@ -235,6 +254,11 @@ export default async (req) => {
       data.detail = "Changed " + changed.join(", ");
       b.edited = { at: now, by: who };
     }
+    else if (a === "review") {
+      // Ask for review button (Oct 29 2026): notes that Miranda texted this customer a review link
+      b.reviewAsked = { at: now, by: who, site: clip(data.site, 20) === "Facebook" ? "Facebook" : "Google" };
+      data.detail = b.reviewAsked.site + " review link texted";
+    }
     else if (a === "photographer") {
       // Photographer button (Oct 20 2026): hand a session to Kallie (or anyone), or back to Miranda.
       // The new photographer's same-time sessions are checked so nobody is double-booked.
@@ -286,7 +310,7 @@ export default async (req) => {
     const cxd = a === "cancel" && b.cancelled.deposit ? (b.cancelled.deposit === "kept" ? "Deposit kept" + (b.cancelled.kept ? " $" + b.cancelled.kept : "") : "Deposit returned" + (b.cancelled.returned ? " $" + b.cancelled.returned : "")) : "";
     await logIt({ kind: a === "move" ? "moved" : a, num: b.num, name: b.name, amount: amt, by: who, test: !!b.test,
       ...(a === "move" ? { date: b.date, detail: "Moved from " + b.movedFrom } : a === "deduct" ? { detail: b.deducts[b.deducts.length - 1].why }
-        : a === "edit" || a === "photographer" || a === "shooter-paid" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
+        : a === "edit" || a === "photographer" || a === "shooter-paid" || a === "review" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
     return json({ ok: true, booking: b });
   }
   // Master page "Clear all tests" button (Oct 15 2026): removes test bookings and test entries from

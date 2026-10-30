@@ -30,10 +30,17 @@
   var PAGE = 'photos';
 
   function ping(formName, extra) {
+    // Tap/click alert email, sent by the site itself through Cloudflare (Oct 29 2026; was FormSubmit, before that Netlify Forms)
     try {
-      fetch('/', {method:'POST', keepalive:true,
-        headers:{'Content-Type':'application/x-www-form-urlencoded'},
-        body:'form-name=' + formName + '&page=' + PAGE + (extra ? '&' + extra : '')});
+      var link = (new URLSearchParams(extra || '')).get('link') || '';
+      var live = /(^|\.)mirandaraephotography\.com$/.test(location.hostname);
+      var p = new URLSearchParams();
+      p.set('_subject', (live ? '' : '[TEST] ') + (formName === 'text-tap' ? '\u{1F446} TEXT MIRANDA TAPPED \u00b7 ' + PAGE : '\u{1F517} LINK CLICKED: ' + link + ' \u00b7 ' + PAGE));
+      p.set('_template', 'table'); p.set('_captcha', 'false'); p.set('Page', PAGE);
+      if (link) p.set('Link', link);
+      if (live) p.set('_cc', 'bookmirandarae@gmail.com');
+      fetch('/api/notify', {method:'POST', keepalive:true, mode:'no-cors',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString()});
     } catch (e) {}
   }
   var textTapSent = false;
@@ -383,7 +390,7 @@ footer a{color:#fff}
 
 <section class="form-section">
   <div class="shell">
-    <form class="form-card" id="check-date" name="booking-photos" method="POST" action="https://formsubmit.co/mirandaraep@gmail.com">
+    <form class="form-card" id="check-date" name="booking-photos" method="POST" action="/api/request">
       <input type="hidden" name="_cc" value="bookmirandarae@gmail.com">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_template" value="table">
@@ -451,6 +458,11 @@ footer a{color:#fff}
         <option>Saw her photographing on the beach</option>
         <option>Other</option>
       </select>
+      <!-- Oct 28 2026: OK-to-text box (same wording as /book). Unchecked by default and NOT required. When checked, Sandy can text them about their request. -->
+      <label class="text-consent" style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;font-weight:400;margin:14px 0 12px;cursor:pointer;text-align:left">
+        <input type="checkbox" name="text-consent" value="Yes - agreed to texts" style="width:20px;height:20px;min-width:20px;margin:2px 0 0;accent-color:#1d5b6b">
+        <span>Yes, Miranda Rae Photography can text me about my session request, booking confirmations and reminders. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help. See our <a href="/terms" style="color:inherit;text-decoration:underline">Text Terms</a> and <a href="/privacy" style="color:inherit;text-decoration:underline">Privacy Notice</a>.</span>
+      </label>
 
       <button class="btn btn-text" type="submit">Send My Request</button>
       <p class="fine">No payment, no obligation — you're just asking. Miranda will personally confirm your date.</p>
@@ -543,14 +555,22 @@ footer a{color:#fff}
 // Hidden photos page for ad visitors (added Oct 13 2026): no Home link; "Back" and "Check My Date"
 // return to the landing page they came from (?from=mexico-beach-199), so they keep seeing that page's price.
 (function(){
-  var from = (new URLSearchParams(location.search).get('from') || '').replace(/[^a-z0-9-]/g, '');
+  var q = new URLSearchParams(location.search);
+  var from = (q.get('from') || '').replace(/[^a-z0-9-]/g, '');
+  // Oct 30 2026: keep the beach/headline the ad picked (?beach=destin&for=couples) when going back
+  var keep = ['beach', 'for'].map(function(k){ var v = (q.get(k) || '').replace(/[^a-z0-9-]/gi, ''); return v ? k + '=' + v : ''; }).filter(Boolean).join('&');
+  var back = from ? '/' + from + (keep ? '?' + keep : '') : '';
   [].forEach.call(document.querySelectorAll('a.back-link'), function(a){
-    a.href = from ? '/' + from : '#';
+    a.href = from ? back : '#';
     if (!from) a.addEventListener('click', function(e){ e.preventDefault(); if (history.length > 1) history.back(); });
   });
-  if (from) [].forEach.call(document.querySelectorAll('a[href="#check-date"]'), function(a){ a.href = '/' + from + '#check-date'; });
+  if (from) [].forEach.call(document.querySelectorAll('a[href="#check-date"]'), function(a){ a.href = back + '#check-date'; });
   // Oct 20 2026: visitors coming from /book already texted Miranda, so hide the Text Miranda buttons for them
   if (from === 'book') [].forEach.call(document.querySelectorAll('a.sms'), function(a){ a.style.display = 'none'; });
+  // Oct 29 2026: ad visitors text Sandy (Miranda's AI texting assistant), same as on the ad page they came from
+  // Oct 30 2026: only the two holiday ad pages text Sandy for now; the others went back to Miranda's own number
+  if (/^(holiday-family|holiday-family-photos)$/.test(from))
+    [].forEach.call(document.querySelectorAll('a.sms'), function(a){ a.href = a.href.replace('14482196539', '14482173502').replace('body=Hi%20Miranda!%20', 'body=Hi!%20'); });
   // Privacy notice: keep the visitor's way back to the landing page (Oct 14 2026)
   if (from) [].forEach.call(document.querySelectorAll('a[href="/privacy"]'), function(a){ a.href = '/privacy?from=' + from; });
 })();

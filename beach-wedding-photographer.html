@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Florida Beach Wedding Photographer | Miranda Rae Photography</title>
-<meta name="description" content="Elevated beach wedding photography on Florida's Gulf Coast: Mexico Beach, Port St. Joe, Cape San Blas, Panama City Beach, Destin, 30A and St. George Island. Wedding collections from $799.">
+<meta name="description" content="Elevated beach wedding photography on Florida's Gulf Coast: Mexico Beach, Port St. Joe, Cape San Blas, Panama City Beach, Destin, 30A and St. George Island. Wedding collections from $999.">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://mirandaraephotography.com/beach-wedding-photographer">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Florida Beach Wedding Photographer | Miranda Rae Photography">
-<meta property="og:description" content="Say “I do” by the coast. Elevated, timeless beach wedding photography on Florida's Gulf Coast. Collections from $799.">
+<meta property="og:description" content="Say “I do” by the coast. Elevated, timeless beach wedding photography on Florida's Gulf Coast. Collections from $999.">
 <meta property="og:url" content="https://mirandaraephotography.com/beach-wedding-photographer">
 <meta property="og:image" content="https://mirandaraephotography.com/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FPoRRm1o%2FDSC08961-986fc5e0-2500.jpg&amp;w=1200&amp;fm=webp&amp;q=80">
 <link rel="icon" href="/favicon-192.png">
@@ -66,14 +66,14 @@
     {
       "@type": "Offer",
       "name": "Wedding: Étoile Collection",
-      "price": "799",
+      "price": "999",
       "priceCurrency": "USD",
       "description": "6 hours."
     },
     {
       "@type": "Offer",
       "name": "Wedding: Grand Coastal Collection",
-      "price": "1500",
+      "price": "1999",
       "priceCurrency": "USD",
       "description": "10 hours."
     }
@@ -101,7 +101,7 @@
       "name": "How much is wedding photography?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "There are two wedding collections: the Étoile Collection is $799 for 6 hours, and the Grand Coastal Collection is $1,500 for 10 hours, from getting ready through your send-off."
+        "text": "There are two wedding collections: the Étoile Collection is $999 for 6 hours, and the Grand Coastal Collection is $1,999 for 10 hours, from getting ready through your send-off."
       }
     },
     {
@@ -143,8 +143,18 @@
   gtag('config', 'G-DXQ60XNC8Y');
   var PAGE = 'wedding-collections';
   function ping(formName, extra) {
-    try { fetch('/', {method:'POST', keepalive:true, headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:'form-name=' + formName + '&page=' + PAGE + (extra ? '&' + extra : '')}); } catch (e) {}
+    // Tap/click alert email, sent by the site itself through Cloudflare (Oct 29 2026; was FormSubmit, before that Netlify Forms)
+    try {
+      var link = (new URLSearchParams(extra || '')).get('link') || '';
+      var live = /(^|\.)mirandaraephotography\.com$/.test(location.hostname);
+      var p = new URLSearchParams();
+      p.set('_subject', (live ? '' : '[TEST] ') + (formName === 'text-tap' ? '\u{1F446} TEXT MIRANDA TAPPED \u00b7 ' + PAGE : '\u{1F517} LINK CLICKED: ' + link + ' \u00b7 ' + PAGE));
+      p.set('_template', 'table'); p.set('_captcha', 'false'); p.set('Page', PAGE);
+      if (link) p.set('Link', link);
+      if (live) p.set('_cc', 'bookmirandarae@gmail.com');
+      fetch('/api/notify', {method:'POST', keepalive:true, mode:'no-cors',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString()});
+    } catch (e) {}
   }
   var textTapSent = false;
   function textTap() {
@@ -204,6 +214,7 @@ h2{font-size:clamp(36px,4.4vw,58px);line-height:1.05}
 .hero h1 em{font-style:italic}
 .hero p.sub{font:400 clamp(17px,1.6vw,21px)/1.5 var(--serif);font-style:italic;margin:18px auto 30px;max-width:600px;opacity:.95}
 .hero-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.booking-pill{display:inline-block;font:600 11px/1 var(--sans);letter-spacing:.24em;text-transform:uppercase;color:#14110d;background:rgba(255,255,255,.9);border-radius:40px;padding:10px 18px;margin:0 0 18px}
 
 /* Intro */
 .intro{padding:clamp(80px,11vw,140px) 0 clamp(60px,8vw,100px);text-align:center}
@@ -287,6 +298,9 @@ form.box{background:var(--ivory);border:1px solid var(--line);padding:clamp(26px
 .box select{background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23a5844f' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:38px}
 .box textarea{min-height:96px;resize:vertical}
 .box input:focus,.box select:focus,.box textarea:focus{outline:none;border-color:var(--gold)}
+/* Oct 28 2026: OK-to-text box keeps normal checkbox look and plain wording */
+.box label.text-consent{font:400 13px/1.5 var(--sans);letter-spacing:0;text-transform:none;color:var(--ink);margin:18px 0 12px}
+.box .text-consent input{width:20px;min-height:0;height:20px;padding:0;-webkit-appearance:checkbox;appearance:auto;border-radius:0}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .box .btn{width:100%;margin-top:26px;min-height:58px}
 .fine{font-size:13px;color:var(--soft);text-align:center;margin:14px 0 0}
@@ -362,6 +376,7 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
     <img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FPoRRm1o%2FDSC08961-986fc5e0-2500.jpg&amp;w=2000&amp;fm=webp&amp;q=80" alt="Bride on the sand at her Florida Gulf Coast beach wedding, photographed by Miranda Rae Photography" fetchpriority="high">
   </picture>
   <div class="hero-copy">
+    <p class="booking-pill">Now Booking 2027 Weddings</p>
     <p class="eyebrow">Florida Beach Wedding Photographer</p>
     <h1>Say <em>“I do”</em> by the coast</h1>
     <p class="sub">Elevated, timeless wedding photography along Florida’s Gulf Coast.</p>
@@ -402,7 +417,7 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
         <div class="ph"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FavRR040%2FDSC08569-c25f491c-2500.jpg&amp;w=1000&amp;fm=webp&amp;q=80" alt="Ring exchange at a beach wedding ceremony on the Gulf Coast" loading="lazy"></div>
         <div class="body">
           <h3>The Étoile Collection</h3>
-          <div class="price"><b data-p="wedding6.price">$799</b><span data-p="wedding6.timeWords">6 hours</span></div>
+          <div class="price"><b data-p="wedding6.price">$999</b><span data-p="wedding6.timeWords">6 hours</span></div>
           <p>For couples who want more of their wedding story preserved, with time for your day to unfold naturally, without feeling rushed.</p>
           <ul>
             <li><span data-p="wedding6.timeWords">6 hours</span> of continuous coverage</li>
@@ -411,7 +426,7 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
             <li>A blend of natural moments and gently guided portraits</li>
             <li>Full curated gallery, no set photo count</li>
           </ul>
-          <a class="btn line" href="#inquire" onclick="return pick('Étoile Collection — $799 · 6 hours');">Check My Date</a>
+          <a class="btn line" href="#inquire" onclick="return pick('Étoile Collection — $999 · 6 hours');">Check My Date</a>
         </div>
       </article>
       <article class="card">
@@ -419,7 +434,7 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
         <div class="ph"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FqrKKnW5%2FDSC08598-14362a2f-2500.jpeg&amp;w=1000&amp;fm=webp&amp;q=80" alt="Groom dipping his bride for a kiss by the cross on the beach" loading="lazy"></div>
         <div class="body">
           <h3>The Grand Coastal Collection</h3>
-          <div class="price"><b data-p="wedding10.price">$1,500</b><span data-p="wedding10.timeWords">10 hours</span></div>
+          <div class="price"><b data-p="wedding10.price">$1,999</b><span data-p="wedding10.timeWords">10 hours</span></div>
           <p>The ultimate coastal wedding experience: every meaningful chapter, from the quiet anticipation of getting ready to the very last celebration.</p>
           <ul>
             <li><span data-p="wedding10.timeWords">10 hours</span> of coverage</li>
@@ -428,8 +443,10 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
             <li>Reception: toasts, dancing and the moments in between</li>
             <li>Your send-off, so the story ends where it should</li>
             <li>Every image that meets Miranda’s standards, no set limit</li>
+            <li><b>Bonus:</b> a beach session during your wedding week, the day before or the morning after</li>
+            <li><b>Bonus:</b> a sneak peek of 20–30 edited photos within 48 hours</li>
           </ul>
-          <a class="btn" href="#inquire" onclick="return pick('Grand Coastal Collection — $1,500 · 10 hours');">Check My Date</a>
+          <a class="btn" href="#inquire" onclick="return pick('Grand Coastal Collection — $1,999 · 10 hours');">Check My Date</a>
         </div>
       </article>
     </div>
@@ -489,7 +506,7 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
     <div class="inq-intro">
       <p class="eyebrow">Check Your Date</p>
       <h2>Is your date still open?</h2>
-      <p>Tell Miranda a little about your day. She’ll personally confirm availability and answer your questions. No payment, no obligation.</p>
+      <p><strong>Now booking 2027 weddings.</strong> Tell Miranda a little about your day. She’ll personally confirm availability and answer your questions. No payment, no obligation.</p>
       <ol class="steps">
         <li>Send your date and the collection you’re considering.</li>
         <li>Miranda texts you back personally to talk through your day.</li>
@@ -498,7 +515,7 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
       <p class="textline">Prefer to text? <a href="sms:+14482196539?&body=Hi%20Miranda!%20I%20saw%20your%20beach%20wedding%20page.%20Our%20wedding%20date%20is%3A%20" onclick="return textTap();">Text Miranda →</a></p>
     </div>
 
-    <form class="box" name="booking-wedding" method="POST" action="https://formsubmit.co/mirandaraep@gmail.com">
+    <form class="box" name="booking-wedding" method="POST" action="/api/request">
       <input type="hidden" name="_cc" value="bookmirandarae@gmail.com">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_template" value="table">
@@ -516,8 +533,8 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
       <label for="collection">Collection</label>
       <select id="collection" name="collection">
         <option>Not sure yet</option>
-        <option>Étoile Collection — $799 · 6 hours</option>
-        <option>Grand Coastal Collection — $1,500 · 10 hours</option>
+        <option>Étoile Collection — $999 · 6 hours</option>
+        <option>Grand Coastal Collection — $1,999 · 10 hours</option>
       </select>
 
       <div class="row2">
@@ -551,6 +568,11 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
         <option>Saw her photographing on the beach</option>
         <option>Other</option>
       </select>
+      <!-- Oct 28 2026: OK-to-text box (same wording as /book). Unchecked by default and NOT required. When checked, Sandy can text them about their request. -->
+      <label class="text-consent" style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;font-weight:400;margin:14px 0 12px;cursor:pointer;text-align:left">
+        <input type="checkbox" name="text-consent" value="Yes - agreed to texts" style="width:20px;height:20px;min-width:20px;margin:2px 0 0;accent-color:#1d5b6b">
+        <span>Yes, Miranda Rae Photography can text me about my session request, booking confirmations and reminders. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help. See our <a href="/terms" style="color:inherit;text-decoration:underline">Text Terms</a> and <a href="/privacy" style="color:inherit;text-decoration:underline">Privacy Notice</a>.</span>
+      </label>
 
       <button class="btn" type="submit">Send My Request</button>
       <p class="fine">No payment, no obligation — you’re just asking. Miranda will personally confirm your date.</p>
@@ -570,7 +592,7 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
   <div class="wrap">
     <h2>Questions</h2>
     <details><summary>Which beaches do you photograph weddings on?</summary><p>Miranda photographs weddings all along Florida’s Gulf Coast, including Mexico Beach, Port St. Joe, Cape San Blas, Panama City Beach, Destin, 30A and St. George Island. Beach, garden, chapel or backyard, she comes to you.</p></details>
-    <details><summary>How much is wedding photography?</summary><p>There are two wedding collections: the Étoile Collection is <span data-p="wedding6.price">$799</span> for <span data-p="wedding6.timeWords">6 hours</span>, and the Grand Coastal Collection is <span data-p="wedding10.price">$1,500</span> for <span data-p="wedding10.timeWords">10 hours</span>, from getting ready through your send-off.</p></details>
+    <details><summary>How much is wedding photography?</summary><p>There are two wedding collections: the Étoile Collection is <span data-p="wedding6.price">$999</span> for <span data-p="wedding6.timeWords">6 hours</span>, and the Grand Coastal Collection is <span data-p="wedding10.price">$1,999</span> for <span data-p="wedding10.timeWords">10 hours</span>, from getting ready through your send-off.</p></details>
     <details><summary>How many photos will we receive?</summary><p>There’s no set limit. Your gallery is curated around the story of your day, and every image that meets Miranda’s standards is professionally edited and delivered in a private online gallery.</p></details>
     <details><summary>Do I pay anything to check my date?</summary><p>No. Asking is free. Miranda confirms availability and details with you first, and nothing is booked until you agree.</p></details>
     <details><summary>What if the weather turns?</summary><p>Gulf weather can change fast. Miranda will talk through timing and a backup plan with you before the day.</p></details>
@@ -589,5 +611,15 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
 
 <!-- Hidden forms so Netlify registers the tap logs -->
 <form name="text-tap" netlify hidden><input type="hidden" name="form-name" value="text-tap"><input name="page"></form>
+
+<!-- Beach headline swap (Oct 30 2026): the ad link picks the beach, e.g. ?beach=destin. See /beach-swap.js -->
+<script src="/beach-swap.js"></script>
+<script>
+mrpBeachSwap({ variants: {
+  '': function (b) { return !b ? {} : {
+    set: { '.hero .eyebrow': b.wb + ' Wedding Photographer', '.hero h1': 'Say <em>&#8220;I do&#8221;</em> ' + b.at },
+    title: b.wb + ' Wedding Photographer | Miranda Rae Photography' }; }
+}});
+</script>
 </body>
 </html>

@@ -47,7 +47,9 @@ a{color:#1d5b6b}
   if (!/-199$/.test(f)) return;
   var bar = document.querySelector('.bar'), brand = bar && bar.querySelector('a'), nav = bar && bar.querySelector('.nav');
   if (brand) { var b = document.createElement('b'); b.textContent = brand.textContent; brand.parentNode.replaceChild(b, brand); }
-  if (nav) nav.innerHTML = '<a href="/' + f + '">&larr; Back</a>';
+  // Oct 30 2026: Back keeps the beach the ad picked (?beach=destin)
+  var q = new URLSearchParams(location.search), keep = ['beach', 'for'].map(function(k){ var v = (q.get(k) || '').replace(/[^a-z0-9-]/gi, ''); return v ? k + '=' + v : ''; }).filter(Boolean).join('&');
+  if (nav) nav.innerHTML = '<a href="/' + f + (keep ? '?' + keep : '') + '">&larr; Back</a>';
 })();
 </script>
 </body>

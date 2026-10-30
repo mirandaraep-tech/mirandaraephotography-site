@@ -42,10 +42,17 @@
   var PAGE = 'gallery';
 
   function ping(formName, extra) {
+    // Tap/click alert email, sent by the site itself through Cloudflare (Oct 29 2026; was FormSubmit, before that Netlify Forms)
     try {
-      fetch('/', {method:'POST', keepalive:true,
-        headers:{'Content-Type':'application/x-www-form-urlencoded'},
-        body:'form-name=' + formName + '&page=' + PAGE + (extra ? '&' + extra : '')});
+      var link = (new URLSearchParams(extra || '')).get('link') || '';
+      var live = /(^|\.)mirandaraephotography\.com$/.test(location.hostname);
+      var p = new URLSearchParams();
+      p.set('_subject', (live ? '' : '[TEST] ') + (formName === 'text-tap' ? '\u{1F446} TEXT MIRANDA TAPPED \u00b7 ' + PAGE : '\u{1F517} LINK CLICKED: ' + link + ' \u00b7 ' + PAGE));
+      p.set('_template', 'table'); p.set('_captcha', 'false'); p.set('Page', PAGE);
+      if (link) p.set('Link', link);
+      if (live) p.set('_cc', 'bookmirandarae@gmail.com');
+      fetch('/api/notify', {method:'POST', keepalive:true, mode:'no-cors',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString()});
     } catch (e) {}
   }
   var textTapSent = false;
@@ -222,7 +229,7 @@ footer a{color:#fff}
       <a class="btn btn-text" href="#check-date">Check My Date →</a>
       <a class="btn btn-ghost sms" href="sms:+14482196539" onclick="return textTap();">💬 Text Miranda</a>
     </div>
-    <div class="checks"><span>✓ No payment to ask</span><span>✓ $130 beach minis · $199 Destin &amp; 30A · weddings from $799</span></div>
+    <div class="checks"><span>✓ No payment to ask</span><span>✓ $130 beach minis · $199 Beach Special at every beach · weddings from $999</span></div>
   </div>
 </div>
 
@@ -395,7 +402,7 @@ footer a{color:#fff}
 
 <section class="form-section">
   <div class="shell">
-    <form class="form-card" id="check-date" name="booking-gallery" method="POST" action="https://formsubmit.co/mirandaraep@gmail.com">
+    <form class="form-card" id="check-date" name="booking-gallery" method="POST" action="/api/request">
       <input type="hidden" name="_cc" value="bookmirandarae@gmail.com">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_template" value="table">
@@ -463,6 +470,11 @@ footer a{color:#fff}
         <option>Saw her photographing on the beach</option>
         <option>Other</option>
       </select>
+      <!-- Oct 28 2026: OK-to-text box (same wording as /book). Unchecked by default and NOT required. When checked, Sandy can text them about their request. -->
+      <label class="text-consent" style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;font-weight:400;margin:14px 0 12px;cursor:pointer;text-align:left">
+        <input type="checkbox" name="text-consent" value="Yes - agreed to texts" style="width:20px;height:20px;min-width:20px;margin:2px 0 0;accent-color:#1d5b6b">
+        <span>Yes, Miranda Rae Photography can text me about my session request, booking confirmations and reminders. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help. See our <a href="/terms" style="color:inherit;text-decoration:underline">Text Terms</a> and <a href="/privacy" style="color:inherit;text-decoration:underline">Privacy Notice</a>.</span>
+      </label>
 
       <button class="btn btn-text" type="submit">Send My Request</button>
       <p class="fine">No payment, no obligation — you're just asking. Miranda will personally confirm your date.</p>

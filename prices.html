@@ -73,14 +73,14 @@
     {
       "@type": "Offer",
       "name": "Wedding: Étoile Collection",
-      "price": "799",
+      "price": "999",
       "priceCurrency": "USD",
       "description": "6 hours."
     },
     {
       "@type": "Offer",
       "name": "Wedding: Grand Coastal Collection",
-      "price": "1500",
+      "price": "1999",
       "priceCurrency": "USD",
       "description": "10 hours."
     }
@@ -141,10 +141,17 @@
   gtag('config', 'G-DXQ60XNC8Y');
   var PAGE = 'prices';
   function ping(formName, extra) {
+    // Tap/click alert email, sent by the site itself through Cloudflare (Oct 29 2026; was FormSubmit, before that Netlify Forms)
     try {
-      fetch('/', {method:'POST', keepalive:true,
-        headers:{'Content-Type':'application/x-www-form-urlencoded'},
-        body:'form-name=' + formName + '&page=' + PAGE + (extra ? '&' + extra : '')});
+      var link = (new URLSearchParams(extra || '')).get('link') || '';
+      var live = /(^|\.)mirandaraephotography\.com$/.test(location.hostname);
+      var p = new URLSearchParams();
+      p.set('_subject', (live ? '' : '[TEST] ') + (formName === 'text-tap' ? '\u{1F446} TEXT MIRANDA TAPPED \u00b7 ' + PAGE : '\u{1F517} LINK CLICKED: ' + link + ' \u00b7 ' + PAGE));
+      p.set('_template', 'table'); p.set('_captcha', 'false'); p.set('Page', PAGE);
+      if (link) p.set('Link', link);
+      if (live) p.set('_cc', 'bookmirandarae@gmail.com');
+      fetch('/api/notify', {method:'POST', keepalive:true, mode:'no-cors',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString()});
     } catch (e) {}
   }
   var textTapSent = false;
@@ -250,6 +257,7 @@ footer a{color:#fff}
       <article class="pkg" id="proposal"><div class="pkg-top"><h3>Surprise Proposal</h3><strong>$199</strong></div><p>Your proposal only happens once. Miranda helps plan it, stays out of sight, and captures every emotion.</p><ul><li>30 professionally edited photos</li><li>Planning help with location and timing</li><li>Discreet coverage of the proposal</li><li>Engagement portraits right after</li><li>No set time limit</li><li>Private online gallery to view and download</li></ul></article>
     <!--/prices:prices-cards-->
     </div>
+    <p class="center" style="margin-top:18px">Planning a surprise proposal? <a href="/beach-proposal-photographer">See how Miranda keeps it a secret →</a></p>
   </div>
 </section>
 
@@ -258,8 +266,8 @@ footer a{color:#fff}
     <h2 class="center">Beach weddings</h2>
     <div class="grid">
       <!--prices:prices-cards ids=wedding6,wedding10-->
-      <article class="pkg" id="wedding6"><div class="pkg-top"><h3>Wedding: Étoile Collection</h3><strong>$799</strong></div><p>Six hours of continuous coverage, so your day can unfold without feeling rushed: getting ready, ceremony, newlywed portraits and reception.</p><ul><li>6 hours of coverage</li><li>Getting ready through the reception</li><li>Full curated gallery, no set photo count</li><li>Private online gallery to view and download</li></ul></article>
-      <article class="pkg" id="wedding10"><div class="pkg-top"><h3>Wedding: Grand Coastal Collection</h3><strong>$1,500</strong></div><p>The ultimate coastal wedding: every chapter of the day, from getting ready to the very last celebration.</p><ul><li>10 hours of coverage</li><li>Getting ready, ceremony, portraits, family photos, reception and send-off</li><li>Full curated gallery, no set photo count</li><li>Private online gallery to view and download</li></ul></article>
+      <article class="pkg" id="wedding6"><div class="pkg-top"><h3>Wedding: Étoile Collection</h3><strong>$999</strong></div><p>Six hours of continuous coverage, so your day can unfold without feeling rushed: getting ready, ceremony, newlywed portraits and reception.</p><ul><li>6 hours of coverage</li><li>Getting ready through the reception</li><li>Full curated gallery, no set photo count</li><li>Private online gallery to view and download</li></ul></article>
+      <article class="pkg" id="wedding10"><div class="pkg-top"><h3>Wedding: Grand Coastal Collection</h3><strong>$1,999</strong></div><p>The ultimate coastal wedding: every chapter of the day, from getting ready to the very last celebration.</p><ul><li>10 hours of coverage</li><li>Getting ready, ceremony, portraits, family photos, reception and send-off</li><li>Full curated gallery, no set photo count</li><li>Bonus beach session during your wedding week (the day before or the morning after)</li><li>Sneak peek: 20–30 edited photos within 48 hours</li><li>Private online gallery to view and download</li></ul></article>
     <!--/prices:prices-cards-->
     </div>
   </div>

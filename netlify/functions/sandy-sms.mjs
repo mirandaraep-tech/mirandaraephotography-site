@@ -3,7 +3,8 @@
 // https://mirandaraephotography.com/api/sandy-sms (HTTP POST).
 // Twilio waits only 15 seconds, so this answers right away and Sandy replies by her own text a moment later.
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { PEOPLE, MIRANDA, digits, env, deliver, record, sandyKey } from "../sandy/brain.mjs";
+import { PEOPLE, MIRANDA, digits, env, deliver, record, sandyKey, sandyStore, customerMode, setCustomerMode } from "../sandy/brain.mjs";
+import { OPT_WORDS } from "../sandy/customers.mjs";
 
 const empty = () => new Response('<?xml version="1.0" encoding="UTF-8"?><Response></Response>', { headers: { "Content-Type": "text/xml" } });
 
@@ -25,10 +26,41 @@ export default async (req) => {
   const from = digits(params.From), text = String(params.Body || "").trim().slice(0, 1500);
   const base = new URL(req.url).origin;
   if (!text) return empty();
-  if (!PEOPLE[from]) {
-    // A customer or anyone else. Sandy doesn't answer customers yet: pass it to Miranda.
+  // Randy testing a website request from his own phone (Oct 28 2026): for 3 hours his texts get the
+  // customer side of Sandy, like a real customer would. "DONE" switches him back right away.
+  let asCustomer = false;
+  if (PEOPLE[from] && (await customerMode(base, from))) {
+    if (/^\s*done( testing)?\s*[.!]*\s*$/i.test(text)) {
+      await setCustomerMode(base, from, false);
+      await deliver(base, from, "Sandy here. Got it, you're done testing as a customer. I'm back to regular Sandy for you.", "reply");
+      return empty();
+    }
+    asCustomer = true;
+  }
+  if (!PEOPLE[from] || asCustomer) {
+    // A customer (Oct 28 2026): Sandy answers them herself when SANDY_CUSTOMERS is "on"
     await record(base, { kind: "incoming-other", from, body: text });
-    await deliver(base, MIRANDA, "Sandy here: a text came to my number from " + (params.From || "unknown") + ":\n\"" + text.slice(0, 400) + "\"\nYou may want to reply to them from your phone.", "forwarded");
+    if (env("SANDY_CUSTOMERS").toLowerCase() !== "on") {
+      await deliver(base, MIRANDA, "Sandy here: a text came to my number from " + (params.From || "unknown") + ":\n\"" + text.slice(0, 400) + "\"\nYou may want to reply to them from your phone.", "forwarded");
+      return empty();
+    }
+    // STOP / HELP and the like: Twilio answers those itself
+    if (OPT_WORDS.test(text)) {
+      if (/^\s*cancel/i.test(text)) await deliver(base, MIRANDA, "Sandy here: " + (params.From || "a customer") + " texted just \"CANCEL\". That also stops my texts to them, so I can't reply. If they have a session, they may want to cancel it. You may want to call or text them from your phone.", "forwarded");
+      return empty();
+    }
+    // Limits so one number (or a flood of texts) can't run up Sandy's Claude bill
+    const s = sandyStore(base), day = new Date().toISOString().slice(0, 10);
+    const n = ((await s.get("rate-" + from + "-" + day, { type: "json" })) || 0) + 1, all = ((await s.get("rate-all-" + day, { type: "json" })) || 0) + 1;
+    await s.setJSON("rate-" + from + "-" + day, n); await s.setJSON("rate-all-" + day, all);
+    if (n > 30 || all > 300) {
+      if (n === 31 || all === 301) await deliver(base, MIRANDA, "Sandy here: " + (n > 30 ? (params.From || "a number") + " has texted me over 30 times today" : "I've had over 300 customer texts today") + ", so I've stopped answering " + (n > 30 ? "them" : "customers") + " until tomorrow. You may want to reply from your phone.", "forwarded");
+      return empty();
+    }
+    await fetch(base + "/.netlify/functions/sandy-reply-background", {
+      method: "POST", headers: { "Content-Type": "application/json", "x-sandy-key": await sandyKey() },
+      body: JSON.stringify({ kind: "customer", from, text, base }),
+    });
     return empty();
   }
   await record(base, { kind: "incoming", from, body: text });

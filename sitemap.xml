@@ -116,4 +116,37 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://mirandaraephotography.com/holiday-family-beach-photos</loc>
+    <image:image><image:loc>https://mirandaraephotography.com/images/photos/florida-gulf-coast-family-reunion-beach-sunset.jpg</image:loc></image:image>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mirandaraephotography.com/family-beach-photographer</loc>
+    <image:image><image:loc>https://mirandaraephotography.com/images/photos/mexico-beach-family-walking-beach-sunset.jpg</image:loc></image:image>
+    <image:image><image:loc>https://mirandaraephotography.com/images/photos/cape-san-blas-large-family-beach-photo.jpg</image:loc></image:image>
+    <image:image><image:loc>https://mirandaraephotography.com/images/photos/mexico-beach-dad-lifting-baby-sunset.jpg</image:loc></image:image>
+    <image:image><image:loc>https://mirandaraephotography.com/images/photos/florida-gulf-coast-family-holding-hands-beach.jpg</image:loc></image:image>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://mirandaraephotography.com/beach-proposal-photographer</loc>
+    <image:image><image:loc>https://mirandaraephotography.com/images/photos/mexico-beach-proposal-photo-sunset-candles.jpg</image:loc></image:image>
+    <image:image><image:loc>https://mirandaraephotography.com/images/photos/panama-city-beach-engagement-ring-sunset.jpg</image:loc></image:image>
+    <image:image><image:loc>https://mirandaraephotography.com/images/photos/panama-city-beach-couple-kiss-in-the-waves.jpg</image:loc></image:image>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://mirandaraephotography.com/maternity-beach-photographer</loc>
+    <image:image><image:loc>https://mirandaraephotography.com/images/photos/cape-san-blas-beach-maternity-photo-pink-dress.jpg</image:loc></image:image>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
 </urlset>

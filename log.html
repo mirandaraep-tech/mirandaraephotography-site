@@ -98,6 +98,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .mk.full{border-radius:50%;background:currentColor}
 .mk.ring{border-radius:50%;border:1.5px solid currentColor}
 .mk.q{width:auto;height:10px;font:bold 11px/10px Arial,sans-serif}
+.mk.x{width:auto;height:10px;font:bold 12px/10px Arial,sans-serif}
 .legend{display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--ink);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
 .legend span{display:flex;align-items:center;gap:8px}
 .legend .mk{width:10px;height:10px}.legend .mk.q{width:10px;height:auto;font-size:14px;line-height:1;text-align:center}
@@ -190,6 +191,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .acol .b-con{background:#e1f0f3;color:var(--teal);border:1.5px solid #bcdce3}
 .acol .b-paid{background:#fff;color:#1f6b3a;border:2px solid #1f6b3a}
 .acol .b-rem{background:#fff;color:#7a4f00;border:2px solid #e0a32b}
+.acol .b-rev{background:#b67d39;color:#fff;border-color:#b67d39}
 .cxb{margin-top:12px}
 
 /* Bottom sheets (forms that slide up) */
@@ -623,6 +625,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (b.paid) L += '<div class="kv">Paid in full – <b>' + money(b.paid.amount) + '</b>' + (b.paid.method ? ' · ' + esc(b.paid.method) : '') + ' · ' + esc(short(b.paid.at)) + '</div>';
     if (b.cancelled) L += '<div class="kv">Cancelled ' + esc(short(b.cancelled.at)) + (b.cancelled.by ? ' by ' + esc(b.cancelled.by) : '') + (b.cancelled.kept ? ' · kept ' + money(b.cancelled.kept) : b.cancelled.returned ? ' · returned ' + money(b.cancelled.returned) : '') + '</div>';
     if (b.notes) L += '<div class="kv">Notes – <b>' + esc(b.notes) + '</b></div>';
+    if (b.reviewAsked) L += '<div class="kv">⭐ Review asked – <b>' + esc(b.reviewAsked.site) + '</b> · ' + esc(short(b.reviewAsked.at)) + '</div>';
     if (b.movedFrom) L += '<div class="kv">Moved from ' + esc(nice(b.movedFrom)) + '</div>';
     if (!b.cancelled) L += '<div class="smb"><button class="btn ghost" data-a="extra">+ Extra</button><button class="btn ghost" data-a="deduct">− Deduct</button></div>' +
       '<button class="btn red cxb" data-a="cancel">Cancel booking</button>';
@@ -637,6 +640,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (!b.past) R += '<button class="btn ghost" data-a="move">Move date</button>';
       R += '<button class="btn ghost" data-a="edit">Edit</button>';
       R += '<button class="btn ghost" data-a="shooter">Photographer</button>';
+      if (b.paid || b.past || (b.date && b.date < TODAY)) R += '<button class="btn ' + (b.reviewAsked ? 'ghost' : 'b-rev') + '" data-a="review">' + (b.reviewAsked ? 'Review asked ✓' : 'Ask for review') + '</button>';
     }
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
   }
@@ -695,7 +699,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('mt').innerHTML = line('📸 From her own sessions', own) + line('📷 Her share from contracted sessions' + (n ? ' <span class="muted">(' + n + ')</span>' : ''), share) +
       line('Total to Miranda', own + share, true) + '<p class="muted" style="margin:10px 0 0">Paid to photographers: <b>' + money(paidOut) + '</b>' + (who ? ' (' + who + ')' : '') + '</p>';
   }
-  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', 'shooter-paid': '💸 Photographer paid Miranda', 'undo-shooter-paid': '↩️ Photographer payment undone' };
+  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', 'shooter-paid': '💸 Photographer paid Miranda', review: '⭐ Review asked', 'undo-shooter-paid': '↩️ Photographer payment undone' };
   function feed(tests){
     var log = DATA.log || [], done = {};
     log.forEach(function(e){ if (e.kind === 'confirm' || e.kind === 'added') done[low(e.name) + '|' + (e.date || '')] = 1; });
@@ -729,6 +733,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var by = {}, tests = MORE.tests;
     (DATA.bookings || []).filter(function(b){ return (tests || !b.test) && !b.cancelled && b.date; }).forEach(function(b){ (by[b.date] = by[b.date] || []).push(b); });
     inquiries().filter(function(o){ return (tests || !o.test) && o.date && !o.old; }).forEach(function(o){ (by[o.date] = by[o.date] || []).push(o); });
+    // Days off (Oct 28 2026): set by texting Sandy. ✕ = whole day off, ✕↑ sunrise off, ✕↓ sunset off, ✕M midday off
+    var off = {}; (DATA.daysOff || []).forEach(function(o){ (off[o.date] = off[o.date] || []).push(o); });
     var y = Number(CALM.slice(0, 4)), m = Number(CALM.slice(5, 7)), fd = new Date(y, m - 1, 1).getDay(), days = new Date(y, m, 0).getDate();
     var h = '<div class="cal-nav"><button data-cal="-1" aria-label="Previous month">‹</button><b>' + new Date(y, m - 1, 15).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) + '</b><button data-cal="1" aria-label="Next month">›</button></div><div class="cal">';
     ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(function(x){ h += '<div class="h">' + x + '</div>'; });
@@ -736,9 +742,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     for (var d = 1; d <= days; d++) {
       var ds = CALM + '-' + String(d).padStart(2, '0'), bs = (by[ds] || []).sort(function(a, b){ return (a.inq ? 1 : 0) - (b.inq ? 1 : 0) || ord(a) - ord(b); }).slice(0, 5);
       h += '<button class="d' + (ds < TODAY ? ' past' : '') + (ds === TODAY ? ' today' : '') + (ds === DAY ? ' sel' : '') + '" data-day="' + ds + '">' + d +
-        '<div class="dots">' + bs.map(function(b){ return dotOf(b) === 'q' ? '<span class="mk q">?</span>' : '<span class="mk ' + dotOf(b) + '"></span>'; }).join('') + '</div></button>';
+        '<div class="dots">' + (off[ds] || []).slice(0, 2).map(function(o){ return '<span class="mk x" title="Off: ' + esc(o.part === 'all' ? 'whole day' : o.part) + '">✕' + ({ sunrise: '↑', sunset: '↓', midday: 'M' }[o.part] || '') + '</span>'; }).join('') +
+        bs.map(function(b){ return dotOf(b) === 'q' ? '<span class="mk q">?</span>' : '<span class="mk ' + dotOf(b) + '"></span>'; }).join('') + '</div></button>';
     }
-    return h + '</div><div class="legend"><span><span class="mk full"></span>Booked, deposit in</span><span><span class="mk ring"></span>Booked, no deposit yet</span><span><span class="mk q">?</span>Inquiry, not booked yet</span></div>';
+    return h + '</div><div class="legend"><span><span class="mk full"></span>Booked, deposit in</span><span><span class="mk ring"></span>Booked, no deposit yet</span><span><span class="mk q">?</span>Inquiry, not booked yet</span><span><span class="mk x">✕</span>Day off · ✕↑ sunrise off · ✕↓ sunset off (text Sandy to change)</span></div>';
   }
   // Make room above the buttons for the calendar, and scroll the money boxes out of the way so bookings show below
   function calPin(){
@@ -856,7 +863,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   function mail(o, subject){
     o._captcha = 'false'; o._template = 'table'; o.page = 'Bookings page'; if (LIVE) o._cc = 'bookmirandarae@gmail.com'; o._subject = subject;
-    try { fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) }).catch(function(){}); } catch (e) {}
+    try { fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) }).catch(function(){}); } catch (e) {}
   }
   // Same emails as before for deposits, extras and deductions (Gmail name searches still find everything)
   function emailFor(b, a, x, nb){
@@ -907,6 +914,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'paid') return paidSheet(b);
     if (a === 'move') return moveSheet(b);
     if (a === 'edit') return editSheet(b);
+    if (a === 'review') return reviewSheet(b);
     if (a === 'shooter') return shooterSheet(b);
     if (a === 'extra') return extraSheet(b);
     if (a === 'deduct') return deductSheet(b);
@@ -961,11 +969,24 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     ['Deluxe Session', 325, '75+ minutes · 2 locations · 2 outfit changes', '', '50+'],
     ['Engagement Session', 199, 'Up to 1 hour', '2', '35+'],
     ['Surprise Proposal', 199, '', '', '30'],
-    ['Wedding (6 hours)', 799, '6 hours', '', 'Full gallery'],
-    ['Wedding (10 hours)', 1500, '10 hours', '', 'Full gallery'],
+    ['Wedding (6 hours)', 999, '6 hours', '', 'Full gallery'],
+    ['Wedding (10 hours)', 1999, '10 hours', '', 'Full gallery'],
     /*/prices:booking-pk*/
     ['Custom session', '', '', '', '']];
   var opts = function(list, sel){ var has = false, h = list.map(function(x){ var s = x === sel; if (s) has = true; return '<option value="' + esc(x) + '"' + (s ? ' selected' : '') + '>' + esc(x || 'No time') + '</option>'; }).join(''); return (!has && sel ? '<option selected>' + esc(sel) + '</option>' : '') + h; };
+  // Ask for review (Oct 29 2026): one review per customer. Google for most; Facebook for customers who found Miranda there.
+  var REVIEW = { Google: 'https://g.page/r/CaFf0dP6BNa3EBM/review', Facebook: 'https://www.facebook.com/profile.php?id=61591669718246&sk=reviews' };
+  function msgReview(b, site){ return 'Hi ' + first(b.name) + '! Thank you so much for letting me take your photos. If you have a minute, would you leave me a quick ' + site + ' review? It really helps my small business. ' + REVIEW[site]; }
+  function reviewSheet(b){
+    sheet('<h3>Ask ' + esc(first(b.name)) + ' for a review</h3>' +
+      (b.reviewAsked ? '<p class="muted">Already asked for a ' + esc(b.reviewAsked.site) + ' review ' + esc(short(b.reviewAsked.at)) + '.</p>' : '<p class="muted">Pick one. Google for most customers, Facebook if they found you on Facebook.</p>') +
+      '<div class="choice"><button class="btn" data-site="Google">Google review</button><button class="btn ghost" data-site="Facebook">Facebook review</button><button class="btn ghost" data-x>Never mind</button></div>',
+      function(e, v, close){
+        var t = e.target.closest('[data-site]'); if (!t) return;
+        var site = t.getAttribute('data-site'); close();
+        act(b, 'review', { site: site }).then(function(nb){ compose(nb || b, site + ' review request', msgReview(nb || b, site)); });
+      });
+  }
   function editSheet(b){
     sheet('<h3>Edit booking</h3>' +
       '<label class="l">Name</label><input data-f="name" value="' + esc(b.name) + '">' +

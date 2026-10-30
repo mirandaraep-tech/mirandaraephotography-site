@@ -250,7 +250,7 @@ function showDone(){
 async function emailDad(){
   const m=$("mailMsg");
   const lines=ranks.map((id,i)=>"#"+(i+1)+"  (photo "+byId[id].n+")  "+BASE+byId[id].p);
-  try{const r=await fetch("https://formsubmit.co/ajax/mirandaraep@gmail.com",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},
+  try{const r=await fetch("/api/notify",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},
       body:JSON.stringify({_subject:"⭐ MIRANDA'S TOP "+ranks.length+" PHOTOS ("+favs.size+" checked)",_template:"table",_captcha:"false",
         "Top picks, in order":lines.join("\n"),"All checked favorites (photo #)":[...favs].map(id=>byId[id]?byId[id].n:id).sort((a,b)=>a-b).join(", ")})});
     if(!r.ok)throw 0;m.textContent="";}catch(e){m.textContent="(Your picks are saved. The email to Dad didn't go through, but he can still see them.)";}

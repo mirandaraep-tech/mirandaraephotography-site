@@ -100,7 +100,7 @@
     "wedding6": {
       "name": "Wedding: Étoile Collection",
       "booking": "Wedding (6 hours)",
-      "price": 799,
+      "price": 999,
       "time": "6 hours",
       "timeWords": "6 hours",
       "photos": "",
@@ -115,7 +115,7 @@
     "wedding10": {
       "name": "Wedding: Grand Coastal Collection",
       "booking": "Wedding (10 hours)",
-      "price": 1500,
+      "price": 1999,
       "time": "10 hours",
       "timeWords": "10 hours",
       "photos": "",
@@ -124,7 +124,9 @@
       "blurb": "The ultimate coastal wedding: every chapter of the day, from getting ready to the very last celebration.",
       "more": [
         "Getting ready, ceremony, portraits, family photos, reception and send-off",
-        "Full curated gallery, no set photo count"
+        "Full curated gallery, no set photo count",
+        "Bonus beach session during your wedding week (the day before or the morning after)",
+        "Sneak peek: 20–30 edited photos within 48 hours"
       ]
     }
   },

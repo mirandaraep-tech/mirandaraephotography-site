@@ -1,0 +1,52 @@
+// Cloudflare settings for mirandaraephotography.com (added Oct 27 2026, Netlify -> Cloudflare move).
+// Cloudflare builds this automatically from GitHub. The site's pages and photos are served as files;
+// src/worker.mjs handles redirects, the /api/... programs, photo resizing and tap alerts.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mirandaraephotography",
+  "main": "src/worker.mjs",
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // The Bookings/Sandy programs in netlify/functions import Netlify's storage; use Cloudflare's instead
+  "alias": { "@netlify/blobs": "./src/blobs.mjs" },
+  "rules": [{ "type": "Text", "globs": ["**/_redirects"], "fallthrough": true }],
+  // Copies the pages and photos into .cf-public/ first (leaves out code and Netlify's _redirects)
+  "build": { "command": "node tools/cf-build.mjs" },
+  "assets": {
+    "directory": ".cf-public",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none",
+    "run_worker_first": true
+  },
+  // The site's own emails (Oct 29 2026, replaces FormSubmit): Cloudflare Email Routing on mirandaraephotography.com,
+  // sending only to these two verified Gmail addresses (see src/requests.mjs)
+  "send_email": [{ "name": "EMAIL", "allowed_destination_addresses": ["mirandaraep@gmail.com", "bookmirandarae@gmail.com"] }],
+  "durable_objects": { "bindings": [{ "name": "STORE", "class_name": "SiteStore" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SiteStore"] }],
+  // Sandy's 9 AM Central check-in (wakes at both hours; Sandy only goes ahead at 9 AM Central)
+  "triggers": { "crons": ["0 14,15 * * *"] },
+  "vars": {
+    "URL": "https://mirandaraephotography.com",
+    // "yes" only once the real domain points here (switch night) — keeps the test copy from texting anyone
+    "LIVE": "yes",
+    // Sandy really texts (Twilio campaign approved Oct 27 2026; turned on Oct 28 2026)
+    "SANDY_TEXTING": "on",
+    // Live phone conversations (Oct 28 2026): "on" sends Randy's and Miranda's calls to the live version
+    "SANDY_LIVE_CALLS": "on",
+    // Sandy answers customers who text her number when "on" (Oct 28 2026). "off" = real customer texts still go to Miranda; the pretend customer on /sandy works either way
+    "SANDY_CUSTOMERS": "on",
+    // Sandy texts people who send a website request and check OK to text (Oct 28 2026).
+    // "testers" = only Randy's and Bradyn's numbers. Change to "everyone" when Randy says turn it on for everyone.
+    "SANDY_WEB_TEXTS": "testers"
+  },
+  // The real address (Oct 27 2026 switch night). Takes effect once Porkbun points the domain at Cloudflare.
+  // keep the test address working too (wrangler turns it off when routes are set)
+  "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    { "pattern": "mirandaraephotography.com", "custom_domain": true },
+    { "pattern": "www.mirandaraephotography.com", "custom_domain": true }
+  ],
+  "observability": { "enabled": true }
+}

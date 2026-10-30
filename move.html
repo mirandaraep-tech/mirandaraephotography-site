@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Move to Cloudflare</title>
+<style>
+  :root { --ink:#1f2a30; --muted:#5d6b73; --line:#d9e1e5; --bg:#f6f8f9; --card:#fff; --accent:#0f6e7a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  main { max-width:640px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  p.sub { color:var(--muted); margin:0 0 20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px; }
+  label { display:block; font-weight:600; margin:0 0 6px; }
+  input { width:100%; font:inherit; padding:10px 12px; border:1px solid var(--line); border-radius:8px; margin-bottom:12px; }
+  button { font:inherit; font-weight:600; padding:10px 14px; border-radius:8px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; margin:4px 6px 4px 0; }
+  button.ghost { background:#fff; color:var(--accent); }
+  button:disabled { opacity:.5; cursor:wait; }
+  pre { white-space:pre-wrap; word-break:break-word; background:#eef3f5; border-radius:8px; padding:12px; font-size:13px; margin:0; min-height:3em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Move to Cloudflare</h1>
+  <p class="sub">Private. Copies the Bookings app, Sandy, favorites and photo tags from Netlify to this site.</p>
+
+  <div class="card">
+    <label for="pass">Bookings passcode</label>
+    <input id="pass" type="password" autocomplete="current-password">
+    <label for="from">Copy from (Netlify)</label>
+    <input id="from" value="https://deploy-preview-49--silly-semolina-1d2534.netlify.app">
+    <label for="to">Copy to (Cloudflare)</label>
+    <input id="to" value="https://mirandaraephotography.mirandaraep.workers.dev">
+    <button id="test">Copy for testing</button>
+    <button id="final" class="ghost">Final copy (switch night)</button>
+    <button id="merge" class="ghost">Catch up (after switch)</button>
+    <button id="check" class="ghost">What's here now</button>
+  </div>
+  <div class="card"><pre id="out">Ready.</pre></div>
+</main>
+<script>
+(function () {
+  var out = document.getElementById('out');
+  var btns = document.querySelectorAll('button');
+  function say(t) { out.textContent = t; }
+  function busy(b) { for (var i = 0; i < btns.length; i++) btns[i].disabled = b; }
+  function pass() { return document.getElementById('pass').value.trim(); }
+  function summary(stores) {
+    var lines = [];
+    Object.keys(stores).forEach(function (n) {
+      Object.keys(stores[n]).forEach(function (k) {
+        var v = stores[n][k], d = String(v).length + ' chars';
+        try { var x = JSON.parse(v); if (Array.isArray(x)) d = x.length + ' entries'; else if (n === 'booking-counter' && k === 'state') d = '#' + x.last + ' · $' + x.total; } catch (e) {}
+        lines.push(n + ' / ' + k + ': ' + d);
+      });
+    });
+    return lines.join('\n');
+  }
+  async function run(mode) {
+    if (!pass()) return say('Type the Bookings passcode first.');
+    busy(true); say('Reading from Netlify…');
+    try {
+      var from = document.getElementById('from').value.trim().replace(/\/+$/, '');
+      var r = await fetch(from + '/api/move-export', { headers: { 'x-pass': pass() } });
+      var ex = await r.json();
+      if (ex.error) throw new Error(ex.error === 'passcode' ? 'Wrong passcode.' : ex.error);
+      say('Read from Netlify:\n' + summary(ex.stores) + '\n\nCopying…');
+      var to = document.getElementById('to').value.trim().replace(/\/+$/, '');
+      var r2 = await fetch(to + '/api/move-import', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': pass() }, body: JSON.stringify({ mode: mode, stores: ex.stores }) });
+      var im = await r2.json();
+      if (im.error) throw new Error(im.error);
+      say('Read from Netlify:\n' + summary(ex.stores) + '\n\nDone (' + mode + '): ' + (im.done.length ? '\n' + im.done.join('\n') : 'nothing new to add.'));
+    } catch (e) { say('Stopped: ' + (e.message || e)); }
+    busy(false);
+  }
+  async function check() {
+    if (!pass()) return say('Type the Bookings passcode first.');
+    busy(true);
+    try {
+      var r = await fetch(document.getElementById('to').value.trim().replace(/\/+$/, '') + '/api/move-import', { headers: { 'x-pass': pass() } });
+      var d = await r.json();
+      if (d.error) throw new Error(d.error === 'passcode' ? 'Wrong passcode.' : d.error);
+      var lines = [];
+      Object.keys(d.stores).forEach(function (n) { Object.keys(d.stores[n]).forEach(function (k) { lines.push(n + ' / ' + k + ': ' + d.stores[n][k]); }); });
+      say('On this site now:\n' + (lines.join('\n') || '(nothing yet)'));
+    } catch (e) { say('Stopped: ' + (e.message || e)); }
+    busy(false);
+  }
+  document.getElementById('test').onclick = function () { run('test'); };
+  document.getElementById('final').onclick = function () { run('final'); };
+  document.getElementById('merge').onclick = function () { run('merge'); };
+  document.getElementById('check').onclick = check;
+})();
+</script>
+</body>
+</html>
