@@ -443,7 +443,7 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
             <li>Reception: toasts, dancing and the moments in between</li>
             <li>Your send-off, so the story ends where it should</li>
             <li>Every image that meets Miranda’s standards, no set limit</li>
-            <li><b>Bonus:</b> a relaxed couple&#8217;s portrait session on your wedding day</li>
+            <li><b>Bonus:</b> a beach session during your wedding week, the day before or the morning after</li>
             <li><b>Bonus:</b> a sneak peek of 20–30 edited photos within 48 hours</li>
           </ul>
           <a class="btn" href="#inquire" onclick="return pick('Grand Coastal Collection — $1,999 · 10 hours');">Check My Date</a>
@@ -611,15 +611,5 @@ section p.eyebrow{color:var(--gold);font:500 11px/1.4 var(--sans);letter-spacing
 
 <!-- Hidden forms so Netlify registers the tap logs -->
 <form name="text-tap" netlify hidden><input type="hidden" name="form-name" value="text-tap"><input name="page"></form>
-
-<!-- Beach headline swap (Oct 30 2026): the ad link picks the beach, e.g. ?beach=destin. See /beach-swap.js -->
-<script src="/beach-swap.js"></script>
-<script>
-mrpBeachSwap({ variants: {
-  '': function (b) { return !b ? {} : {
-    set: { '.hero .eyebrow': b.wb + ' Wedding Photographer', '.hero h1': 'Say <em>&#8220;I do&#8221;</em> ' + b.at },
-    title: b.wb + ' Wedding Photographer | Miranda Rae Photography' }; }
-}});
-</script>
 </body>
 </html>
