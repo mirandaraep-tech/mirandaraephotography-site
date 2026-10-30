@@ -24,7 +24,7 @@
 
   // Quiet background ping to Netlify Forms so every tap emails an alert
   function ping(formName, extra) {
-    // Tap/click alert email straight to FormSubmit (Oct 27 2026, Cloudflare move; was Netlify Forms)
+    // Tap/click alert email, sent by the site itself through Cloudflare (Oct 29 2026; was FormSubmit, before that Netlify Forms)
     try {
       var link = (new URLSearchParams(extra || '')).get('link') || '';
       var live = /(^|\.)mirandaraephotography\.com$/.test(location.hostname);
@@ -33,7 +33,7 @@
       p.set('_template', 'table'); p.set('_captcha', 'false'); p.set('Page', PAGE);
       if (link) p.set('Link', link);
       if (live) p.set('_cc', 'bookmirandarae@gmail.com');
-      fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', {method:'POST', keepalive:true, mode:'no-cors',
+      fetch('/api/notify', {method:'POST', keepalive:true, mode:'no-cors',
         headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p.toString()});
     } catch (e) {}
   }
@@ -317,7 +317,7 @@ footer a{color:#fff}
 <section class="form-section">
   <div class="shell">
     <!-- Form -->
-    <form class="form-card" id="check-date" name="booking-mexico-beach-photographer" method="POST" action="https://formsubmit.co/mirandaraep@gmail.com">
+    <form class="form-card" id="check-date" name="booking-mexico-beach-photographer" method="POST" action="/api/request">
       <input type="hidden" name="_cc" value="bookmirandarae@gmail.com">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_template" value="table">

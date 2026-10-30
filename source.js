@@ -259,7 +259,7 @@
   document.addEventListener('submit', function (e) {
     try {
       var f = e.target;
-      if (!f || !/formsubmit\.co/.test(f.getAttribute('action') || '')) return;
+      if (!f || !/formsubmit\.co|\/api\/request/.test(f.getAttribute('action') || '')) return;
       var el = f.elements['visits'];
       if (!el) { el = document.createElement('input'); el.type = 'hidden'; el.name = 'visits'; f.appendChild(el); }
       el.value = window.mrpVisits();

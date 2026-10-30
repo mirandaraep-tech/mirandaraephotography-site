@@ -863,7 +863,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   function mail(o, subject){
     o._captcha = 'false'; o._template = 'table'; o.page = 'Bookings page'; if (LIVE) o._cc = 'bookmirandarae@gmail.com'; o._subject = subject;
-    try { fetch('https://formsubmit.co/ajax/mirandaraep@gmail.com', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) }).catch(function(){}); } catch (e) {}
+    try { fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(o) }).catch(function(){}); } catch (e) {}
   }
   // Same emails as before for deposits, extras and deductions (Gmail name searches still find everything)
   function emailFor(b, a, x, nb){

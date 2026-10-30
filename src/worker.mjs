@@ -20,6 +20,20 @@ import sandyReply from "../netlify/functions/sandy-reply-background.mjs";
 import sandyVoice from "../netlify/functions/sandy-voice.mjs";
 import sandyLive from "../netlify/functions/sandy-live.mjs";
 import sandyWeb from "../netlify/functions/sandy-web.mjs";
+import { EmailMessage } from "cloudflare:email";
+import { getHistory, saveHistory, deliver } from "../netlify/sandy/brain.mjs";
+import { handleRequest, handleNotify, handleSisterCopy } from "./requests.mjs";
+
+// The site's own request emails + Sandy's alert texts (Oct 29 2026, replaces FormSubmit; see src/requests.mjs)
+const SISTERS = { "affordablebeachphotographer.com": "AffordableBeachPhotographer.com", "mirandaraephotos.com": "MirandaRaePhotos.com" };
+const REQ_DEPS = {
+  getStore, EmailMessage,
+  // Sandy texts Randy or Miranda, and keeps it in their conversation so they can just reply to her about it
+  tell: async (base, who, body) => {
+    await saveHistory(base, who, (await getHistory(base, who)).concat({ role: "user", content: "[Website request]" }, { role: "assistant", content: body }));
+    await deliver(base, who, body, "web-alert");
+  },
+};
 
 const LIVE_HOST = "mirandaraephotography.com";
 const PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79"; // same as /log
@@ -193,6 +207,17 @@ export default {
     // www -> plain address (Netlify did this too)
     if (url.hostname === "www." + LIVE_HOST) { url.hostname = LIVE_HOST; return Response.redirect(url.toString(), 301); }
 
+    if (path === "/api/request") return handleRequest(req, env, ctx, REQ_DEPS);
+    if (path === "/api/notify") return handleNotify(req, env, ctx, REQ_DEPS);
+    // A sister site's Bookings copy of a request: also email it and have Sandy text (backup while FormSubmit is down)
+    if (path === "/api/booking-counter" && req.method === "POST") {
+      let h = ""; try { h = new URL(req.headers.get("origin") || "").hostname.replace(/^www\./, "").toLowerCase(); } catch (e) {}
+      if (SISTERS[h]) {
+        const body = await req.text();
+        try { const d = JSON.parse(body); if (d && d.kind === "request") handleSisterCopy(d, SISTERS[h], req, env, ctx, REQ_DEPS); } catch (e) {}
+        return API[path](new Request(req.url, { method: "POST", headers: req.headers, body }), {});
+      }
+    }
     if (API[path]) return API[path](req, {});
     if (path === "/api/move-import") return moveImport(req);
     if (path === BACKGROUND) return new Response("Not found", { status: 404 }); // only Sandy calls this, internally
