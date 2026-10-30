@@ -10,6 +10,7 @@ import {
   claude, clean, loadData, digits, todayCT, addDays, nice, money, fmtPhone, longDay,
   getRequests, saveRequests, noteCustomer, notifyMiranda, findPackage, travelFee, TEST_CUSTOMER,
   isOurs, deliver, record, getCustHistory, saveCustHistory, setCustomerMode, PEOPLE, getCustomers,
+  sendConfirmLink, addToCustomer, hourCT, MIRANDA,
 } from "./brain.mjs";
 // Sandy's texts to Miranda about a request from our own numbers (Randy, Bradyn, Miranda) start with this
 const tag = (mark) => (mark ? "TEST — " : "");
@@ -35,8 +36,10 @@ export const CUSTOMER_TOOLS = [
   { name: "hand_to_miranda", description: "Hand the conversation to Miranda so she texts the customer herself (Oct 30 2026). Use it when: they seem frustrated or confused; they ask the same thing twice; the conversation is going in circles (3–4 back-and-forths without getting anywhere); they want something that isn't on the price list; there's a complaint; it's a serious wedding or elopement inquiry; or you're not sure what to do. Texts Miranda a short summary.", input_schema: { type: "object", properties: {
     name: { type: "string", description: "Their name, if you know it (empty if not)" },
     wants: { type: "string", description: "What they want, one short sentence with date, beach and package if known, e.g. \"Sunset wedding Apr 18 at Rosemary Beach, about 40 guests.\"" },
-    why: { type: "string", description: "Why Miranda should step in, a few words, e.g. \"serious wedding inquiry\", \"asked the price twice, seems confused\", \"wants 3 hours, not on the price list\", \"complaint about photo delivery\", \"not sure how to answer\"" },
+    why: { type: "string", description: "Why Miranda should step in, a few words, e.g. \"serious wedding inquiry\", \"asked the price twice, seems confused\", \"wants 3 hours, not on the price list\", \"complaint about photo delivery\", \"not sure how to answer\", \"replied MIRANDA, wants to talk with her first\"" },
+    asked: { type: "boolean", description: "true when THEY asked to talk with Miranda (replied MIRANDA, or said they'd rather talk with her)" },
   }, required: ["wants", "why"] } },
+  { name: "accept_offer", description: "Use ONLY when THIS CUSTOMER'S DATE REQUESTS shows Miranda already okayed another time for them (OKAYED BY MIRANDA) and they just said yes to that time. Texts them their Confirm link right away (no need to ask Miranda again) and lets Miranda know.", input_schema: { type: "object", properties: { request_id: { type: "string" } }, required: ["request_id"] } },
   { name: "ask_miranda", description: "Pass a simple question to Miranda that you can't answer from what you know (a discount, changing or cancelling their booking, when photos will be ready). For anything on the hand-off list (frustrated, confused, going in circles, not on the price list, a complaint, a serious wedding or elopement, or you're not sure), use hand_to_miranda instead. She answers and you text them her answer.", input_schema: { type: "object", properties: { question: { type: "string", description: "Their question in a sentence or two, with any details Miranda needs" } }, required: ["question"] } },
 ];
 
@@ -51,16 +54,18 @@ function priceText() {
 }
 
 // Miranda's calendar as customers may see it: dates and times only, never names
-function calendar(data, today) {
+function calendar(data, today, holds = []) {
   const end = addDays(today, 150);
   const taken = (data.bookings || []).filter((b) => !b.cancelled && !b.past && !b.photographer && (data.test || !b.test) && b.date && b.date >= today && b.date <= end)
     .sort((a, b) => a.date.localeCompare(b.date)).map((b) => "- " + nice(b.date) + " (" + b.date + "): " + (b.time || "time not set") + " taken");
   const off = (data.daysOff || []).filter((o) => o.date >= today && o.date <= end).map((o) => "- " + nice(o.date) + " (" + o.date + "): " + (o.part === "all" ? "Miranda is not available all day" : o.part + " not available"));
-  const all = taken.concat(off);
+  // Oct 30 2026: times other customers are penciled in for (or waiting on Miranda) count as taken too
+  const held = holds.filter((h) => h.date >= today && h.date <= end).map((h) => "- " + nice(h.date) + " (" + h.date + "): " + h.time + " taken");
+  const all = taken.concat(off, held);
   return all.length ? all.join("\n") : "- nothing booked yet";
 }
 
-function system(data, today, mine, reqs, first, web) {
+function system(data, today, mine, reqs, first, web, holds) {
   return `You are Sandy, the texting assistant for Miranda Rae Photography. You are an AI assistant (Claude, made by Anthropic) helping Miranda. Miranda Rae is the photographer; she shoots and edits every session herself. You're texting with a possible or current customer from your number, (448) 217-3502.
 ${web ? WEB_FIRST : first ? "\nThis is the FIRST text from this person. Start your reply with a short hello that says you're Sandy, Miranda's AI assistant: Miranda stays busy behind the camera, so you help with questions and dates, and she personally confirms every booking. Also say that if they'd rather talk with Miranda herself, they can just say so and she'll reach out. Then answer them. (Oct 29 2026)\n" : ""}
 About the business:
@@ -69,13 +74,13 @@ About the business:
 - Every session comes with a private online gallery. Gallery of Miranda's work: https://mirandaraephotography.com/gallery  Full price list: https://mirandaraephotography.com/prices  Facebook reviews (96% recommend): https://www.facebook.com/profile.php?id=61591669718246
 - Miranda can sometimes fit in last-minute sessions; it never hurts to ask.
 - Deposits: the deposit saves their date just for them and comes off the session price. Since Miranda turns other families away once a date is held, deposits aren't refundable. If the weather doesn't cooperate or something comes up, Miranda will do her best to find a new date.
-- How booking works (Oct 30 2026): when a date looks open, you ask if they'd like you to ask Miranda to hold it. If they say yes, you pass it to Miranda. Miranda personally confirms every booking. Once she okays it, you text them a link to check their details and secure the date with the ${money(PRICES.deposit)} deposit. The date isn't held until the deposit is in.
+- How booking works (Oct 30 2026): when a date looks open, you tell them, and they reply YES for you to double-check it (you pass it to Miranda, who checks every date personally), or MIRANDA to talk with her first. Once Miranda okays it, they get a link to check their details and save the date with the ${money(PRICES.deposit)} deposit. If Miranda hasn't answered within 30 minutes, they're automatically texted that they're penciled in and Miranda will send the final confirmation shortly. The date isn't held until the deposit is in.
 
 PRICE LIST (the only prices you may quote):
 ${priceText()}
 
 MIRANDA'S CALENDAR (booked sessions and times she's not available; anything not listed looks open, but Miranda confirms every date. Never say why a time isn't available):
-${calendar(data, today)}
+${calendar(data, today, holds)}
 
 ${mine.length ? "THIS CUSTOMER'S OWN BOOKINGS (matched by their phone number):\n" + mine.join("\n") + "\n\n" : ""}${reqs.length ? "THIS CUSTOMER'S DATE REQUESTS:\n" + reqs.join("\n") + "\n\n" : ""}Today is ${longDay(today)} (${today}), Central time.
 
@@ -86,15 +91,18 @@ How you text:
 - To request a date you need: their name, the date, sunrise or sunset, the beach, the package (ask how many people if it helps pick).
 - The beach: if they haven't said, ask where they're staying or which beach they'd like their photos at. Many people only know their rental's town or area; that's fine. Match it to the nearest beach Miranda covers (for example Indian Pass goes with Port St. Joe/Cape San Blas, Santa Rosa Beach, Seaside or Rosemary Beach is 30A, Miramar Beach goes with Destin, Panama City is Panama City Beach). If you're not sure which beach they mean, ask. If it's outside the beaches listed, take it down anyway with their town in notes and tell them Miranda will let them know if she can travel there.
 - Don't pick an exact spot or access point. Miranda texts the meeting spot before the session. If they have a favorite spot or a beach access near their rental, put it in notes.
-- Booking steps (Oct 30 2026), in this order:
-  1. When their date and time aren't on the calendar as taken, say it "looks open" (never that it's booked, held or theirs) and ask if they'd like to book it. Name the day, time, beach and session with its price (ask for anything still missing first). Example: "I checked, and Sunday, Nov 15 at sunset at Mexico Beach looks open for your $199 Beach Special! Would you like to book it?"
-  2. When they say yes, use request_date. Then tell them you've passed it to Miranda, that she personally confirms every booking, and that once she does, you'll text them a link to check their details and secure the date with the ${money(PRICES.deposit)} deposit. Example: "Great! I'll check with Miranda, since she personally confirms every booking. As soon as she okays it, I'll text you a link to confirm your date with the ${money(PRICES.deposit)} deposit."
-  3. Miranda's okay and the Confirm link come later in a separate text, which says the date isn't held until the deposit is in. Until then, if they ask, the date is waiting on Miranda and isn't held yet.
+- Booking steps (Oct 30 2026, Randy's wording), in this order:
+  1. When their date and time aren't on the calendar as taken, say it "looks open" (never that it's booked, held or theirs), naming the day, time, beach and session with its price (ask for anything still missing first). Then add the demand line if it's true (see below), then end with exactly: "Reply YES and I'll double-check that date and send you the link to save it. If you'd rather talk with Miranda first, reply MIRANDA and she'll text you as soon as she can." Example: "Thursday, Nov 26 at sunrise at Panama City Beach looks open for your $250 Family Session. Thanksgiving week sunrises go fast. Reply YES and I'll double-check that date and send you the link to save it. If you'd rather talk with Miranda first, reply MIRANDA and she'll text you as soon as she can."
+  2. When they say yes (YES, yes, sure, book it...), use request_date. Then text only: "Great! I'm double-checking [day, date] at [sunrise/sunset] for you now. I'll text you shortly." Example: "Great! I'm double-checking Thursday, Nov 26 at sunrise for you now. I'll text you shortly." If they ask who's checking, it's true that Miranda personally checks every date.
+  3. The link comes later in its own text. If they ask before then: a request "waiting on Miranda" is still being double-checked; a PENCILED IN one means they're penciled in and Miranda will send the final confirmation and link shortly. Neither is held until the deposit is in.
+- Demand line (Oct 30 2026): add ONE short line about dates going fast ONLY when it's true for their date: Thanksgiving week ("Thanksgiving week sunrises go fast." / "...sunsets go fast."), Christmas through New Year's ("Christmas week dates go fast."), July 4th week, spring break (March), or the date is within 10 days ("That's coming up soon, and dates go fast."). Any other date: leave it out. Never claim how many spots are left.
+- MIRANDA (Oct 30 2026): if they reply MIRANDA or say they'd rather talk with Miranda first, use hand_to_miranda with asked: true (put the date, time, beach and package they were looking at in "wants"), then text exactly: "No problem! I've let Miranda know, and she'll text you as soon as she can." If they specifically want a phone call instead, use call_me_back.
+- Another time Miranda okayed (Oct 30 2026): if THIS CUSTOMER'S DATE REQUESTS shows OKAYED BY MIRANDA for another time and they say yes to it, use accept_offer. The Confirm link text goes to them automatically, so don't write anything else. If they say no to it, offer to check another date for them.
 - If the time they want is listed as taken, say so kindly (never why) and offer that day's sunrise (or sunset, if the sunrise is the taken one) or a nearby open date. Example: "That sunset is already taken, but that morning's sunrise looks open, or Sunday's sunset. Would either work?"
 - Never make up prices, discounts, policies or availability. If a simple question isn't covered above (a discount, photo delivery time, changing or cancelling a booking), say you'll check with Miranda, use ask_miranda, and tell them she'll get back to them.
 - Hand-off to Miranda (Oct 30 2026): use hand_to_miranda when they seem frustrated or confused, ask the same thing twice, the conversation goes in circles (3 or 4 back-and-forths without getting closer to a date), they want something that isn't on the price list, there's a complaint, it's a serious wedding or elopement inquiry (they have a date or venue, or want to plan or book one; a quick "how much are weddings?" you can answer), or you're not sure. Then text them exactly: "This sounds like one Miranda would want to handle herself. I've let her know, and she'll text you personally soon." Nothing else in that text, and don't keep trying to solve it.
 - After a hand-off (HANDED TO MIRANDA below), if they text again, kindly say Miranda has their message and will text them soon. You can still answer a quick simple question from the price list, but don't start booking or hand off again.
-- Wants Miranda herself (Oct 29 2026): if they'd rather talk with Miranda than with you, that's fine; don't try to talk them out of it. Ask if they'd like a call or a text from her. For a call, use call_me_back. For a text, use ask_miranda with a question like "They'd like you to text them yourself about [what they want]" and tell them Miranda will text them herself soon.
+- Wants Miranda herself (Oct 29 2026): if they'd rather talk with Miranda than with you, that's fine; don't try to talk them out of it. Handle it like MIRANDA above (she texts them). For a call, use call_me_back.
 - Call back (Oct 28 2026): if they want Miranda to call them, or would rather talk on the phone, don't try to talk them out of it. If they haven't said when is a good time to call, ask "What time is good for a call?" (and their name, in the same text, if you don't know it yet). Once you know the time, use call_me_back, then tell them Miranda will give them a call (around the time they said; don't promise an exact minute). Put what they want to talk about in "about" (date, beach, package if you know them). Use call_me_back only once per request; if they change the time, use it again with the new time. Your number doesn't take calls from customers, so don't tell them to call you.
 - Weddings and elopements: you can share the wedding packages and the $549 Beach Elopement when asked. Once it's a serious inquiry (see Hand-off), hand it to Miranda instead of booking it yourself.
 - Senior pictures (Oct 30 2026): high school senior portraits are the $199 Senior Portrait Session (45–60 minutes, 30–35 edited photos, 2 outfit changes, their props like a cap and gown or jersey, a few photos with a parent or best friend, yearbook-ready picks marked). Same $30 travel fee as the Beach Special in Destin, 30A and St. George Island. Seniors are usually under 18: text with the parent who sent the request or texted you, and if a teen texts you directly, kindly ask for a parent's name and number so Miranda can plan it with them. Page: https://mirandaraephotography.com/senior-portrait-photographer
@@ -107,13 +115,13 @@ How you text:
 
 // Website requests (Oct 28 2026): Sandy texts first, right after the form is sent
 const WEB_FIRST = `
-This person just sent the request form on Miranda's website and checked the box saying it's OK to text them. They have NOT texted you; what you write now is the FIRST text they get from you. Write it like this:
-- Start "Hi [first name]! It's Sandy, Miranda Rae Photography's AI assistant." Thank them for their request (mention the date and beach if they gave them) and say Miranda personally confirms every booking, and that if they'd rather talk with Miranda herself, they can just say so.
-- Then ask the ONE most useful thing still missing to request their date (usually sunrise or sunset; then which package, or how many people if that helps pick). Don't repeat their whole form back.
-- If the form already has everything (name, date, sunrise or sunset, beach, package) and that time isn't taken, say you checked and that date looks open, naming the day, time, beach and session with its price, and ask if they'd like to book it (example: "I checked, and Sunday, Nov 15 at sunset at Mexico Beach looks open for your $199 Beach Special! Would you like to book it?"). Don't use request_date yet; wait for their yes, then follow the booking steps. If that time is taken, offer that day's other time or a nearby date instead.
+This person just sent the request form on Miranda's website and checked the box saying it's OK to text them. They have NOT texted you; what you write now is the FIRST text they get from you. Write it like this (Oct 30 2026, Randy's wording):
+- Start "Hi [first name]! It's Sandy, Miranda Rae Photography's AI assistant."
+- If the form already has everything (name, date, sunrise or sunset, beach, package) and that time isn't taken: say that date looks open, naming the day, time, beach and session with its price, add the demand line only if it's true for that date, and end with the YES / MIRANDA line from booking step 1. Example: "Hi Randy! It's Sandy, Miranda Rae Photography's AI assistant. Thursday, Nov 26 at sunrise at Panama City Beach looks open for your $250 Family Session. Thanksgiving week sunrises go fast. Reply YES and I'll double-check that date and send you the link to save it. If you'd rather talk with Miranda first, reply MIRANDA and she'll text you as soon as she can." Don't use request_date yet; wait for their YES.
+- If something is missing: thank them for their request (mention the date and beach if they gave them) and ask the ONE most useful thing still missing (usually sunrise or sunset; then which package, or how many people if that helps pick). Add: "If you'd rather talk with Miranda first, just reply MIRANDA." Don't repeat their whole form back.
+- If that time is taken, offer that day's other time or a nearby date instead.
 - If it's a serious wedding or elopement request, or something not on the price list, use hand_to_miranda and say the hand-off line instead.
-- End with: "Reply STOP to opt out."
-- Keep it under 320 characters if you can.
+- End with "Reply STOP to opt out." on its own line.
 `;
 
 export async function customerChat({ base, from, text, history = [], page = false, web = false }) {
@@ -123,13 +131,17 @@ export async function customerChat({ base, from, text, history = [], page = fals
     .map((b) => "- " + [nice(b.date), b.time, b.beach, b.pkg, b.cancelled ? "CANCELLED" : money(b.total) + (b.deposit ? ", deposit paid" : ", no deposit yet")].filter(Boolean).join(" · "));
   const all = await getRequests(base);
   const reqs = all.filter((r) => r.phone === phone && r.at > new Date(Date.now() - 30 * 86400000).toISOString())
-    .map((r) => "- " + [nice(r.date), r.time, r.beach, r.pkg, money(r.price)].join(" · ") + " — " + (r.status === "waiting" ? "waiting on Miranda" : r.status === "link sent" ? "Confirm link sent" : "closed"));
+    .map((r) => "- request_id " + r.id + ": " + [nice(r.date), r.time, r.beach, r.pkg, money(r.price)].join(" · ") + " — " + (r.status === "waiting" ? "waiting on Miranda (you told them you're double-checking)"
+      : r.status === "penciled" ? "PENCILED IN (they were told Miranda will send the final confirmation and link shortly)"
+      : r.status === "offered" && r.offer ? "Miranda can't do that time. OKAYED BY MIRANDA instead: " + longDay(r.offer.date) + " at " + low(r.offer.time) + " (you offered it to them; if they say yes, use accept_offer)"
+      : r.status === "link sent" ? "Confirm link sent" : "closed"));
+  const holds = otherHolds(all, phone);
   const me = (await getCustomers(base))[phone] || {};
   const handed = me.handoffAt && me.handoffAt > new Date(Date.now() - 3 * 86400000).toISOString() ? me : null;
-  const sys = system(data, today, mine, reqs, !history.length, web) + (handed ? "\n\nHANDED TO MIRANDA: you handed this conversation to Miranda " + (handed.handoffAt.slice(0, 10) === today ? "today" : "on " + nice(handed.handoffAt.slice(0, 10))) + " (" + handed.handoffWhy + "). She'll text them herself." : "");
+  const sys = system(data, today, mine, reqs, !history.length, web, holds) + (handed ? "\n\nHANDED TO MIRANDA: you handed this conversation to Miranda " + (handed.handoffAt.slice(0, 10) === today ? "today" : "on " + nice(handed.handoffAt.slice(0, 10))) + " (" + handed.handoffWhy + "). She'll text them herself." : "");
   const msgs = history.slice(-16).concat({ role: "user", content: text });
   const changes = [];
-  let reply = "", name = "";
+  let reply = "", name = "", silent = false;
   for (let i = 0; i < 5; i++) {
     const res = await claude(sys, msgs, CUSTOMER_TOOLS);
     msgs.push({ role: "assistant", content: res.content });
@@ -144,6 +156,7 @@ export async function customerChat({ base, from, text, history = [], page = fals
         else if (u.name === "call_me_back") { out = await callMeBack(base, phone, u.input || {}, { page, test, mark }); if (out.ok && !name) name = String((u.input || {}).name || "").trim(); }
         else if (u.name === "hand_to_miranda") { out = await handToMiranda(base, phone, u.input || {}, { page, test, mark }); if (out.ok && !name) name = String((u.input || {}).name || "").trim(); }
         else if (u.name === "ask_miranda") out = await askMiranda(base, phone, (u.input || {}).question, history, text, { page, test, mark });
+        else if (u.name === "accept_offer") { out = await acceptOffer(base, phone, (u.input || {}).request_id, { page, test, mark }); if (out.ok) silent = true; }
         else out = { error: "unknown tool" };
       } catch (e) { out = { error: String(e.message || e) }; }
       changes.push({ tool: u.name, input: u.input, result: out });
@@ -151,9 +164,10 @@ export async function customerChat({ base, from, text, history = [], page = fals
     }
     msgs.push({ role: "user", content: results });
   }
-  reply = clean(reply) || "Sorry, I got a little mixed up. Could you say that another way?";
+  // accept_offer already texted them the Confirm link, so nothing more goes out (Oct 30 2026)
+  reply = silent ? "" : clean(reply) || "Sorry, I got a little mixed up. Could you say that another way?";
   await noteCustomer(base, phone, { last: (web ? "(sent the website request form)" : text).slice(0, 200), ...(name ? { name } : {}), ...(test ? { test: true } : {}) });
-  return { reply, changes, name, history: history.concat({ role: "user", content: text }, { role: "assistant", content: reply }).slice(-20) };
+  return { reply, silent, changes, name, history: history.concat({ role: "user", content: text }, { role: "assistant", content: silent ? "[Texted them their Confirm link]" : reply }).slice(-20) };
 }
 
 async function requestDate(base, phone, x, data, today, { page, test, mark, web }) {
@@ -163,17 +177,19 @@ async function requestDate(base, phone, x, data, today, { page, test, mark, web 
   const t = low(x.time);
   const clash = (data.bookings || []).find((b) => !b.cancelled && !b.past && !b.photographer && (data.test || !b.test) && b.date === x.date && low(b.time) === t && (t === "sunrise" || t === "sunset"));
   if (clash) return { taken: true, note: x.time + " on " + nice(x.date) + " is already booked. Offer the other time that day or another date." };
+  const list = await getRequests(base);
+  if (otherHolds(list, phone).some((h) => h.date === x.date && low(h.time) === t && (t === "sunrise" || t === "sunset")))
+    return { taken: true, note: x.time + " on " + nice(x.date) + " is already taken. Offer the other time that day or another date (don't say why)." };
   const off = (data.daysOff || []).find((o) => o.date === x.date && (o.part === "all" || o.part === t));
   if (off) return { taken: true, note: "Miranda isn't available " + (off.part === "all" ? "that day" : "for the " + off.part + " that day") + ". Offer another time or date (don't say why)." };
   const p = findPackage(x.pkg);
   const travel = p && p.price < 1000 ? travelFee(x.beach) : 0;
   const price = p ? p.price + travel : 0;
-  const list = await getRequests(base);
   const id = Math.random().toString(36).slice(2, 7);
   const r = { id, at: new Date().toISOString(), phone, name: String(x.name).trim().slice(0, 60), date: x.date, time: x.time, beach: String(x.beach || "").slice(0, 40),
     pkg: p ? p.booking : String(x.pkg || "").slice(0, 60), price, travel, people: x.people || null, notes: String(x.notes || "").slice(0, 300), status: "waiting", ...(test ? { test: true } : {}), ...(mark ? { mark: true } : {}), ...(web ? { web: true } : {}) };
   // The same person asking again for the same date replaces their earlier request
-  const keep = list.filter((q) => !(q.phone === phone && q.date === r.date && q.status === "waiting"));
+  const keep = list.filter((q) => !(q.phone === phone && q.date === r.date && (q.status === "waiting" || q.status === "penciled" || q.status === "offered")));
   await saveRequests(base, keep.concat(r));
   // Shows on the Bookings page as an Inquiry card, like a website request
   await bookingCounter(new Request(base.replace(/\/$/, "") + "/api/booking-counter", {
@@ -182,9 +198,77 @@ async function requestDate(base, phone, x, data, today, { page, test, mark, web 
   }));
   const msg = tag(mark) + "Sandy here. New date request " + (web ? "from the website:\n" : "by text:\n") + r.name + ", " + fmtPhone(phone) + "\n" + [longDay(r.date), r.time, r.beach].filter(Boolean).join(", ") + "\n" +
     r.pkg + (price ? " " + money(price) + (travel ? " (incl. " + money(travel) + " travel fee)" : "") : "") + (r.people ? ", " + r.people + " people" : "") + (r.notes ? "\nNotes: " + r.notes : "") +
-    "\nThat time looks open on your calendar.\nWant me to text " + r.name.split(" ")[0] + " the Confirm link? Reply YES or NO (or tell me what to change)";
+    "\nThat time looks open on your calendar. I told them I'm double-checking it.\nWant me to text " + r.name.split(" ")[0] + " the Confirm link? Reply YES or NO (or tell me another time that works)" +
+    "\n(If I don't hear from you in 30 minutes, I'll tell them they're penciled in and hold that time.)";
   await notifyMiranda(base, msg, { page: page || test });
   return { ok: true, price, travel, sent_to_miranda: true };
+}
+
+// Times other customers are waiting on, penciled in for, or were offered by Miranda (Oct 30 2026).
+// They count as taken so Sandy never offers the same sunrise or sunset to two people.
+const ACTIVE = ["waiting", "penciled", "offered"];
+export function otherHolds(list, phone) {
+  const cut = new Date(Date.now() - 7 * 86400000).toISOString();
+  const out = [];
+  for (const r of list) {
+    if (r.phone === phone || !ACTIVE.includes(r.status) || (r.at || "") < cut) continue;
+    if (r.status === "offered" && r.offer) out.push({ date: r.offer.date, time: r.offer.time });
+    else out.push({ date: r.date, time: r.time });
+  }
+  return out;
+}
+
+// The customer said yes to another time Miranda already okayed (Oct 30 2026): send the Confirm link
+// right away (no second ask) and give Miranda a heads-up.
+async function acceptOffer(base, phone, id, { page, test, mark }) {
+  const list = await getRequests(base), r = list.find((q) => q.id === id && q.phone === phone);
+  if (!r || r.status !== "offered" || !r.offer) return { error: "Miranda hasn't okayed another time for that request" };
+  const out = await sendConfirmLink(base, { request_id: id, date: r.offer.date, time: r.offer.time }, "Sandy (Miranda okayed the new time)");
+  if (!out.ok) return out;
+  await notifyMiranda(base, tag(mark) + "Sandy here. " + r.name + " said yes to " + longDay(r.offer.date) + " at " + low(r.offer.time) + (r.beach ? " at " + r.beach : "") + ", so I texted them the Confirm link.", { page: page || test });
+  return { ...out, note: "The Confirm link text already went to them. Don't write anything else." };
+}
+
+// Pencil-in (Oct 30 2026, Randy's idea). Runs every few minutes. If Miranda hasn't answered a customer's
+// date request within 30 minutes, Sandy texts the customer that they're penciled in (the time stays off
+// the calendar for everyone else), and reminds Miranda. Reminders repeat every 3 hours, up to 3, only
+// between 8 AM and 9 PM Central. Miranda's YES still sends the Confirm link; her NO gets them other times.
+const PENCIL_AFTER = 30 * 60000, NUDGE_EVERY = 3 * 3600000;
+const slotWords = (t) => { const x = low(t); return x === "sunrise" || x === "sunset" || x === "midday" ? " at " + x : ""; };
+export async function pencilCheck(base) {
+  const list = await getRequests(base), now = Date.now(), today = todayCT();
+  const due = list.filter((r) => (r.status === "waiting" && now - Date.parse(r.at) >= PENCIL_AFTER && now - Date.parse(r.at) < 2 * 86400000 && r.date >= today) ||
+    (r.status === "penciled" && (r.nudges || 0) < 3 && now - Date.parse(r.nudgedAt || r.penciledAt) >= ((r.nudges || 0) ? NUDGE_EVERY : 0) && r.date >= today));
+  if (!due.length) return { done: 0 };
+  const daytime = hourCT() >= 8 && hourCT() < 21;
+  const data = await loadData(base);
+  let done = 0;
+  for (const r of due) {
+    const page = !!r.test;
+    if (r.status === "waiting") {
+      // Someone else booked that time meanwhile: leave it for Miranda to answer
+      const t = low(r.time);
+      if ((data.bookings || []).some((b) => !b.cancelled && !b.past && !b.photographer && b.date === r.date && low(b.time) === t && (t === "sunrise" || t === "sunset"))) continue;
+      const body = "Good news, I've penciled you in for " + longDay(r.date) + slotWords(r.time) + (r.beach ? " at " + r.beach : "") + "! Miranda will send your final confirmation and the link to save your date shortly.";
+      await deliver(base, r.phone, body, "pencil-in");
+      await addToCustomer(base, r.phone, body);
+      r.status = "penciled"; r.penciledAt = new Date().toISOString(); r.nudges = 0;
+      done++;
+    }
+    if (!daytime) continue;
+    const msg = tag(r.mark) + "Sandy here. Reminder: " + r.name + " is penciled in for " + nice(r.date) + slotWords(r.time) + (r.beach ? ", " + r.beach : "") + " (" + r.pkg + " " + money(r.price) + ") and waiting on your OK.\nWant me to text them the Confirm link? Reply YES or NO (or tell me another time that works)";
+    await notifyMiranda(base, msg, { page });
+    r.nudges = (r.nudges || 0) + 1; r.nudgedAt = new Date().toISOString();
+    done++;
+  }
+  // Save onto the latest list (Miranda may have answered while this ran)
+  const fresh = await getRequests(base);
+  for (const r of due) {
+    const f = fresh.find((q) => q.id === r.id);
+    if (f && (f.status === "waiting" || f.status === "penciled")) Object.assign(f, { status: r.status, penciledAt: r.penciledAt, nudges: r.nudges, nudgedAt: r.nudgedAt });
+  }
+  await saveRequests(base, fresh);
+  return { done };
 }
 
 async function askMiranda(base, phone, question, history, text, { page, test, mark }) {
@@ -201,6 +285,8 @@ async function askMiranda(base, phone, question, history, text, { page, test, ma
 //  Wants: sunset wedding Apr 18 at Rosemary Beach, about 40 guests.
 //  Why: serious wedding inquiry."
 export const HANDOFF_LINE = "This sounds like one Miranda would want to handle herself. I've let her know, and she'll text you personally soon.";
+// Oct 30 2026: they replied MIRANDA (asked for her themselves)
+export const ASKED_LINE = "No problem! I've let Miranda know, and she'll text you as soon as she can.";
 async function handToMiranda(base, phone, x, { page, test, mark }) {
   const name = String(x.name || "").trim().slice(0, 60), why = String(x.why || "").trim().replace(/[.\s]+$/, "").slice(0, 160);
   let wants = String(x.wants || "").trim().slice(0, 240);
@@ -211,7 +297,7 @@ async function handToMiranda(base, phone, x, { page, test, mark }) {
   const msg = tag(mark) + "🙋 Please text " + (name || "this customer") + " yourself, " + fmtPhone(phone) + ".\nWants: " + wants + "\nWhy: " + why + ".";
   await notifyMiranda(base, msg, { page: page || test });
   await noteCustomer(base, phone, { ...(name ? { name } : {}), handoffAt: new Date().toISOString(), handoffWhy: why, handoffWants: wants });
-  return { ok: true, sent_to_miranda: true, now_text_them_exactly: HANDOFF_LINE };
+  return { ok: true, sent_to_miranda: true, now_text_them_exactly: x.asked ? ASKED_LINE : HANDOFF_LINE };
 }
 
 // A customer wants Miranda to call them (Oct 28 2026). One clear text to Miranda, e.g.
@@ -251,7 +337,7 @@ export async function webRequest({ base, form = {}, page = false }) {
   const out = await customerChat({ base, from: phone, text, history: await getCustHistory(base, phone), page, web: true });
   await saveCustHistory(base, phone, out.history);
   if (out.changes.length) await record(base, { kind: "changes", from: phone, changes: out.changes });
-  await deliver(base, phone, out.reply, "to-customer");
+  if (out.reply) await deliver(base, phone, out.reply, "to-customer");
   // If Sandy didn't already send Miranda the date request, give her a short heads-up so she doesn't text them too
   if (!out.changes.some((c) => (c.tool === "request_date" || c.tool === "call_me_back" || c.tool === "hand_to_miranda") && c.result && c.result.ok)) {
     const when = /^\d{4}-\d{2}-\d{2}$/.test(f.date || "") ? longDay(f.date) : f.date || "no date yet";

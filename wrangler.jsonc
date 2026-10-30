@@ -24,8 +24,9 @@
   "send_email": [{ "name": "EMAIL", "allowed_destination_addresses": ["mirandaraep@gmail.com", "bookmirandarae@gmail.com"] }],
   "durable_objects": { "bindings": [{ "name": "STORE", "class_name": "SiteStore" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SiteStore"] }],
-  // Sandy's 9 AM Central check-in (wakes at both hours; Sandy only goes ahead at 9 AM Central)
-  "triggers": { "crons": ["0 14,15 * * *"] },
+  // Sandy's 9 AM Central check-in (wakes at both hours; Sandy only goes ahead at 9 AM Central),
+  // and every 5 minutes the pencil-in check (Oct 30 2026; see pencilCheck in netlify/sandy/customers.mjs)
+  "triggers": { "crons": ["0 14,15 * * *", "*/5 * * * *"] },
   "vars": {
     "URL": "https://mirandaraephotography.com",
     // "yes" only once the real domain points here (switch night) — keeps the test copy from texting anyone

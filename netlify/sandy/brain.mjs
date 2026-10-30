@@ -223,6 +223,7 @@ export const TOOLS = [
   { name: "text_customer", description: "Text a customer from your number (Sandy's). Use it to pass along Miranda's answer, offer another date, or say a date isn't open. Write the text yourself in your friendly style; say it's from Miranda when it's her answer. Only to customers listed under CUSTOMER TEXTS or in the bookings/inquiries.", input_schema: { type: "object", properties: { phone: { type: "string" }, message: { type: "string" } }, required: ["phone", "message"] } },
   { name: "set_day_off", description: "Mark days or times Miranda is off, so they show on the Bookings calendar and you won't offer them to customers. For a range, give date and to. part: all (whole day), sunrise, sunset or midday.", input_schema: { type: "object", properties: { date: { type: "string", description: "YYYY-MM-DD" }, to: { type: "string", description: "YYYY-MM-DD, last day of a range (optional)" }, part: { type: "string", enum: ["all", "sunrise", "sunset", "midday"] }, note: { type: "string", description: "Optional reason, e.g. vacation" } }, required: ["date"] } },
   { name: "remove_day_off", description: "Undo a day off (she's available again). Leave part out to clear the whole day.", input_schema: { type: "object", properties: { date: { type: "string" }, to: { type: "string" }, part: { type: "string", enum: ["all", "sunrise", "sunset", "midday"] } }, required: ["date"] } },
+  { name: "offer_other_time", description: "Miranda said no to a customer's requested time but named another time she CAN do (e.g. \"No, but Friday sunset works\"). Texts the customer your message offering that time, and marks it okayed by Miranda, so if they say yes they get the Confirm link right away without asking her again.", input_schema: { type: "object", properties: { request_id: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD of the time Miranda can do" }, time: { type: "string", description: "Sunrise, Sunset, Midday or Other" }, message: { type: "string", description: "The text to the customer, e.g. \"So sorry, Miranda can't make Thursday, Nov 26 at sunrise after all, but she can do Friday, Nov 27 at sunset. Would that work for you? Reply YES and I'll send you the link to save your date.\"" } }, required: ["request_id", "date", "time", "message"] } },
   { name: "close_request", description: "Mark a customer date request as handled without sending a Confirm link (Miranda said no, or it was settled another way).", input_schema: { type: "object", properties: { request_id: { type: "string" }, why: { type: "string" } }, required: ["request_id"] } },
 ];
 
@@ -257,6 +258,16 @@ async function runTool(base, name, x, by, data) {
     case "remove_day_off": return post(base, { kind: "dayoff", action: "remove", date: x.date, to: x.to || x.date, ...(x.part ? { part: x.part } : {}), by });
     case "send_confirm_link": return sendConfirmLink(base, x, by);
     case "text_customer": return textCustomer(base, x.phone, x.message, data);
+    case "offer_other_time": {
+      const list = await getRequests(base), r = list.find((q) => q.id === x.request_id);
+      if (!r) return { error: "no request with that id" };
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(x.date || "")) return { error: "date must be YYYY-MM-DD" };
+      const sent = await textCustomer(base, r.phone, x.message, data);
+      if (sent.error) return sent;
+      const fresh = await getRequests(base), f = fresh.find((q) => q.id === x.request_id);
+      if (f) { f.status = "offered"; f.offer = { date: x.date, time: x.time || f.time, at: new Date().toISOString(), by }; await saveRequests(base, fresh); }
+      return { ok: true, offered: true };
+    }
     case "close_request": {
       const list = await getRequests(base), r = list.find((q) => q.id === x.request_id);
       if (!r) return { error: "no request with that id" };
@@ -288,7 +299,11 @@ How you text:
 - Before cancelling: ask them to confirm, and ask whether Miranda keeps or returns the deposit. Miranda's policy is that deposits aren't refundable, but it's her call case by case.
 - If a tool returns a conflict (slot already taken) or an error, tell them plainly and suggest what to do.
 - Customers text your number too (Oct 28 2026). Another copy of you answers them: prices, open dates, and taking down date requests. When a customer wants a date, you text Miranda the details and ask "Want me to text them the Confirm link? Reply YES or NO".
-- If Miranda (or Randy) says yes to a request under CUSTOMER DATE REQUESTS, send it with send_confirm_link, then confirm in one line. If they want something changed first (price, time, package), send the link with that change. If they say no, ask what to tell the customer (or offer what they suggest, like a sunrise instead), then use text_customer and close_request.
+- If Miranda (or Randy) says yes to a request under CUSTOMER DATE REQUESTS (waiting or PENCILED IN), send it with send_confirm_link, then confirm in one line. If they want something changed first (price, package), send the link with that change.
+- NO, Oct 30 2026 (Randy's rule) — don't ask Miranda what to tell them; handle it right away:
+  - Plain NO: look at the calendar (bookings, days off, and other customers' requests listed here) and use text_customer to offer the closest open times: that day's other time (sunrise or sunset) and the next day's same time, or the nearest open ones. Write it like: "So sorry, Miranda can't make Thursday, Nov 26 at sunrise after all. Would Thursday at sunset or Friday, Nov 27 at sunrise work for you?" Say "after all" only when that request was PENCILED IN; otherwise "So sorry, Miranda isn't able to do Thursday, Nov 26 at sunrise." Then close_request (why: "Miranda said no; offered other times"), then tell Miranda in one line what you offered. If they pick one, it comes back to Miranda as a new request.
+  - NO with another time she can do ("No, but Friday sunset works"): use offer_other_time with that date and time and a text like "So sorry, Miranda can't make Thursday, Nov 26 at sunrise after all, but she can do Friday, Nov 27 at sunset. Would that work for you? Reply YES and I'll send you the link to save your date." (again, "after all" only if PENCILED IN). If they say yes, they get the Confirm link right away and you'll text Miranda a heads-up. Then tell Miranda in one line it's offered.
+- PENCILED IN (Oct 30 2026): if Miranda doesn't answer a request within 30 minutes, the customer is automatically texted that they're penciled in and Miranda will send the final confirmation shortly, and Miranda gets reminders. Her YES or NO works the same as before.
 - If there's more than one request waiting and it's not clear which one a YES is for, ask.
 - Website requests (Oct 28 2026): when someone sends a request form on the website and checks OK to text, you text them to get anything missing, then it comes to Miranda like any other date request. Anything marked TEST came from Randy's, Bradyn's or Miranda's own phone; handle it exactly like a real one (they're testing), and say TEST when you mention it.
 - If you're both answering a customer's question and sending their Confirm link, send the answer with text_customer FIRST, then the link, and don't mention the link in that answer (the link text explains itself).
@@ -481,6 +496,7 @@ export function describeChange(c, data) {
     case "send_confirm_link": return "Confirm link texted to " + ((c.result && c.result.name) || x.name || "the customer");
     case "text_customer": return "Texted " + fmtPhone(x.phone);
     case "close_request": return "Request closed";
+    case "offer_other_time": return "Offered " + nice(x.date) + " " + x.time + " to the customer";
     case "set_day_off": return "Day off: " + nice(x.date) + (x.to && x.to !== x.date ? " to " + nice(x.to) : "") + (x.part && x.part !== "all" ? " (" + x.part + ")" : "");
     case "remove_day_off": return "Available again: " + nice(x.date) + (x.to && x.to !== x.date ? " to " + nice(x.to) : "");
   }
@@ -492,7 +508,7 @@ export async function dailyCheckin({ base, history = [] }) {
   const data = await loadData(base);
   const today = todayCT();
   const snap = snapshot(data, today);
-  const waiting = (await getRequests(base)).filter((r) => r.status === "waiting" && (!!data.test || !r.test)).length;
+  const waiting = (await getRequests(base)).filter((r) => (r.status === "waiting" || r.status === "penciled") && (!!data.test || !r.test)).length;
   if (!snap.counts.loose && !snap.counts.today && !snap.counts.tomorrow && !waiting) return null;
   const sys = system(PEOPLE[MIRANDA].role, snap.text + "\n\n" + (await customerSection(base, !!data.test)), await prices(base), today);
   const ask = "[Automatic morning check-in — this message is from the system, not Miranda.] Write today's check-in text to Miranda. Start with a short greeting. Then: today's and tomorrow's sessions in one line each (if any), then the loose ends that need her (customer date requests waiting on her YES, inquiries she hasn't sent a Confirm link to, confirmed sessions with no deposit, past sessions not marked paid, photographers who owe her). Number the loose ends so she can answer by number, and ask simple questions she can answer by text (e.g. 'Did the Smiths pay the rest?') so you can fix the app for her. Group, don't list more than 6; say how many more if there are. Keep it under 700 characters. Don't use any tools now.";
@@ -566,11 +582,13 @@ const firstName = (n) => String(n || "").trim().split(/\s+/)[0] || "there";
 // What Miranda's side of Sandy sees about customers
 export async function customerSection(base, withTests) {
   const reqs = (await getRequests(base)).filter((r) => withTests || !r.test);
-  const waiting = reqs.filter((r) => r.status === "waiting");
+  const waiting = reqs.filter((r) => r.status === "waiting" || r.status === "penciled");
+  const offered = reqs.filter((r) => r.status === "offered" && r.offer && r.at > new Date(Date.now() - 7 * 86400000).toISOString());
   const cust = Object.entries(await getCustomers(base)).filter(([p, c]) => (withTests || !c.test) && c.at > new Date(Date.now() - 7 * 86400000).toISOString());
-  const rq = (r) => "- request_id " + r.id + ": " + [r.name, fmtPhone(r.phone), r.date ? nice(r.date) : "", r.time, r.beach, r.pkg, money(r.price) + (r.travel ? " (incl. " + money(r.travel) + " travel fee)" : ""), r.people ? r.people + " people" : "", r.notes ? "notes: " + r.notes : "", "asked " + daysAgo(r.at, todayCT()), r.test || r.mark ? "TEST" : ""].filter(Boolean).join(" · ");
+  const rq = (r) => "- request_id " + r.id + ": " + [r.name, fmtPhone(r.phone), r.date ? nice(r.date) : "", r.time, r.beach, r.pkg, money(r.price) + (r.travel ? " (incl. " + money(r.travel) + " travel fee)" : ""), r.people ? r.people + " people" : "", r.notes ? "notes: " + r.notes : "", "asked " + daysAgo(r.at, todayCT()), r.status === "penciled" ? "PENCILED IN (customer was told Miranda will send the final confirmation shortly)" : "", r.test || r.mark ? "TEST" : ""].filter(Boolean).join(" · ");
   const cl = ([p, c]) => "- " + [c.name || "name not given", fmtPhone(p), "last text " + daysAgo(c.at, todayCT()) + ': "' + String(c.last || "").slice(0, 120) + '"', c.waiting ? 'WAITING ON MIRANDA: "' + c.waiting + '"' : "", c.handoffAt && c.handoffAt > new Date(Date.now() - 3 * 86400000).toISOString() ? "HANDED TO MIRANDA " + daysAgo(c.handoffAt, todayCT()) + " (" + (c.handoffWhy || "") + "): she texts them herself" : "", c.callback && c.callbackAt > new Date(Date.now() - 3 * 86400000).toISOString() ? "ASKED MIRANDA TO CALL " + daysAgo(c.callbackAt, todayCT()) + ", " + c.callback + (c.callbackAbout ? " (" + c.callbackAbout + ")" : "") : "", c.test || isOurs(p) ? "TEST" : ""].filter(Boolean).join(" · ");
   return "CUSTOMER DATE REQUESTS WAITING ON MIRANDA'S YES (" + waiting.length + "):\n" + (waiting.length ? waiting.map(rq).join("\n") : "- none") +
+    (offered.length ? "\n\nOTHER TIMES MIRANDA OKAYED, WAITING ON THE CUSTOMER (" + offered.length + "):\n" + offered.map((r) => rq(r) + " · offered " + nice(r.offer.date) + " " + r.offer.time + " instead").join("\n") : "") +
     "\n\nCUSTOMER TEXTS (last 7 days, " + cust.length + "):\n" + (cust.length ? cust.map(cl).join("\n") : "- none");
 }
 
@@ -588,7 +606,7 @@ export async function notifyMiranda(base, text, { page = false } = {}) {
 }
 
 // Add Sandy's own text to a customer's conversation so she remembers it when they answer
-async function addToCustomer(base, phone, text) {
+export async function addToCustomer(base, phone, text) {
   const s = sandyStore(base), k = custKey(phone), h = (await s.get(k, { type: "json" })) || [];
   // keep turns alternating: a text Sandy sends on her own follows a placeholder turn
   const add = h.length && h[h.length - 1].role === "user" ? [{ role: "assistant", content: text }] : [{ role: "user", content: "[No new text from the customer]" }, { role: "assistant", content: text }];
