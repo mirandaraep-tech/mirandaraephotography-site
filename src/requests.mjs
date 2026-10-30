@@ -54,9 +54,9 @@ export async function readFields(req) {
 
 // ---------- The email ----------
 // Same order as the FormSubmit emails: the request first, tracking at the very bottom (Randy's choice, Oct 7 2026)
-const TOP = ["name", "phone", "email", "date", "time", "beach", "who", "session-type", "session", "collection", "people", "reply", "contact-pref", "message", "heard-from", "text-consent"];
+const TOP = ["name", "senior", "phone", "email", "date", "leaving", "time", "beach", "who", "session-type", "session", "collection", "people", "reply", "contact-pref", "message", "heard-from", "text-consent"];
 const TRACK = ["came-from", "campaign", "search-phrase", "google-ads-click-id", "referring-site", "first-page", "visits", "page", "form", "site"];
-const LABELS = { name: "Name", phone: "Phone", email: "Email", date: "Date", time: "Sunset or sunrise", beach: "Beach", who: "Who's in the photos", "session-type": "Session type", session: "Session",
+const LABELS = { name: "Name", senior: "Senior's name", leaving: "Leaving town", phone: "Phone", email: "Email", date: "Date", time: "Sunset or sunrise", beach: "Beach", who: "Who's in the photos", "session-type": "Session type", session: "Session",
   collection: "Wedding package", people: "How many people", reply: "Best way to reply", "contact-pref": "Best way to reply", message: "Message", "heard-from": "Heard about Miranda from",
   "text-consent": "OK to text", "came-from": "Came from", campaign: "Ad campaign", "search-phrase": "Search phrase", "google-ads-click-id": "Google Ads click ID",
   "referring-site": "Referring site", "first-page": "First page", visits: "Visits", page: "Page", form: "Form", site: "Website" };
@@ -66,7 +66,7 @@ export function buildEmail(f, { subject, note = "", footer = "" } = {}) {
   const keys = Object.keys(f).filter((k) => !k.startsWith("_") && k !== "subject" && f[k] !== "");
   const main = TOP.filter((k) => keys.includes(k)).concat(keys.filter((k) => !TOP.includes(k) && !TRACK.includes(k)));
   const track = TRACK.filter((k) => keys.includes(k));
-  const val = (k) => (k === "date" ? niceDate(f[k]) : k === "phone" ? fmtPhone(f[k]) : f[k]);
+  const val = (k) => (k === "date" || k === "leaving" ? niceDate(f[k]) : k === "phone" ? fmtPhone(f[k]) : f[k]);
   const row = (k) => '<tr><th style="text-align:left;vertical-align:top;padding:8px 12px;background:#f3efe8;border-bottom:1px solid #e6dfd3;width:38%;font-weight:600">' + esc(label(k)) +
     '</th><td style="padding:8px 12px;border-bottom:1px solid #e6dfd3;white-space:pre-wrap">' + (k === "phone" && digits(f[k]).length === 10
       ? '<a href="sms:+1' + digits(f[k]) + '" style="color:#1d5b6b">' + esc(val(k)) + "</a>" : k === "email" ? '<a href="mailto:' + esc(f[k]) + '" style="color:#1d5b6b">' + esc(f[k]) + "</a>" : esc(val(k))) + "</td></tr>";
