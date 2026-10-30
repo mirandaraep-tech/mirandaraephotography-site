@@ -44,7 +44,7 @@ function summary(p, o = {}) {
 function includes(p) {
   const out = [];
   const w = p.timeWords, cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-  if (w) out.push(/hour/.test(w) && /wedding/i.test(p.name) ? cap(w) + ' of coverage' : /minutes$/.test(w) ? cap(adj(w)) + ' session' : cap(w));
+  if (w) out.push(/hour/.test(w) && /wedding|elopement/i.test(p.name) ? cap(w) + ' of coverage' : /minutes$/.test(w) ? cap(adj(w)) + ' session' : cap(w));
   if (p.people) out.push('Up to ' + p.people + ' people');
   out.push(...p.details.map(d => d.charAt(0).toUpperCase() + d.slice(1)));
   if (p.photos) out.push(p.photos + ' professionally edited photos');
@@ -100,7 +100,7 @@ const ids = a => (a.ids || '').split(',').filter(Boolean);
 const BLOCKS = {
   // Home page price list (li rows)
   'home-list': (a, old) => ids(a).map(id => {
-    const p = pkg(id), nm = /^wedding/.test(id) ? '<a href="/beach-wedding-photographer">' + esc(p.name) + '</a>' : esc(p.name);
+    const p = pkg(id), nm = /^wedding/.test(id) ? '<a href="/beach-wedding-photographer">' + esc(p.name) + '</a>' : id === 'elopement' ? '<a href="/beach-elopement-photographer">' + esc(p.name) + '</a>' : esc(p.name);
     return '\n      <li><div><b>' + nm + '</b><small>' + esc(summary(p)) + '</small>' + (p.where ? '<small class="where">' + esc(p.where) + '</small>' : '') + '</div><strong>' + money(p.price) + '</strong></li>';
   }).join('') + '\n      ',
 
