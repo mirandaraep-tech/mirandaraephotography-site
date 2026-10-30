@@ -194,7 +194,7 @@ export default async (req) => {
   }
   if (req.method === "GET") {
     const list = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS;
-    return json({ photographers: list, split: state.splitDefault || DEFAULT_SPLIT });
+    return json({ photographers: list, split: state.splitDefault || DEFAULT_SPLIT, adPct: state.adPct != null ? state.adPct : 20 });
   }
   if (req.method !== "POST") return new Response("Not found", { status: 404 });
 
@@ -408,6 +408,15 @@ export default async (req) => {
     items.forEach((it) => log.push({ at, kind: "dismiss", name: clip(it.name, 60), date: day(it.date), beach: clip(it.beach, 40), by: clip(data.by, 40), test: !!it.test, ...(items.length > 1 ? { bulk: true } : {}) }));
     await store.setJSON("log", log.slice(-1000));
     return json({ ok: true, cleared: items.length });
+  }
+  // Advertising form "Make this the usual" (Oct 30 2026): the % the Advertising box starts at (20% to begin with)
+  if (data.kind === "ad-default") {
+    if (!(await okPass(req, data))) return json({ error: "passcode" });
+    const pct = Number(data.pct);
+    if (!isFinite(pct) || pct < 0 || pct > 100) return json({ error: "pct" });
+    state.adPct = Math.round(pct * 100) / 100; state.updated = new Date().toISOString(); await store.setJSON("state", state);
+    await logIt({ kind: "split-default", detail: "Usual advertising now " + state.adPct + "%", by: clip(data.by, 40) });
+    return json({ ok: true, adPct: state.adPct });
   }
   // New Booking page "Make this the usual" (Oct 15 2026): saves Miranda's usual percentage
   if (data.kind === "split-default") {
