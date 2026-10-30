@@ -18,7 +18,7 @@ const low = (s) => String(s || "").trim().toLowerCase();
 const BEACHES = ["Mexico Beach", "Port St. Joe", "Cape San Blas", "Indian Pass", "Panama City Beach", "St. George Island", "Destin", "30A"];
 
 export const CUSTOMER_TOOLS = [
-  { name: "request_date", description: "Send the customer's date request to Miranda. Use it once you have their name, the date, sunrise or sunset (or other time), the beach and the package. Miranda then texts them their Confirm link, usually within the day. Don't use it for a time listed as taken.", input_schema: { type: "object", properties: {
+  { name: "request_date", description: "Ask Miranda to hold a date for the customer. Use it only after you've told them the date looks open and they said yes to you asking Miranda to hold it (a website request form counts as that yes). You need their name, the date, sunrise or sunset (or other time), the beach and the package. Miranda personally confirms it, then you text them their Confirm link. Don't use it for a time listed as taken.", input_schema: { type: "object", properties: {
     name: { type: "string", description: "Their first and last name" },
     date: { type: "string", description: "YYYY-MM-DD" },
     time: { type: "string", enum: ["Sunrise", "Sunset", "Midday", "Wedding", "Engagement", "Other"] },
@@ -32,7 +32,12 @@ export const CUSTOMER_TOOLS = [
     best_time: { type: "string", description: "When to call, short, as it reads after their number, e.g. \"after 5 PM\", \"tomorrow morning\", \"anytime today\", \"between 12 and 2 PM Friday\"" },
     about: { type: "string", description: "One short sentence for Miranda about what they want to talk about, e.g. \"She wants to talk about a sunset session Nov 14 at Mexico Beach.\" Use She/He/They to match the person (They if you can't tell). Include date, beach and package if known." },
   }, required: ["name", "best_time", "about"] } },
-  { name: "ask_miranda", description: "Pass a question to Miranda that you can't answer from what you know (a discount, a custom package, changing or cancelling their booking, a complaint, when photos will be ready, anything you're unsure of). She answers and you text them her answer.", input_schema: { type: "object", properties: { question: { type: "string", description: "Their question in a sentence or two, with any details Miranda needs" } }, required: ["question"] } },
+  { name: "hand_to_miranda", description: "Hand the conversation to Miranda so she texts the customer herself (Oct 30 2026). Use it when: they seem frustrated or confused; they ask the same thing twice; the conversation is going in circles (3–4 back-and-forths without getting anywhere); they want something that isn't on the price list; there's a complaint; it's a serious wedding or elopement inquiry; or you're not sure what to do. Texts Miranda a short summary.", input_schema: { type: "object", properties: {
+    name: { type: "string", description: "Their name, if you know it (empty if not)" },
+    wants: { type: "string", description: "What they want, one short sentence with date, beach and package if known, e.g. \"Sunset wedding Apr 18 at Rosemary Beach, about 40 guests.\"" },
+    why: { type: "string", description: "Why Miranda should step in, a few words, e.g. \"serious wedding inquiry\", \"asked the price twice, seems confused\", \"wants 3 hours, not on the price list\", \"complaint about photo delivery\", \"not sure how to answer\"" },
+  }, required: ["wants", "why"] } },
+  { name: "ask_miranda", description: "Pass a simple question to Miranda that you can't answer from what you know (a discount, changing or cancelling their booking, when photos will be ready). For anything on the hand-off list (frustrated, confused, going in circles, not on the price list, a complaint, a serious wedding or elopement, or you're not sure), use hand_to_miranda instead. She answers and you text them her answer.", input_schema: { type: "object", properties: { question: { type: "string", description: "Their question in a sentence or two, with any details Miranda needs" } }, required: ["question"] } },
 ];
 
 // The price list in plain words (prices.json is the master list)
@@ -64,7 +69,7 @@ About the business:
 - Every session comes with a private online gallery. Gallery of Miranda's work: https://mirandaraephotography.com/gallery  Full price list: https://mirandaraephotography.com/prices  Facebook reviews (96% recommend): https://www.facebook.com/profile.php?id=61591669718246
 - Miranda can sometimes fit in last-minute sessions; it never hurts to ask.
 - Deposits: the deposit saves their date just for them and comes off the session price. Since Miranda turns other families away once a date is held, deposits aren't refundable. If the weather doesn't cooperate or something comes up, Miranda will do her best to find a new date.
-- How booking works: you take down their date request and pass it to Miranda. Miranda texts them a Confirm link from this number with their session details; they check it, tap Confirm and pay the deposit to hold the date. Nothing is booked until then.
+- How booking works (Oct 30 2026): when a date looks open, you ask if they'd like you to ask Miranda to hold it. If they say yes, you pass it to Miranda. Miranda personally confirms every booking. Once she okays it, you text them a link to check their details and secure the date with the ${money(PRICES.deposit)} deposit. The date isn't held until the deposit is in.
 
 PRICE LIST (the only prices you may quote):
 ${priceText()}
@@ -80,12 +85,18 @@ How you text:
 - Answer what they asked. Help them pick. At Mexico Beach, Port St. Joe, Cape San Blas and Panama City Beach they can choose the Beach Mini ($130: 30 minutes, 15 photos, up to 6 people) or the Beach Special, also called the Classic ($199: 45–60 minutes, 30–35 photos, up to 11 people, an outfit change), with no travel fee. At Destin, 30A and St. George Island it's the Beach Special ($199) plus the $30 travel fee. The Senior Portrait, Family, Deluxe, Engagement, Proposal, Beach Elopement and Wedding packages are available too, as listed.
 - To request a date you need: their name, the date, sunrise or sunset, the beach, the package (ask how many people if it helps pick).
 - The beach: if they haven't said, ask where they're staying or which beach they'd like their photos at. Many people only know their rental's town or area; that's fine. Match it to the nearest beach Miranda covers (for example Indian Pass goes with Port St. Joe/Cape San Blas, Santa Rosa Beach, Seaside or Rosemary Beach is 30A, Miramar Beach goes with Destin, Panama City is Panama City Beach). If you're not sure which beach they mean, ask. If it's outside the beaches listed, take it down anyway with their town in notes and tell them Miranda will let them know if she can travel there.
-- Don't pick an exact spot or access point. Miranda texts the meeting spot before the session. If they have a favorite spot or a beach access near their rental, put it in notes. Then use request_date and tell them Miranda will text their Confirm link soon. Don't promise a date is theirs; say it looks open.
-- If the time they want is listed as taken, say so kindly and offer the other time that day or a nearby date.
-- Never make up prices, discounts, policies or availability. If something isn't covered above (a discount, a custom package, photo delivery time, changing or cancelling a booking, a complaint), say you'll check with Miranda, use ask_miranda, and tell them she'll get back to them.
+- Don't pick an exact spot or access point. Miranda texts the meeting spot before the session. If they have a favorite spot or a beach access near their rental, put it in notes.
+- Booking steps (Oct 30 2026), in this order:
+  1. When their date and time aren't on the calendar as taken, say it "looks open" (never that it's booked, held or theirs) and ask if they'd like you to ask Miranda to hold it for them. Example: "Saturday, Nov 14 at sunset looks open! Would you like me to ask Miranda to hold it for you?"
+  2. When they say yes, use request_date. Then tell them you've passed it to Miranda, that she personally confirms every booking, and that once she does, you'll text them a link to check their details and secure the date with the ${money(PRICES.deposit)} deposit. Example: "Great, I've passed it to Miranda! She personally confirms every booking. Once she does, I'll text you a link to check your details and secure your date with the ${money(PRICES.deposit)} deposit."
+  3. Miranda's okay and the Confirm link come later in a separate text, which says the date isn't held until the deposit is in. Until then, if they ask, the date is waiting on Miranda and isn't held yet.
+- If the time they want is listed as taken, say so kindly (never why) and offer that day's sunrise (or sunset, if the sunrise is the taken one) or a nearby open date. Example: "That sunset is already taken, but that morning's sunrise looks open, or Sunday's sunset. Would either work?"
+- Never make up prices, discounts, policies or availability. If a simple question isn't covered above (a discount, photo delivery time, changing or cancelling a booking), say you'll check with Miranda, use ask_miranda, and tell them she'll get back to them.
+- Hand-off to Miranda (Oct 30 2026): use hand_to_miranda when they seem frustrated or confused, ask the same thing twice, the conversation goes in circles (3 or 4 back-and-forths without getting closer to a date), they want something that isn't on the price list, there's a complaint, it's a serious wedding or elopement inquiry (they have a date or venue, or want to plan or book one; a quick "how much are weddings?" you can answer), or you're not sure. Then text them exactly: "This sounds like one Miranda would want to handle herself. I've let her know, and she'll text you personally soon." Nothing else in that text, and don't keep trying to solve it.
+- After a hand-off (HANDED TO MIRANDA below), if they text again, kindly say Miranda has their message and will text them soon. You can still answer a quick simple question from the price list, but don't start booking or hand off again.
 - Wants Miranda herself (Oct 29 2026): if they'd rather talk with Miranda than with you, that's fine; don't try to talk them out of it. Ask if they'd like a call or a text from her. For a call, use call_me_back. For a text, use ask_miranda with a question like "They'd like you to text them yourself about [what they want]" and tell them Miranda will text them herself soon.
 - Call back (Oct 28 2026): if they want Miranda to call them, or would rather talk on the phone, don't try to talk them out of it. If they haven't said when is a good time to call, ask "What time is good for a call?" (and their name, in the same text, if you don't know it yet). Once you know the time, use call_me_back, then tell them Miranda will give them a call (around the time they said; don't promise an exact minute). Put what they want to talk about in "about" (date, beach, package if you know them). Use call_me_back only once per request; if they change the time, use it again with the new time. Your number doesn't take calls from customers, so don't tell them to call you.
-- Weddings: share the wedding packages and take down the date like any other request; put details (guest count, venue, hours) in notes.
+- Weddings and elopements: you can share the wedding packages and the $549 Beach Elopement when asked. Once it's a serious inquiry (see Hand-off), hand it to Miranda instead of booking it yourself.
 - Senior pictures (Oct 30 2026): high school senior portraits are the $199 Senior Portrait Session (45–60 minutes, 30–35 edited photos, 2 outfit changes, their props like a cap and gown or jersey, a few photos with a parent or best friend, yearbook-ready picks marked). Same $30 travel fee as the Beach Special in Destin, 30A and St. George Island. Seniors are usually under 18: text with the parent who sent the request or texted you, and if a teen texts you directly, kindly ask for a parent's name and number so Miranda can plan it with them. Page: https://mirandaraephotography.com/senior-portrait-photographer
 - Last-minute (Oct 30 2026): many people are already at the beach. Ask what day they leave, and offer the soonest open sunrise or sunset before then. Prices are the same as any other day.
 - Ceremonies (Oct 30 2026): a ceremony (getting married, saying vows, an elopement) is only booked as the $549 Beach Elopement (2 hours, 100+ edited photos: ceremony, family photos and sunset portraits, plus help with the spot, timing and finding an officiant; the officiant is booked and paid separately) or a wedding package. Never book a ceremony as the $199 Beach Special/Classic, the $130 Mini or any other session. If someone asks for a $199 session for their wedding or ceremony, kindly explain that ceremonies are booked as the Beach Elopement or a wedding package so there's time for the ceremony, family photos and portraits. Elopement page: https://mirandaraephotography.com/beach-elopement-photographer
@@ -99,7 +110,8 @@ const WEB_FIRST = `
 This person just sent the request form on Miranda's website and checked the box saying it's OK to text them. They have NOT texted you; what you write now is the FIRST text they get from you. Write it like this:
 - Start "Hi [first name]! It's Sandy, Miranda Rae Photography's AI assistant." Thank them for their request (mention the date and beach if they gave them) and say Miranda personally confirms every booking, and that if they'd rather talk with Miranda herself, they can just say so.
 - Then ask the ONE most useful thing still missing to request their date (usually sunrise or sunset; then which package, or how many people if that helps pick). Don't repeat their whole form back.
-- If the form already has everything (name, date, sunrise or sunset, beach, package), use request_date instead and tell them Miranda will text their Confirm link soon.
+- Sending the form counts as asking Miranda to hold their date. If the form already has everything (name, date, sunrise or sunset, beach, package) and that time isn't taken, use request_date, say the date looks open and you've passed it to Miranda, that she personally confirms every booking, and that once she does you'll text them a link to check their details and secure the date with the deposit. If that time is taken, offer that day's other time or a nearby date instead.
+- If it's a serious wedding or elopement request, or something not on the price list, use hand_to_miranda and say the hand-off line instead.
 - End with: "Reply STOP to opt out."
 - Keep it under 320 characters if you can.
 `;
@@ -112,7 +124,9 @@ export async function customerChat({ base, from, text, history = [], page = fals
   const all = await getRequests(base);
   const reqs = all.filter((r) => r.phone === phone && r.at > new Date(Date.now() - 30 * 86400000).toISOString())
     .map((r) => "- " + [nice(r.date), r.time, r.beach, r.pkg, money(r.price)].join(" · ") + " — " + (r.status === "waiting" ? "waiting on Miranda" : r.status === "link sent" ? "Confirm link sent" : "closed"));
-  const sys = system(data, today, mine, reqs, !history.length, web);
+  const me = (await getCustomers(base))[phone] || {};
+  const handed = me.handoffAt && me.handoffAt > new Date(Date.now() - 3 * 86400000).toISOString() ? me : null;
+  const sys = system(data, today, mine, reqs, !history.length, web) + (handed ? "\n\nHANDED TO MIRANDA: you handed this conversation to Miranda " + (handed.handoffAt.slice(0, 10) === today ? "today" : "on " + nice(handed.handoffAt.slice(0, 10))) + " (" + handed.handoffWhy + "). She'll text them herself." : "");
   const msgs = history.slice(-16).concat({ role: "user", content: text });
   const changes = [];
   let reply = "", name = "";
@@ -128,6 +142,7 @@ export async function customerChat({ base, from, text, history = [], page = fals
       try {
         if (u.name === "request_date") { out = await requestDate(base, phone, u.input || {}, data, today, { page, test, mark, web }); if (out.ok) name = u.input.name; }
         else if (u.name === "call_me_back") { out = await callMeBack(base, phone, u.input || {}, { page, test, mark }); if (out.ok && !name) name = String((u.input || {}).name || "").trim(); }
+        else if (u.name === "hand_to_miranda") { out = await handToMiranda(base, phone, u.input || {}, { page, test, mark }); if (out.ok && !name) name = String((u.input || {}).name || "").trim(); }
         else if (u.name === "ask_miranda") out = await askMiranda(base, phone, (u.input || {}).question, history, text, { page, test, mark });
         else out = { error: "unknown tool" };
       } catch (e) { out = { error: String(e.message || e) }; }
@@ -181,6 +196,24 @@ async function askMiranda(base, phone, question, history, text, { page, test, ma
   return { ok: true, passed_to_miranda: true };
 }
 
+// Hand-off (Oct 30 2026): Sandy steps back and Miranda texts the customer herself, e.g.
+// "🙋 Please text Jessica Smith yourself, (850) 555-1234.
+//  Wants: sunset wedding Apr 18 at Rosemary Beach, about 40 guests.
+//  Why: serious wedding inquiry."
+export const HANDOFF_LINE = "This sounds like one Miranda would want to handle herself. I've let her know, and she'll text you personally soon.";
+async function handToMiranda(base, phone, x, { page, test, mark }) {
+  const name = String(x.name || "").trim().slice(0, 60), why = String(x.why || "").trim().replace(/[.\s]+$/, "").slice(0, 160);
+  let wants = String(x.wants || "").trim().slice(0, 240);
+  if (!wants || !why) return { error: "need what they want and why Miranda should step in" };
+  if (!/[.!?]$/.test(wants)) wants += ".";
+  const prev = (await getCustomers(base))[phone];
+  if (prev && prev.handoffAt && prev.handoffAt > new Date(Date.now() - 6 * 3600000).toISOString()) return { ok: true, already_sent: true, note: "Miranda already has this. Just tell them she'll text them soon." };
+  const msg = tag(mark) + "🙋 Please text " + (name || "this customer") + " yourself, " + fmtPhone(phone) + ".\nWants: " + wants + "\nWhy: " + why + ".";
+  await notifyMiranda(base, msg, { page: page || test });
+  await noteCustomer(base, phone, { ...(name ? { name } : {}), handoffAt: new Date().toISOString(), handoffWhy: why, handoffWants: wants });
+  return { ok: true, sent_to_miranda: true, now_text_them_exactly: HANDOFF_LINE };
+}
+
 // A customer wants Miranda to call them (Oct 28 2026). One clear text to Miranda, e.g.
 // "📞 Please call Jessica Smith, (850) 555-1234, after 5 PM. She wants to talk about a sunset session Nov 14 at Mexico Beach."
 async function callMeBack(base, phone, x, { page, test, mark }) {
@@ -220,7 +253,7 @@ export async function webRequest({ base, form = {}, page = false }) {
   if (out.changes.length) await record(base, { kind: "changes", from: phone, changes: out.changes });
   await deliver(base, phone, out.reply, "to-customer");
   // If Sandy didn't already send Miranda the date request, give her a short heads-up so she doesn't text them too
-  if (!out.changes.some((c) => (c.tool === "request_date" || c.tool === "call_me_back") && c.result && c.result.ok)) {
+  if (!out.changes.some((c) => (c.tool === "request_date" || c.tool === "call_me_back" || c.tool === "hand_to_miranda") && c.result && c.result.ok)) {
     const when = /^\d{4}-\d{2}-\d{2}$/.test(f.date || "") ? longDay(f.date) : f.date || "no date yet";
     await notifyMiranda(base, tag(mark) + "Sandy here. New website request: " + String(f.name || "no name").slice(0, 60) + ", " + fmtPhone(phone) + "\n" +
       [when, f.beach].filter(Boolean).join(", ") + "\nThey said OK to text, so I texted them to get the rest. I'll let you know when they're ready for a Confirm link.", { page });
