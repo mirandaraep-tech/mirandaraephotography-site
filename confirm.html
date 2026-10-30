@@ -135,8 +135,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
   <!-- Time already taken (slot check, Oct 15 2026) -->
   <div class="card" id="taken" hidden>
-    <h1>That time was just booked</h1>
-    <p class="intro">Sorry! Someone else confirmed that date and time first. Miranda has been told, and she'll help you find another time.</p>
+    <h1 id="takenh">That time was just booked</h1>
+    <p class="intro" id="takenp">Sorry! Someone else confirmed that date and time first. Miranda has been told, and she'll help you find another time.</p>
     <a class="btn" id="takentext" href="sms:+14482196539">💬 Text Miranda</a>
   </div>
 
@@ -351,7 +351,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function slotTaken(c){
     var nm = $('name').value.trim(), dt = $('date').value, when = (window.mrpDate ? window.mrpDate(dt, true) : dt) + ' · ' + $('session').value;
     var o = { _captcha: 'false', _template: 'table', name: nm, date: when, beach: $('beach').value,
-      note: 'This client tried to confirm, but that date and time is already held by booking #' + c.with + '. They were asked to text Miranda. Nothing was counted.' };
+      note: c.voided ? 'This client tried to confirm, but Miranda said no to that time after the link went out (Sandy texted them other times). Nothing was counted.'
+        : 'This client tried to confirm, but that date and time is already held by booking #' + c.with + '. They were asked to text Miranda. Nothing was counted.' };
+    // Oct 30 2026: Miranda said no to this time after the link went out
+    if (c.voided) { $('takenh').textContent = "That time isn't available anymore"; $('takenp').textContent = 'Sorry! Miranda isn\'t able to do that date and time after all. Sandy texted you some other open times. Just reply to her text, or text Miranda.'; }
     if (LIVE) o._cc = 'bookmirandarae@gmail.com';
     o._subject = '⚠️ TIME ALREADY BOOKED: ' + [nm, when, $('beach').value].join(' · ');
     var ios = /iPad|iPhone|iPod/.test(navigator.userAgent);

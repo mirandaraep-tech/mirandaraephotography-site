@@ -10,7 +10,7 @@ import {
   claude, clean, loadData, digits, todayCT, addDays, nice, money, fmtPhone, longDay,
   getRequests, saveRequests, noteCustomer, notifyMiranda, findPackage, travelFee, TEST_CUSTOMER,
   isOurs, deliver, record, getCustHistory, saveCustHistory, setCustomerMode, PEOPLE, getCustomers,
-  sendConfirmLink, addToCustomer, hourCT, MIRANDA,
+  sendConfirmLink, addToCustomer, hourCT, MIRANDA, BRADYN, notifyStaff, tellStaff, sandyStore,
 } from "./brain.mjs";
 // Sandy's texts to Miranda about a request from our own numbers (Randy, Bradyn, Miranda) start with this
 const tag = (mark) => (mark ? "TEST — " : "");
@@ -74,7 +74,7 @@ About the business:
 - Every session comes with a private online gallery. Gallery of Miranda's work: https://mirandaraephotography.com/gallery  Full price list: https://mirandaraephotography.com/prices  Facebook reviews (96% recommend): https://www.facebook.com/profile.php?id=61591669718246
 - Miranda can sometimes fit in last-minute sessions; it never hurts to ask.
 - Deposits: the deposit saves their date just for them and comes off the session price. Since Miranda turns other families away once a date is held, deposits aren't refundable. If the weather doesn't cooperate or something comes up, Miranda will do her best to find a new date.
-- How booking works (Oct 30 2026): when a date looks open, you tell them, and they reply YES for you to double-check it (you pass it to Miranda, who checks every date personally), or MIRANDA to talk with her first. Once Miranda okays it, they get a link to check their details and save the date with the ${money(PRICES.deposit)} deposit. If Miranda hasn't answered within 30 minutes, they're automatically texted that they're penciled in and Miranda will send the final confirmation shortly. The date isn't held until the deposit is in.
+- How booking works (Oct 30 2026): when a date looks open, you tell them, and they reply YES for you to double-check it (you pass it to Miranda, who checks every date personally), or MIRANDA to talk with her first. Once Miranda okays it, they get a link to check their details and save the date with the ${money(PRICES.deposit)} deposit. If it isn't okayed within 5 minutes, they're automatically texted that they're penciled in and Miranda will send the final confirmation and link later today (or tomorrow, if it's evening). The date isn't held until the deposit is in.
 
 PRICE LIST (the only prices you may quote):
 ${priceText()}
@@ -94,7 +94,7 @@ How you text:
 - Booking steps (Oct 30 2026, Randy's wording), in this order:
   1. When their date and time aren't on the calendar as taken, say it "looks open" (never that it's booked, held or theirs), naming the day, time, beach and session with its price (ask for anything still missing first). Then add the demand line if it's true (see below), then end with exactly: "Reply YES and I'll double-check that date and send you the link to save it. If you'd rather talk with Miranda first, reply MIRANDA and she'll text you as soon as she can." Example: "Thursday, Nov 26 at sunrise at Panama City Beach looks open for your $250 Family Session. Thanksgiving week sunrises go fast. Reply YES and I'll double-check that date and send you the link to save it. If you'd rather talk with Miranda first, reply MIRANDA and she'll text you as soon as she can."
   2. When they say yes (YES, yes, sure, book it...), use request_date. Then text only: "Great! I'm double-checking [day, date] at [sunrise/sunset] for you now. I'll text you shortly." Example: "Great! I'm double-checking Thursday, Nov 26 at sunrise for you now. I'll text you shortly." If they ask who's checking, it's true that Miranda personally checks every date.
-  3. The link comes later in its own text. If they ask before then: a request "waiting on Miranda" is still being double-checked; a PENCILED IN one means they're penciled in and Miranda will send the final confirmation and link shortly. Neither is held until the deposit is in.
+  3. The link comes later in its own text. If they ask before then: a request "waiting on Miranda" is still being double-checked; a PENCILED IN one means they're penciled in and Miranda will send the final confirmation and link later today (tomorrow if it's after 6 PM). Neither is held until the deposit is in.
 - Demand line (Oct 30 2026): add ONE short line about dates going fast ONLY when it's true for their date: Thanksgiving week ("Thanksgiving week sunrises go fast." / "...sunsets go fast."), Christmas through New Year's ("Christmas week dates go fast."), July 4th week, spring break (March), or the date is within 10 days ("That's coming up soon, and dates go fast."). Any other date: leave it out. Never claim how many spots are left.
 - MIRANDA (Oct 30 2026): if they reply MIRANDA or say they'd rather talk with Miranda first, use hand_to_miranda with asked: true (put the date, time, beach and package they were looking at in "wants"), then text exactly: "No problem! I've let Miranda know, and she'll text you as soon as she can." If they specifically want a phone call instead, use call_me_back.
 - Another time Miranda okayed (Oct 30 2026): if THIS CUSTOMER'S DATE REQUESTS shows OKAYED BY MIRANDA for another time and they say yes to it, use accept_offer. The Confirm link text goes to them automatically, so don't write anything else. If they say no to it, offer to check another date for them.
@@ -132,7 +132,7 @@ export async function customerChat({ base, from, text, history = [], page = fals
   const all = await getRequests(base);
   const reqs = all.filter((r) => r.phone === phone && r.at > new Date(Date.now() - 30 * 86400000).toISOString())
     .map((r) => "- request_id " + r.id + ": " + [nice(r.date), r.time, r.beach, r.pkg, money(r.price)].join(" · ") + " — " + (r.status === "waiting" ? "waiting on Miranda (you told them you're double-checking)"
-      : r.status === "penciled" ? "PENCILED IN (they were told Miranda will send the final confirmation and link shortly)"
+      : r.status === "penciled" ? "PENCILED IN (they were told Miranda will send the final confirmation and link later)"
       : r.status === "offered" && r.offer ? "Miranda can't do that time. OKAYED BY MIRANDA instead: " + longDay(r.offer.date) + " at " + low(r.offer.time) + " (you offered it to them; if they say yes, use accept_offer)"
       : r.status === "link sent" ? "Confirm link sent" : "closed"));
   const holds = otherHolds(all, phone);
@@ -198,9 +198,10 @@ async function requestDate(base, phone, x, data, today, { page, test, mark, web 
   }));
   const msg = tag(mark) + "Sandy here. New date request " + (web ? "from the website:\n" : "by text:\n") + r.name + ", " + fmtPhone(phone) + "\n" + [longDay(r.date), r.time, r.beach].filter(Boolean).join(", ") + "\n" +
     r.pkg + (price ? " " + money(price) + (travel ? " (incl. " + money(travel) + " travel fee)" : "") : "") + (r.people ? ", " + r.people + " people" : "") + (r.notes ? "\nNotes: " + r.notes : "") +
-    "\nThat time looks open on your calendar. I told them I'm double-checking it.\nWant me to text " + r.name.split(" ")[0] + " the Confirm link? Reply YES or NO (or tell me another time that works)" +
-    "\n(If I don't hear from you in 30 minutes, I'll tell them they're penciled in and hold that time.)";
-  await notifyMiranda(base, msg, { page: page || test });
+    "\nThat time looks open on the calendar. I told them I'm double-checking it.\nWant me to text " + r.name.split(" ")[0] + " the Confirm link? Reply YES or NO (or tell me another time that works)" +
+    "\n(Sent to Miranda and Bradyn. The first answer decides. If neither of you answers in 5 minutes, I'll pencil them in.)";
+  // Oct 30 2026: Miranda and Bradyn are asked at the same time
+  await notifyStaff(base, msg, { page: page || test });
   return { ok: true, price, travel, sent_to_miranda: true };
 }
 
@@ -229,46 +230,143 @@ async function acceptOffer(base, phone, id, { page, test, mark }) {
   return { ...out, note: "The Confirm link text already went to them. Don't write anything else." };
 }
 
-// Pencil-in (Oct 30 2026, Randy's idea). Runs every few minutes. If Miranda hasn't answered a customer's
-// date request within 30 minutes, Sandy texts the customer that they're penciled in (the time stays off
-// the calendar for everyone else), and reminds Miranda. Reminders repeat every 3 hours, up to 3, only
-// between 8 AM and 9 PM Central. Miranda's YES still sends the Confirm link; her NO gets them other times.
-const PENCIL_AFTER = 30 * 60000, NUDGE_EVERY = 3 * 3600000;
+// Pencil-in (Oct 30 2026, Randy's idea; changed the same day). Runs every minute.
+// - If neither Miranda nor Bradyn answers a customer's date request within 5 minutes, Sandy texts the customer
+//   that they're penciled in (the time stays off the calendar for everyone else). Miranda sends the final
+//   confirmation "later today", or "tomorrow" after 6 PM Central.
+// - At 5:00 PM and 8:30 PM Central, one reminder to Miranda and Bradyn about anyone still penciled in
+//   (the 9 AM check-in covers overnight ones). No other reminders.
+// - If a booking takes a penciled-in (or waiting) time anyway, Sandy texts that customer the closest open
+//   times and lets Miranda know.
+const PENCIL_AFTER = 5 * 60000;
+const REMIND_AT = [[17, 0], [20, 30]]; // Central time
 const slotWords = (t) => { const x = low(t); return x === "sunrise" || x === "sunset" || x === "midday" ? " at " + x : ""; };
-export async function pencilCheck(base) {
-  const list = await getRequests(base), now = Date.now(), today = todayCT();
-  const due = list.filter((r) => (r.status === "waiting" && now - Date.parse(r.at) >= PENCIL_AFTER && now - Date.parse(r.at) < 2 * 86400000 && r.date >= today) ||
-    (r.status === "penciled" && (r.nudges || 0) < 3 && now - Date.parse(r.nudgedAt || r.penciledAt) >= ((r.nudges || 0) ? NUDGE_EVERY : 0) && r.date >= today));
-  if (!due.length) return { done: 0 };
-  const daytime = hourCT() >= 8 && hourCT() < 21;
-  const data = await loadData(base);
+const minuteCT = (now = new Date()) => Number(new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", minute: "numeric" }).format(now));
+export const laterWord = (now = new Date()) => (hourCT(now) >= 18 ? "tomorrow" : "later today");
+export const pencilText = (r, now = new Date()) => "Good news, I've penciled you in for " + longDay(r.date) + slotWords(r.time) + (r.beach ? " at " + r.beach : "") + "! Miranda will send your final confirmation and the link to save your date " + laterWord(now) + ".";
+const sameSlot = (t) => ["sunrise", "sunset", "midday"].includes(low(t));
+const sameCustomer = (b, r) => (digits(b.phone).length === 10 && digits(b.phone) === r.phone) || (low(b.name) && low(b.name) === low(r.name));
+// A booking that now holds this request's time (not the customer's own booking)
+function takenBy(data, r) {
+  if (!sameSlot(r.time)) return null;
+  return (data.bookings || []).find((b) => !b.cancelled && !b.past && !b.photographer && (!b.test || r.mark || r.test) &&
+    b.date === r.date && low(b.time) === low(r.time) && !sameCustomer(b, r)) || null;
+}
+// The closest open sunrises/sunsets to a request (Oct 30 2026): that day's other time, the next day, the day before...
+export function openTimes(data, list, r, today = todayCT(), n = 2) {
+  if (!sameSlot(r.time) || low(r.time) === "midday") return [];
+  const other = low(r.time) === "sunrise" ? "Sunset" : "Sunrise", same = low(r.time) === "sunrise" ? "Sunrise" : "Sunset";
+  const tries = [[0, other], [1, same], [1, other], [-1, same], [2, same], [-1, other], [2, other], [3, same]];
+  const holds = otherHolds(list, r.phone), out = [];
+  for (const [k, t] of tries) {
+    const d = addDays(r.date, k);
+    if (d < today || (d === today && (t === "Sunrise" || hourCT() >= 15))) continue;
+    if ((data.bookings || []).some((b) => !b.cancelled && !b.past && !b.photographer && (!b.test || r.mark || r.test) && b.date === d && low(b.time) === low(t))) continue;
+    if ((data.daysOff || []).some((o) => o.date === d && (o.part === "all" || o.part === low(t)))) continue;
+    if (holds.some((h) => h.date === d && low(h.time) === low(t))) continue;
+    out.push({ date: d, time: t });
+    if (out.length >= n) break;
+  }
+  return out;
+}
+const timeWords = (o) => longDay(o.date) + " at " + low(o.time);
+const choices = (opts) => opts.length === 2 ? "Would " + timeWords(opts[0]) + " or " + timeWords(opts[1]) + " work for you?" : opts.length === 1 ? "Would " + timeWords(opts[0]) + " work for you?" : "Is there another day that would work for you?";
+const pickLine = (opts) => opts.length ? " Just reply with the one you'd like and I'll check it for you." : " Just tell me which day and I'll check it for you.";
+
+async function bump(base, r, b, data, list) {
+  const opts = openTimes(data, list, r);
+  const body = "So sorry, " + longDay(r.date) + slotWords(r.time) + " just got booked, so I can't hold it for you after all. " + choices(opts) + pickLine(opts);
+  await deliver(base, r.phone, body, "pencil-bumped");
+  await addToCustomer(base, r.phone, body);
+  const was = r.status === "penciled" ? "who was penciled in for it" : "who was waiting on an OK for it";
+  const msg = tag(r.mark) + "Sandy here. " + nice(r.date) + slotWords(r.time) + " got booked (" + b.name + (b.num && b.num < 900000 ? ", #" + b.num : "") + "), so I texted " + r.name + ", " + was + ", " +
+    (opts.length ? "other times: " + opts.map((o) => nice(o.date) + " " + low(o.time)).join(" or ") + "." : "to pick another day.");
+  // Miranda is told; Bradyn too if he was still being asked to okay it
+  if (r.status === "waiting") await notifyStaff(base, msg, { page: !!r.test });
+  else await notifyMiranda(base, msg, { page: !!r.test });
+  return { status: "closed", closed: { at: new Date().toISOString(), why: "time got booked; offered other times", by: "Sandy", who: "Sandy" } };
+}
+
+export async function pencilCheck(base, now = new Date()) {
+  const list = await getRequests(base), t = now.getTime(), today = todayCT(now);
+  const active = list.filter((r) => (r.status === "waiting" || r.status === "penciled") && r.date >= today && t - Date.parse(r.at) < 3 * 86400000);
+  const remind = await dueReminder(base, now);
+  if (!active.length && !remind) return { done: 0 };
+  const data = active.length ? await loadData(base) : null;
+  const changed = {};
   let done = 0;
-  for (const r of due) {
-    const page = !!r.test;
-    if (r.status === "waiting") {
-      // Someone else booked that time meanwhile: leave it for Miranda to answer
-      const t = low(r.time);
-      if ((data.bookings || []).some((b) => !b.cancelled && !b.past && !b.photographer && b.date === r.date && low(b.time) === t && (t === "sunrise" || t === "sunset"))) continue;
-      const body = "Good news, I've penciled you in for " + longDay(r.date) + slotWords(r.time) + (r.beach ? " at " + r.beach : "") + "! Miranda will send your final confirmation and the link to save your date shortly.";
+  for (const r of active) {
+    const b = takenBy(data, r);
+    if (b) { changed[r.id] = await bump(base, r, b, data, list); done++; continue; }
+    if (r.status === "waiting" && t - Date.parse(r.at) >= PENCIL_AFTER) {
+      const body = pencilText(r, now);
       await deliver(base, r.phone, body, "pencil-in");
       await addToCustomer(base, r.phone, body);
-      r.status = "penciled"; r.penciledAt = new Date().toISOString(); r.nudges = 0;
+      changed[r.id] = { status: "penciled", penciledAt: now.toISOString() };
       done++;
     }
-    if (!daytime) continue;
-    const msg = tag(r.mark) + "Sandy here. Reminder: " + r.name + " is penciled in for " + nice(r.date) + slotWords(r.time) + (r.beach ? ", " + r.beach : "") + " (" + r.pkg + " " + money(r.price) + ") and waiting on your OK.\nWant me to text them the Confirm link? Reply YES or NO (or tell me another time that works)";
-    await notifyMiranda(base, msg, { page });
-    r.nudges = (r.nudges || 0) + 1; r.nudgedAt = new Date().toISOString();
-    done++;
   }
-  // Save onto the latest list (Miranda may have answered while this ran)
-  const fresh = await getRequests(base);
-  for (const r of due) {
-    const f = fresh.find((q) => q.id === r.id);
-    if (f && (f.status === "waiting" || f.status === "penciled")) Object.assign(f, { status: r.status, penciledAt: r.penciledAt, nudges: r.nudges, nudgedAt: r.nudgedAt });
+  // Save onto the latest list (Miranda or Bradyn may have answered while this ran)
+  if (Object.keys(changed).length) {
+    const fresh = await getRequests(base);
+    for (const f of fresh) if (changed[f.id] && (f.status === "waiting" || f.status === "penciled")) Object.assign(f, changed[f.id]);
+    await saveRequests(base, fresh);
   }
-  await saveRequests(base, fresh);
+  if (remind) done += await sendReminders(base, remind, today);
   return { done };
+}
+
+// 5:00 PM and 8:30 PM Central, once each per day (within half an hour of the time, in case a run is missed)
+async function dueReminder(base, now) {
+  const m = hourCT(now) * 60 + minuteCT(now), day = todayCT(now);
+  for (const [h, mm] of REMIND_AT) {
+    const at = h * 60 + mm;
+    if (m < at || m >= at + 30) continue;
+    const key = "pencil-remind-" + day + "-" + h + String(mm).padStart(2, "0");
+    const s = sandyStore(base);
+    if (await s.get(key, { type: "json" })) return null;
+    await s.setJSON(key, now.toISOString());
+    return key;
+  }
+  return null;
+}
+export function reminderText(list) {
+  const line = (r) => r.name + " · " + nice(r.date) + slotWords(r.time) + (r.beach ? " · " + r.beach : "") + " · " + r.pkg + " " + money(r.price) + (r.mark ? " (TEST)" : "");
+  if (list.length === 1) {
+    const r = list[0];
+    return tag(r.mark) + "Sandy here. Reminder: " + r.name + " is still penciled in for " + nice(r.date) + slotWords(r.time) + (r.beach ? ", " + r.beach : "") + " (" + r.pkg + " " + money(r.price) + ") and waiting on your OK.\nWant me to text them the Confirm link? Reply YES or NO (or tell me another time that works)";
+  }
+  return "Sandy here. Still penciled in, waiting on your OK:\n" + list.map((r, i) => (i + 1) + ". " + line(r)).join("\n") + "\nReply with the number and YES or NO, like \"1 YES\" (or tell me another time that works).";
+}
+async function sendReminders(base, key, today) {
+  const pen = (await getRequests(base)).filter((r) => r.status === "penciled" && r.date >= today);
+  let n = 0;
+  for (const page of [false, true]) {
+    const these = pen.filter((r) => !!r.test === page).sort((a, b) => (a.date + low(a.time)).localeCompare(b.date + low(b.time)));
+    if (!these.length) continue;
+    await notifyStaff(base, reminderText(these), { page });
+    n++;
+  }
+  return n;
+}
+
+// Remove a pencil-in (Oct 30 2026): the ✕ button on the Bookings card, or Miranda texting Sandy.
+// textTimes = text the customer the closest open times; otherwise nothing is texted.
+export async function removePencil(base, id, { textTimes = false, by = "", who = "" } = {}) {
+  const list = await getRequests(base), r = list.find((q) => q.id === id);
+  if (!r) return { error: "no request with that id" };
+  if (r.status !== "penciled" && r.status !== "waiting") return { error: "that request isn't penciled in anymore (" + r.status + ")" };
+  let opts = [];
+  if (textTimes) {
+    const data = await loadData(base);
+    opts = openTimes(data, list, r);
+    const body = "So sorry, Miranda isn't able to hold " + longDay(r.date) + slotWords(r.time) + " for you after all. " + choices(opts) + pickLine(opts);
+    await deliver(base, r.phone, body, "pencil-removed");
+    await addToCustomer(base, r.phone, body);
+  }
+  const fresh = await getRequests(base), f = fresh.find((q) => q.id === id);
+  if (f) { f.status = "closed"; f.closed = { at: new Date().toISOString(), why: "pencil-in removed" + (textTimes ? "; offered other times" : ""), by, who }; await saveRequests(base, fresh); }
+  return { ok: true, texted: textTimes, offered: opts.map((o) => nice(o.date) + " " + low(o.time)) };
 }
 
 async function askMiranda(base, phone, question, history, text, { page, test, mark }) {

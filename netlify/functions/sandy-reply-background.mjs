@@ -22,7 +22,8 @@ export default async (req) => {
       if (out.changes.length) await record(base, { kind: "changes", from: d.from, changes: out.changes });
       if (out.reply) await deliver(base, d.from, out.reply, "to-customer");
     } else if (d.kind === "pencil") {
-      // Every 5 minutes (Oct 30 2026): pencil in customers Miranda hasn't answered in 30 minutes, and remind her
+      // Every minute (Oct 30 2026): pencil in customers nobody okayed within 5 minutes, bump ones whose time got
+      // booked, and remind Miranda and Bradyn at 5:00 and 8:30 PM
       await pencilCheck(base);
     } else if (d.kind === "web") {
       // Someone sent a website request and checked OK to text (Oct 28 2026)

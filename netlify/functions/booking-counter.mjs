@@ -85,6 +85,38 @@ const sisterOf = (req) => {
   catch (e) { return null; }
 };
 
+// Sandy's date requests and who she's texting (Oct 30 2026), for the Bookings page's ✏️ penciled-in cards
+async function sandyInfo(live) {
+  const st = getStore({ name: live ? "sandy" : "sandy-test", consistency: "strong" });
+  const cut = new Date(Date.now() - 14 * 86400000).toISOString(), recent = new Date(Date.now() - 3 * 86400000).toISOString();
+  const requests = ((await st.get("requests", { type: "json" })) || []).filter((r) => (r.at || "") > cut).map((r) => ({
+    id: r.id, at: r.at, phone: r.phone, name: r.name, date: r.date, time: r.time, beach: r.beach, pkg: r.pkg, price: r.price,
+    status: r.status, penciledAt: r.penciledAt || null, test: !!r.test, mark: !!r.mark }));
+  const texting = {};
+  for (const [p, c] of Object.entries((await st.get("customers", { type: "json" })) || {})) {
+    if ((c.at || "") > recent) texting[p] = { at: c.at, handed: !!(c.handoffAt && c.handoffAt > recent) };
+  }
+  return { requests, texting };
+}
+// The whole website form for each request (Oct 30 2026), matched by phone, date and time sent
+async function addForms(live, log) {
+  const list = (await getStore({ name: live ? "web-requests" : "web-requests-test", consistency: "strong" }).get("list", { type: "json" })) || [];
+  if (!list.length) return;
+  const clean = (v, n) => String(v == null ? "" : v).replace(/\n*Came from:[\s\S]*$/, "").trim().slice(0, n);
+  for (const e of log) {
+    if (e.kind !== "request" || !e.phone) continue;
+    const t = Date.parse(e.at);
+    const w = list.find((x) => x.fields && x.phone === e.phone && (x.date || "") === (e.date || "") && Math.abs(Date.parse(x.at) - t) < 30 * 60000);
+    if (!w) continue;
+    const f = w.fields, form = {};
+    if (clean(f.email, 120)) form.email = clean(f.email, 120);
+    if (clean(f.people, 20)) form.people = clean(f.people, 20);
+    if (clean(f.who, 300)) form.who = clean(f.who, 300);
+    if (clean(f.message, 2000)) form.message = clean(f.message, 2000);
+    if (Object.keys(form).length) e.form = form;
+  }
+}
+
 export default async (req) => {
   const sister = sisterOf(req);
   if (sister) {
@@ -146,7 +178,17 @@ export default async (req) => {
   const url = new URL(req.url);
   if (req.method === "GET" && url.searchParams.get("log")) {
     if (!(await okPass(req))) return json({ error: "passcode" });
-    return json({ bookings: await getList("bookings"), log: (await getList("log")).slice(-300), daysOff: await getList("daysoff"), test: !live });
+    const log = (await getList("log")).slice(-300);
+    // Oct 30 2026: everything the customer filled in on the form shows on their Inquiry card
+    try { await addForms(live, log); } catch (e) {}
+    let sandy = null; try { sandy = await sandyInfo(live); } catch (e) {}
+    return json({ bookings: await getList("bookings"), log, daysOff: await getList("daysoff"), test: !live, ...(sandy ? { sandy } : {}) });
+  }
+  // Oct 30 2026: times customers are penciled in for (or waiting on an OK), for New Booking's warning.
+  // Dates and times only, plus the last 4 digits of their phone (so their own link doesn't warn), never names.
+  if (req.method === "GET" && url.searchParams.get("holds")) {
+    let reqs = []; try { reqs = (await sandyInfo(live)).requests; } catch (e) {}
+    return json({ holds: reqs.filter((r) => r.status === "penciled" || r.status === "waiting").map((r) => ({ date: r.date, time: r.time, status: r.status, p4: String(r.phone || "").slice(-4), test: !!(r.test || r.mark) })) });
   }
   if (req.method === "GET") {
     const list = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS;
@@ -312,6 +354,19 @@ export default async (req) => {
       ...(a === "move" ? { date: b.date, detail: "Moved from " + b.movedFrom } : a === "deduct" ? { detail: b.deducts[b.deducts.length - 1].why }
         : a === "edit" || a === "photographer" || a === "shooter-paid" || a === "review" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
     return json({ ok: true, booking: b });
+  }
+  // Sandy (Oct 30 2026): Miranda said no to a time after Bradyn's yes, before the deposit. The Confirm link that
+  // went out stops working, and if the customer already confirmed (no deposit yet) that booking is cancelled.
+  if (data.kind === "void") {
+    if (!(await sandyOk(req))) return json({ error: "passcode" });
+    const k = keyOf(data), now = new Date().toISOString(), list = await getList("bookings");
+    const b = list.find((x) => x.key === k && !x.cancelled);
+    if (b && (b.deposit || b.paid)) return json({ paid: true, num: b.num });
+    state.voided = (Array.isArray(state.voided) ? state.voided : []).filter((v) => v.at > new Date(Date.now() - 60 * 86400000).toISOString()).concat({ key: k, at: now });
+    state.updated = now; await store.setJSON("state", state);
+    if (b) { b.cancelled = { at: now, by: clip(data.by, 40) || "Sandy" }; await store.setJSON("bookings", list); await logIt({ kind: "cancel", num: b.num, name: b.name, by: clip(data.by, 40), detail: "Miranda said no (no deposit yet)", test: !!b.test }); }
+    await logIt({ kind: "void", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), by: clip(data.by, 40), detail: "Confirm link cancelled: Miranda said no", test: isTestName(data.name) });
+    return json({ ok: true, cancelled: b ? b.num : null });
   }
   // Master page "Clear all tests" button (Oct 15 2026): removes test bookings and test entries from
   // the master page only. Real bookings, totals and booking numbers are never touched.
@@ -482,6 +537,11 @@ export default async (req) => {
 
   // Confirm page
   const key = keyOf(data);
+  // Oct 30 2026: a Confirm link Miranda said no to after it went out (Sandy offered other times)
+  if ((state.voided || []).some((v) => v.key === key) && !data.force) {
+    await logIt({ kind: "slot-taken", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), detail: "Tried a Confirm link Miranda said no to", test: isTestName(data.name) || isTestPhone(data.phone) });
+    return json({ conflict: true, voided: true });
+  }
   const pend = (state.pending || []).find((p) => p.key === key) || null;
   // Photographer's pay for a contracted session: the session total minus Miranda's share
   if (pend && pend.photographer && pend.split) pend.payout = cents(amount - shareOf(pend.split, amount));

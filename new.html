@@ -307,10 +307,22 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     try { fetch('/api/booking-counter', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body }); } catch (e) {}
   }
 
+  // Oct 30 2026: warn before sending a Confirm link for a time Sandy has someone penciled in for (or is checking)
+  var HOLDS = [];
+  try { fetch('/api/booking-counter?holds=1', { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(j){ HOLDS = (j && j.holds) || []; }).catch(function(){}); } catch (e) {}
+  function penciledOK(o){
+    var p4 = $('ph').value.replace(/\D/g, '').slice(-4), t = String(o.t || '').toLowerCase();
+    var h = HOLDS.filter(function(x){ return x.date === o.d && String(x.time || '').toLowerCase() === t && !(p4.length === 4 && x.p4 === p4); })[0];
+    if (!h) return true;
+    var day = new Date(o.d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    return confirm('⚠️ Heads up: ' + (h.status === 'penciled' ? 'Sandy has someone penciled in for ' : 'Sandy is checking this time for someone: ') + day + ' at ' + t + '.' +
+      (h.status === 'penciled' ? ' They were told you\'d send their final confirmation.' : '') + '\n\nSend this Confirm link anyway? If it gets booked, Sandy texts them other open times.');
+  }
   function ready(){ if (!who()) { $('whocard').scrollIntoView({ behavior: 'smooth' }); return false; } var ok = $('n').value.trim() && $('d').value; $('err').textContent = "Please fill in the client's name and the date first."; $('err').hidden = !!ok; return ok; }
   $('send').addEventListener('click', function(e){
     e.preventDefault(); if (!ready()) return;
     var o = data(), first = o.n.split(/\s+/)[0];
+    if (!penciledOK(o)) return;
     remember(o);
     var msg = 'Hi ' + first + '! Here are your session details. Tap to confirm and hold your date: ' + link(o);
     var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && 'ontouchend' in document);
@@ -319,7 +331,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   });
   $('copy').addEventListener('click', function(e){
     e.preventDefault(); if (!ready()) return;
-    var od = data(); remember(od);
+    var od = data(); if (!penciledOK(od)) return; remember(od);
     var l = link(od);
     var done = function(){ $('copied').hidden = false; setTimeout(function(){ $('copied').hidden = true; }, 2500); };
     if (navigator.clipboard) navigator.clipboard.writeText(l).then(done, function(){ prompt('Copy this link:', l); });

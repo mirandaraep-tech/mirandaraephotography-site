@@ -21,8 +21,14 @@ export const SANDY_NUMBER = "+14482173502"; // (448) 217-3502, Twilio
 export const PEOPLE = {
   "2563996736": { name: "Randy", role: "Randy (Miranda's dad, the administrator who set Sandy up)" },
   "4482196539": { name: "Miranda", role: "Miranda (she runs Miranda Rae Photography and does the shooting)" },
+  // Oct 30 2026: Bradyn is staff too. He can okay customer dates and update the Bookings app. He can still
+  // test as a customer the same way Randy does (send a website request from his phone).
+  "2566134522": { name: "Bradyn", role: "Bradyn (he helps Miranda: he can okay customer date requests and update the Bookings app)" },
 };
 export const MIRANDA = "4482196539";
+export const BRADYN = "2566134522";
+// Oct 30 2026: who gets asked to okay a customer's date. Both at once; the first YES or NO decides.
+export const STAFF = [MIRANDA, BRADYN];
 // Pretend customer used by the "Customer" button on the private /sandy page. Never really texted.
 export const TEST_CUSTOMER = "8505550100";
 // Customers' conversations kept by phone number; the pretend customer's stays separate
@@ -124,6 +130,8 @@ function inquiries(data, today) {
   (data.bookings || []).forEach((b) => { gone[low(b.name) + "|" + (b.date || "")] = 1; });
   log.forEach((e) => { if (e.kind === "confirm" || e.kind === "added" || e.kind === "dismiss") gone[key(e)] = 1; });
   log.forEach((e) => {
+    // Oct 30 2026: Miranda said no after Bradyn's yes; the Confirm link that went out no longer counts
+    if (e.kind === "void") { const v = map[key(e)]; if (v) delete v.sent; return; }
     if (e.kind !== "request" && e.kind !== "sent") return;
     if (!String(e.name || "").trim()) return;
     const k = key(e); if (gone[k]) return;
@@ -224,10 +232,53 @@ export const TOOLS = [
   { name: "set_day_off", description: "Mark days or times Miranda is off, so they show on the Bookings calendar and you won't offer them to customers. For a range, give date and to. part: all (whole day), sunrise, sunset or midday.", input_schema: { type: "object", properties: { date: { type: "string", description: "YYYY-MM-DD" }, to: { type: "string", description: "YYYY-MM-DD, last day of a range (optional)" }, part: { type: "string", enum: ["all", "sunrise", "sunset", "midday"] }, note: { type: "string", description: "Optional reason, e.g. vacation" } }, required: ["date"] } },
   { name: "remove_day_off", description: "Undo a day off (she's available again). Leave part out to clear the whole day.", input_schema: { type: "object", properties: { date: { type: "string" }, to: { type: "string" }, part: { type: "string", enum: ["all", "sunrise", "sunset", "midday"] } }, required: ["date"] } },
   { name: "offer_other_time", description: "Miranda said no to a customer's requested time but named another time she CAN do (e.g. \"No, but Friday sunset works\"). Texts the customer your message offering that time, and marks it okayed by Miranda, so if they say yes they get the Confirm link right away without asking her again.", input_schema: { type: "object", properties: { request_id: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD of the time Miranda can do" }, time: { type: "string", description: "Sunrise, Sunset, Midday or Other" }, message: { type: "string", description: "The text to the customer, e.g. \"So sorry, Miranda can't make Thursday, Nov 26 at sunrise after all, but she can do Friday, Nov 27 at sunset. Would that work for you? Reply YES and I'll send you the link to save your date.\"" } }, required: ["request_id", "date", "time", "message"] } },
+  { name: "remove_pencil", description: "Take a customer's pencil-in (or waiting request) off, when Miranda, Bradyn or Randy asks. text_other_times true = text the customer the closest open times instead; false = just remove it, nothing is texted.", input_schema: { type: "object", properties: { request_id: { type: "string" }, text_other_times: { type: "boolean" } }, required: ["request_id", "text_other_times"] } },
   { name: "close_request", description: "Mark a customer date request as handled without sending a Confirm link (Miranda said no, or it was settled another way).", input_schema: { type: "object", properties: { request_id: { type: "string" }, why: { type: "string" } }, required: ["request_id"] } },
 ];
 
-async function runTool(base, name, x, by, data) {
+// Request tools (Oct 30 2026): the first YES or NO from Miranda or Bradyn decides. A later answer from the other
+// one is turned away, except Miranda (or Randy) saying no to a link Bradyn okayed before the deposit is in.
+const REQ_TOOLS = ["send_confirm_link", "close_request", "offer_other_time", "remove_pencil"];
+const OPEN_REQ = ["waiting", "penciled"];
+const whoName = (phone) => (PEOPLE[digits(phone)] || {}).name || "Someone";
+const boss = (phone) => digits(phone) === MIRANDA || digits(phone) === "2563996736";
+function handledNote(r) {
+  if (r.status === "link sent") return (r.sent && r.sent.who ? r.sent.who : "Someone") + " already okayed it and I texted " + firstName(r.name) + " the Confirm link";
+  if (r.status === "offered") return (r.offer && r.offer.who ? r.offer.who : "Someone") + " already answered: I offered " + firstName(r.name) + " " + nice(r.offer.date) + " " + low(r.offer.time) + " instead";
+  return (r.closed && r.closed.who ? r.closed.who : "Someone") + " already answered it" + (r.closed && r.closed.why ? " (" + r.closed.why + ")" : "");
+}
+async function runTool(base, name, x, by, data, actor = "") {
+  if (REQ_TOOLS.includes(name) && x.request_id) {
+    const r = (await getRequests(base)).find((q) => q.id === x.request_id);
+    if (!r) return { error: "no request with that id" };
+    if (!OPEN_REQ.includes(r.status)) {
+      const overrule = r.status === "link sent" && boss(actor) && (name === "close_request" || name === "offer_other_time");
+      if (!overrule) return { error: "already handled: " + handledNote(r) + ". Tell them that; nothing else to do." };
+      // Miranda wins (Oct 30 2026): cancel the Confirm link that went out (and an unpaid booking from it)
+      const v = await post(base, { kind: "void", name: r.sent.n || r.name, date: r.sent.d || r.date, beach: r.sent.b || r.beach || "Other", by });
+      if (v.paid) return { error: firstName(r.name) + " already paid the deposit, so it's booked. Tell Miranda she'll need to sort it out with them herself (or cancel the booking first)." };
+      if (!v.ok) return { error: "couldn't cancel the Confirm link: " + (v.error || "unknown") };
+    }
+    const before = { ...r };
+    const out = await runTool2(base, name, x, by, data, actor);
+    if (out && out.ok && actor) await tellOthers(base, actor, before, name, x);
+    return out;
+  }
+  return runTool2(base, name, x, by, data, actor);
+}
+// Tell the other staff member it's handled (Oct 30 2026), e.g. "Sandy here. Miranda okayed Jane Smith for
+// Thu, Nov 26 sunset, so I texted them the Confirm link. Nothing needed from you."
+async function tellOthers(base, actor, r, name, x) {
+  const who = whoName(actor), slot = nice(r.date) + (r.time ? " " + low(r.time) : ""), mark = r.mark || r.test ? "TEST — " : "";
+  const after = r.status === "link sent" ? " (after " + ((r.sent && r.sent.who) || "Bradyn") + "'s yes), so I cancelled that Confirm link and" : ", so I";
+  const msg = name === "send_confirm_link" ? who + " okayed " + r.name + " for " + slot + ", so I texted them the Confirm link."
+    : name === "offer_other_time" ? who + " said no to " + r.name + " for " + slot + after + " offered them " + nice(x.date) + " " + low(x.time) + " instead."
+    : name === "remove_pencil" ? who + " took " + r.name + "'s pencil-in for " + slot + " off" + (x.text_other_times ? " and I texted them other times." : ".")
+    : who + " said no to " + r.name + " for " + slot + after + " offered them other times.";
+  for (const p of STAFF) if (p !== digits(actor)) await tellStaff(base, p, mark + "Sandy here. " + msg + " Nothing needed from you.", { page: !!r.test });
+}
+
+async function runTool2(base, name, x, by, data, actor) {
   const st = (action, extra) => post(base, { kind: "status", action, num: x.num, by, ...extra });
   switch (name) {
     case "deposit_received": return st("deposit", { amount: x.amount || 50, method: x.method });
@@ -256,7 +307,8 @@ async function runTool(base, name, x, by, data) {
     }
     case "set_day_off": return post(base, { kind: "dayoff", date: x.date, to: x.to || x.date, part: x.part || "all", note: x.note || "", by });
     case "remove_day_off": return post(base, { kind: "dayoff", action: "remove", date: x.date, to: x.to || x.date, ...(x.part ? { part: x.part } : {}), by });
-    case "send_confirm_link": return sendConfirmLink(base, x, by);
+    case "send_confirm_link": return sendConfirmLink(base, x, by, whoName(actor));
+    case "remove_pencil": { const { removePencil } = await import("./customers.mjs"); return removePencil(base, x.request_id, { textTimes: !!x.text_other_times, by, who: whoName(actor) }); }
     case "text_customer": return textCustomer(base, x.phone, x.message, data);
     case "offer_other_time": {
       const list = await getRequests(base), r = list.find((q) => q.id === x.request_id);
@@ -265,13 +317,13 @@ async function runTool(base, name, x, by, data) {
       const sent = await textCustomer(base, r.phone, x.message, data);
       if (sent.error) return sent;
       const fresh = await getRequests(base), f = fresh.find((q) => q.id === x.request_id);
-      if (f) { f.status = "offered"; f.offer = { date: x.date, time: x.time || f.time, at: new Date().toISOString(), by }; await saveRequests(base, fresh); }
+      if (f) { f.status = "offered"; f.offer = { date: x.date, time: x.time || f.time, at: new Date().toISOString(), by, who: whoName(actor) }; await saveRequests(base, fresh); }
       return { ok: true, offered: true };
     }
     case "close_request": {
       const list = await getRequests(base), r = list.find((q) => q.id === x.request_id);
       if (!r) return { error: "no request with that id" };
-      r.status = "closed"; r.closed = { at: new Date().toISOString(), why: String(x.why || "").slice(0, 200), by };
+      r.status = "closed"; r.closed = { at: new Date().toISOString(), why: String(x.why || "").slice(0, 200), by, who: whoName(actor) };
       await saveRequests(base, list);
       return { ok: true };
     }
@@ -286,7 +338,7 @@ function system(who, snap, priceList, today) {
   return `You are Sandy, the texting assistant for Miranda Rae Photography, a family and wedding beach photography business on the Florida Gulf Coast (Mexico Beach, Port St. Joe, Cape San Blas, Panama City Beach, St. George Island, Destin, 30A). You are Claude, made by Anthropic, built into the business's website. Your texting number is (448) 217-3502.
 
 You are texting with ${who}.
-Randy is Miranda's dad and the administrator; he set you up and helps run the website and ads. Miranda runs the business and does the photography. Bradyn sometimes tests the website. Kallie Callan is a photographer friend Miranda sometimes hands sessions to.
+Randy is Miranda's dad and the administrator; he set you up and helps run the website and ads. Miranda runs the business and does the photography. Bradyn helps Miranda: he can okay customer date requests and update the Bookings app (he also sometimes tests the website as a customer). Kallie Callan is a photographer friend Miranda sometimes hands sessions to.
 
 Your job: keep Miranda's Bookings app (the private /log page) tidy and up to date, and help her stay on top of loose ends — inquiries waiting on her, deposits not in yet, sessions whose date passed but aren't marked paid, photographers who owe her. When she or Randy tells you something, you fix it in the app with your tools.
 
@@ -298,12 +350,14 @@ How you text:
 - If it's not clear which booking they mean (two with the same name, etc.), ask before changing anything.
 - Before cancelling: ask them to confirm, and ask whether Miranda keeps or returns the deposit. Miranda's policy is that deposits aren't refundable, but it's her call case by case.
 - If a tool returns a conflict (slot already taken) or an error, tell them plainly and suggest what to do.
-- Customers text your number too (Oct 28 2026). Another copy of you answers them: prices, open dates, and taking down date requests. When a customer wants a date, you text Miranda the details and ask "Want me to text them the Confirm link? Reply YES or NO".
-- If Miranda (or Randy) says yes to a request under CUSTOMER DATE REQUESTS (waiting or PENCILED IN), send it with send_confirm_link, then confirm in one line. If they want something changed first (price, package), send the link with that change.
+- Customers text your number too (Oct 28 2026). Another copy of you answers them: prices, open dates, and taking down date requests. When a customer wants a date, you text Miranda AND Bradyn the details at the same time and ask "Want me to text them the Confirm link? Reply YES or NO".
+- First answer decides (Oct 30 2026): if Miranda, Bradyn (or Randy) says yes to a request under CUSTOMER DATE REQUESTS (waiting or PENCILED IN), send it with send_confirm_link, then confirm in one line. If they want something changed first (price, package), send the link with that change. The other person is told automatically that it's handled, so don't text them yourself. If a tool says the request was already answered by someone else, tell them who answered and what happened, and do nothing more.
+- Miranda's word wins (Oct 30 2026): if Bradyn okayed a request (listed under LINKS SENT, NO DEPOSIT YET as "okayed by Bradyn") and Miranda says NO to it, handle it exactly like a NO below, using that request_id (it cancels the Confirm link Bradyn's yes sent, and Bradyn is told automatically). Say "after all" in the text to the customer. Bradyn can't overrule Miranda.
 - NO, Oct 30 2026 (Randy's rule) — don't ask Miranda what to tell them; handle it right away:
   - Plain NO: look at the calendar (bookings, days off, and other customers' requests listed here) and use text_customer to offer the closest open times: that day's other time (sunrise or sunset) and the next day's same time, or the nearest open ones. Write it like: "So sorry, Miranda can't make Thursday, Nov 26 at sunrise after all. Would Thursday at sunset or Friday, Nov 27 at sunrise work for you?" Say "after all" only when that request was PENCILED IN; otherwise "So sorry, Miranda isn't able to do Thursday, Nov 26 at sunrise." Then close_request (why: "Miranda said no; offered other times"), then tell Miranda in one line what you offered. If they pick one, it comes back to Miranda as a new request.
   - NO with another time she can do ("No, but Friday sunset works"): use offer_other_time with that date and time and a text like "So sorry, Miranda can't make Thursday, Nov 26 at sunrise after all, but she can do Friday, Nov 27 at sunset. Would that work for you? Reply YES and I'll send you the link to save your date." (again, "after all" only if PENCILED IN). If they say yes, they get the Confirm link right away and you'll text Miranda a heads-up. Then tell Miranda in one line it's offered.
-- PENCILED IN (Oct 30 2026): if Miranda doesn't answer a request within 30 minutes, the customer is automatically texted that they're penciled in and Miranda will send the final confirmation shortly, and Miranda gets reminders. Her YES or NO works the same as before.
+- PENCILED IN (Oct 30 2026): if neither Miranda nor Bradyn answers a request within 5 minutes, the customer is automatically texted that they're penciled in and Miranda will send the final confirmation and link later today (or tomorrow, after 6 PM). Miranda and Bradyn get one reminder about anyone still penciled in at 5:00 PM and 8:30 PM, and the 9 AM check-in covers overnight ones. A YES or NO works the same as before. If a booking takes a penciled-in time anyway, the customer is automatically texted other open times and Miranda is told.
+- Removing a pencil-in (Oct 30 2026): if Miranda (or Bradyn or Randy) asks you to remove or clear someone's pencil-in, ask "Text them other times?" unless they already said, then use remove_pencil with their answer, and confirm in one line.
 - If there's more than one request waiting and it's not clear which one a YES is for, ask.
 - Website requests (Oct 28 2026): when someone sends a request form on the website and checks OK to text, you text them to get anything missing, then it comes to Miranda like any other date request. Anything marked TEST came from Randy's, Bradyn's or Miranda's own phone; handle it exactly like a real one (they're testing), and say TEST when you mention it.
 - If you're both answering a customer's question and sending their Confirm link, send the answer with text_customer FIRST, then the link, and don't mention the link in that answer (the link text explains itself).
@@ -386,7 +440,7 @@ export async function chat({ base, from, text, history = [], voice = false, page
     for (const u of uses) {
       let out;
       if (voice && !saidYes(text)) out = { error: "Not done. On a phone call you must first read the change back and ask 'Should I go ahead?', and only make it after they say yes." };
-      else { try { out = await runTool(base, u.name, u.input || {}, by + (voice ? " (call)" : ""), data); } catch (e) { out = { error: String(e.message || e) }; } }
+      else { try { out = await runTool(base, u.name, u.input || {}, by + (voice ? " (call)" : ""), data, digits(from)); } catch (e) { out = { error: String(e.message || e) }; } }
       changes.push({ tool: u.name, input: u.input, result: out });
       results.push({ type: "tool_result", tool_use_id: u.id, content: JSON.stringify(out).slice(0, 4000) });
     }
@@ -459,7 +513,7 @@ export async function chatLive({ base, from, text, history = [], onText, onWorki
     for (const u of uses) {
       let out;
       if (!saidYes(text)) out = { error: "Not done. On a phone call you must first read the change back and ask 'Should I go ahead?', and only make it after they say yes." };
-      else { try { out = await runTool(base, u.name, u.input || {}, by, data); } catch (e) { out = { error: String(e.message || e) }; } }
+      else { try { out = await runTool(base, u.name, u.input || {}, by, data, digits(from)); } catch (e) { out = { error: String(e.message || e) }; } }
       changes.push({ tool: u.name, input: u.input, result: out });
       results.push({ type: "tool_result", tool_use_id: u.id, content: JSON.stringify(out).slice(0, 4000) });
     }
@@ -497,6 +551,7 @@ export function describeChange(c, data) {
     case "text_customer": return "Texted " + fmtPhone(x.phone);
     case "close_request": return "Request closed";
     case "offer_other_time": return "Offered " + nice(x.date) + " " + x.time + " to the customer";
+    case "remove_pencil": return "Pencil-in removed" + (x.text_other_times ? ", other times texted" : "");
     case "set_day_off": return "Day off: " + nice(x.date) + (x.to && x.to !== x.date ? " to " + nice(x.to) : "") + (x.part && x.part !== "all" ? " (" + x.part + ")" : "");
     case "remove_day_off": return "Available again: " + nice(x.date) + (x.to && x.to !== x.date ? " to " + nice(x.to) : "");
   }
@@ -584,10 +639,13 @@ export async function customerSection(base, withTests) {
   const reqs = (await getRequests(base)).filter((r) => withTests || !r.test);
   const waiting = reqs.filter((r) => r.status === "waiting" || r.status === "penciled");
   const offered = reqs.filter((r) => r.status === "offered" && r.offer && r.at > new Date(Date.now() - 7 * 86400000).toISOString());
+  // Oct 30 2026: links that went out in the last 7 days, so Miranda can still say no to one Bradyn okayed
+  const linked = reqs.filter((r) => r.status === "link sent" && r.sent && r.date >= todayCT() && (r.sent.at || "") > new Date(Date.now() - 7 * 86400000).toISOString());
   const cust = Object.entries(await getCustomers(base)).filter(([p, c]) => (withTests || !c.test) && c.at > new Date(Date.now() - 7 * 86400000).toISOString());
-  const rq = (r) => "- request_id " + r.id + ": " + [r.name, fmtPhone(r.phone), r.date ? nice(r.date) : "", r.time, r.beach, r.pkg, money(r.price) + (r.travel ? " (incl. " + money(r.travel) + " travel fee)" : ""), r.people ? r.people + " people" : "", r.notes ? "notes: " + r.notes : "", "asked " + daysAgo(r.at, todayCT()), r.status === "penciled" ? "PENCILED IN (customer was told Miranda will send the final confirmation shortly)" : "", r.test || r.mark ? "TEST" : ""].filter(Boolean).join(" · ");
+  const rq = (r) => "- request_id " + r.id + ": " + [r.name, fmtPhone(r.phone), r.date ? nice(r.date) : "", r.time, r.beach, r.pkg, money(r.price) + (r.travel ? " (incl. " + money(r.travel) + " travel fee)" : ""), r.people ? r.people + " people" : "", r.notes ? "notes: " + r.notes : "", "asked " + daysAgo(r.at, todayCT()), r.status === "penciled" ? "PENCILED IN (customer was told Miranda will send the final confirmation and link later)" : "", r.test || r.mark ? "TEST" : ""].filter(Boolean).join(" · ");
   const cl = ([p, c]) => "- " + [c.name || "name not given", fmtPhone(p), "last text " + daysAgo(c.at, todayCT()) + ': "' + String(c.last || "").slice(0, 120) + '"', c.waiting ? 'WAITING ON MIRANDA: "' + c.waiting + '"' : "", c.handoffAt && c.handoffAt > new Date(Date.now() - 3 * 86400000).toISOString() ? "HANDED TO MIRANDA " + daysAgo(c.handoffAt, todayCT()) + " (" + (c.handoffWhy || "") + "): she texts them herself" : "", c.callback && c.callbackAt > new Date(Date.now() - 3 * 86400000).toISOString() ? "ASKED MIRANDA TO CALL " + daysAgo(c.callbackAt, todayCT()) + ", " + c.callback + (c.callbackAbout ? " (" + c.callbackAbout + ")" : "") : "", c.test || isOurs(p) ? "TEST" : ""].filter(Boolean).join(" · ");
-  return "CUSTOMER DATE REQUESTS WAITING ON MIRANDA'S YES (" + waiting.length + "):\n" + (waiting.length ? waiting.map(rq).join("\n") : "- none") +
+  return "CUSTOMER DATE REQUESTS WAITING ON A YES FROM MIRANDA OR BRADYN (" + waiting.length + "):\n" + (waiting.length ? waiting.map(rq).join("\n") : "- none") +
+    (linked.length ? "\n\nLINKS SENT, NO DEPOSIT YET (Confirm link texted; Miranda can still say no):\n" + linked.map((r) => rq(r) + " · okayed by " + ((r.sent && r.sent.who) || "Miranda") + " " + daysAgo(r.sent.at, todayCT())).join("\n") : "") +
     (offered.length ? "\n\nOTHER TIMES MIRANDA OKAYED, WAITING ON THE CUSTOMER (" + offered.length + "):\n" + offered.map((r) => rq(r) + " · offered " + nice(r.offer.date) + " " + r.offer.time + " instead").join("\n") : "") +
     "\n\nCUSTOMER TEXTS (last 7 days, " + cust.length + "):\n" + (cust.length ? cust.map(cl).join("\n") : "- none");
 }
@@ -603,6 +661,24 @@ export async function notifyMiranda(base, text, { page = false } = {}) {
   }
   await saveHistory(base, MIRANDA, (await getHistory(base, MIRANDA)).concat({ role: "user", content: "[Customer update]" }, { role: "assistant", content: text }));
   await deliver(base, MIRANDA, text, "to-miranda");
+}
+
+// Text one staff member (Miranda or Bradyn), kept in their conversation so they can just reply YES (Oct 30 2026)
+export async function tellStaff(base, phone, text, { page = false } = {}) {
+  const p = digits(phone);
+  if (page) {
+    const s = sandyStore(base), key = "page-" + p, h = (await s.get(key, { type: "json" })) || [];
+    await s.setJSON(key, h.concat({ role: "user", content: "[Customer update]" }, { role: "assistant", content: text }).slice(-20));
+    await record(base, { kind: "to-staff-test", to: p, body: text, sent: false });
+    return;
+  }
+  await saveHistory(base, p, (await getHistory(base, p)).concat({ role: "user", content: "[Customer update]" }, { role: "assistant", content: text }));
+  await deliver(base, p, text, "to-staff");
+}
+// Text Miranda and Bradyn the same thing at the same time (Oct 30 2026). One right after the other (a second
+// apart at most), so the shared list of sent texts never loses one.
+export async function notifyStaff(base, text, opts = {}) {
+  for (const p of STAFF) await tellStaff(base, p, text, opts);
 }
 
 // Add Sandy's own text to a customer's conversation so she remembers it when they answer
@@ -632,7 +708,7 @@ export async function okToText(base, phone) {
   return !!(await sandyStore(base).get("ok-text-" + p, { type: "json" }));
 }
 
-export async function sendConfirmLink(base, x, by) {
+export async function sendConfirmLink(base, x, by, who = "") {
   const list = await getRequests(base), r = x.request_id ? list.find((q) => q.id === x.request_id) : null;
   if (x.request_id && !r) return { error: "no request with that id" };
   const o = { ...(r || {}), ...Object.fromEntries(Object.entries(x).filter(([k, v]) => v !== undefined && v !== "" && k !== "request_id")) };
@@ -659,6 +735,6 @@ export async function sendConfirmLink(base, x, by) {
     "Check your session details, then tap Confirm and pay your " + money(dep) + " deposit to secure your date: " + url + "\n\nJust so you know, your date isn't held until the deposit is in. Any questions, just text me back!";
   const d = await deliver(base, phone, body, "confirm-link");
   await addToCustomer(base, phone, body);
-  if (r) { r.status = "link sent"; r.sent = { at: new Date().toISOString(), by, price }; await saveRequests(base, list); }
+  if (r) { r.status = "link sent"; r.sent = { at: new Date().toISOString(), by, price, who: who || "Miranda", n: lk.n, d: lk.d, b: lk.b }; await saveRequests(base, list); }
   return d.error ? { error: "link made but the text didn't go: " + d.error } : { ok: true, name: lk.n, price, ...(phone === TEST_CUSTOMER ? { pretend_customer: "test only, counts as sent" } : { sent: d.sent }) };
 }

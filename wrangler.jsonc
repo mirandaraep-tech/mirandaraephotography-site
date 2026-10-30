@@ -25,8 +25,9 @@
   "durable_objects": { "bindings": [{ "name": "STORE", "class_name": "SiteStore" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SiteStore"] }],
   // Sandy's 9 AM Central check-in (wakes at both hours; Sandy only goes ahead at 9 AM Central),
-  // and every 5 minutes the pencil-in check (Oct 30 2026; see pencilCheck in netlify/sandy/customers.mjs)
-  "triggers": { "crons": ["0 14,15 * * *", "*/5 * * * *"] },
+  // and every minute the pencil-in check (Oct 30 2026: pencil in after 5 minutes, reminders at 5:00 and 8:30 PM;
+  // see pencilCheck in netlify/sandy/customers.mjs)
+  "triggers": { "crons": ["0 14,15 * * *", "* * * * *"] },
   "vars": {
     "URL": "https://mirandaraephotography.com",
     // "yes" only once the real domain points here (switch night) — keeps the test copy from texting anyone

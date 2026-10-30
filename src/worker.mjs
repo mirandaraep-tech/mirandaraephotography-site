@@ -20,6 +20,7 @@ import sandyReply from "../netlify/functions/sandy-reply-background.mjs";
 import sandyVoice from "../netlify/functions/sandy-voice.mjs";
 import sandyLive from "../netlify/functions/sandy-live.mjs";
 import sandyWeb from "../netlify/functions/sandy-web.mjs";
+import sandyPencil from "../netlify/functions/sandy-pencil.mjs";
 import { EmailMessage } from "cloudflare:email";
 import { getHistory, saveHistory, deliver, sandyKey } from "../netlify/sandy/brain.mjs";
 import { handleRequest, handleNotify, handleSisterCopy } from "./requests.mjs";
@@ -38,7 +39,7 @@ const REQ_DEPS = {
 const LIVE_HOST = "mirandaraephotography.com";
 const PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79"; // same as /log
 const BACKGROUND = "/.netlify/functions/sandy-reply-background";
-const PENCIL_CRON = "*/5 * * * *"; // must match wrangler.jsonc
+const PENCIL_CRON = "* * * * *"; // must match wrangler.jsonc (every minute since Oct 30 2026)
 
 const API = {
   "/api/booking-counter": bookingCounter,
@@ -50,6 +51,7 @@ const API = {
   "/api/sandy-voice": sandyVoice,
   "/api/sandy-live": sandyLive, // live phone conversations (WebSocket)
   "/api/sandy-web": sandyWeb, // website requests with OK to text (Oct 28 2026)
+  "/api/sandy-pencil": sandyPencil, // Bookings page "✕ Remove pencil-in" button (Oct 30 2026)
 };
 
 // ---------- Sandy's background work ----------
@@ -243,7 +245,7 @@ export default {
     return env.ASSETS.fetch(req);
   },
 
-  // Sandy's morning check-in (9 AM Central), and every 5 minutes the pencil-in check (Oct 30 2026).
+  // Sandy's morning check-in (9 AM Central), and every minute the pencil-in check (Oct 30 2026).
   // Only on the real site, never on the test copy.
   async scheduled(event, env, ctx) {
     setEnv(env); CTX_ENV = env;
