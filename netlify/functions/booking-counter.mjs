@@ -318,9 +318,8 @@ export default async (req) => {
       if (counted && b.photographer) { state.contracted = Math.max(0, (state.contracted || 0) - 1); state.payouts = cents((state.payouts || 0) - (b.payout || 0)); }
       b.photographer = shooter;
       if (shooter) {
-        // Usual split (Oct 20 2026): flat $50 to Miranda, weddings 25% (at least $50)
-        const wed = /wedding/i.test(b.time || "") || /wedding/i.test(b.pkg || "");
-        b.split = cleanSplit(data.split) || (wed ? { mode: "pct", val: (state.splitDefault || DEFAULT_SPLIT).pct, min: (state.splitDefault || DEFAULT_SPLIT).min } : { mode: "amt", val: 50 });
+        // Usual split (Oct 30 2026): 25% to Miranda, never less than $50, on every session (weddings too)
+        b.split = cleanSplit(data.split) || { mode: "pct", val: (state.splitDefault || DEFAULT_SPLIT).pct, min: (state.splitDefault || DEFAULT_SPLIT).min };
         resplit(b);
         const names = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS.slice();
         if (!names.some((n) => n.toLowerCase() === shooter.toLowerCase())) names.push(shooter);

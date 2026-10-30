@@ -236,7 +236,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // Either can still be changed per booking. MANUAL = she changed it herself, so package changes leave it alone.
   var SPLIT = { pct: 25, min: 50 }, FLAT = 50, MODE = 'pct', TOUCHED = false, MANUAL = false;
   function isWed(){ var p = PK[$('pk').value] || ['']; return $('t').value === 'Wedding' || /wedding/i.test(p[0]); }
-  function usual(){ if (MANUAL) return; TOUCHED = false; setMode(isWed() ? 'pct' : 'amt', true); }
+  // Oct 30 2026: the usual split is 25% to Miranda, never less than $50, on every session (weddings too)
+  function usual(){ if (MANUAL) return; TOUCHED = false; setMode('pct', true); }
   function split(){
     var v = $('coval').value === '' ? (MODE === 'pct' ? SPLIT.pct : 0) : num('coval');
     if (MODE === 'amt') return { mode: 'amt', val: v };

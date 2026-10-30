@@ -191,6 +191,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .pxtot{display:flex;justify-content:space-between;font-size:18px;margin-top:12px}
 .rcpt{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:14px}
 .rcpt div{display:flex;justify-content:space-between;gap:8px;padding:2px 0}.rcpt div span:last-child{white-space:nowrap}
+.rcpt div.sp{display:block;border-top:2px dashed var(--line);margin-top:6px;padding-top:6px;font-weight:bold;color:#4b42b8}
 .rcpt div.tt{border-top:1px solid var(--line);margin-top:4px;padding-top:5px;font-weight:bold}
 a.tel{color:var(--teal);font-weight:bold;text-decoration:none}
 .a-inq{background:#fff;color:#7a4f00;border:1.5px solid #f0d58f}
@@ -766,16 +767,17 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (b.addons || (b.deducts || []).length) R2 += row('Total', money(total), 'tt');
     if (b.deposit) R2 += row('Deposit paid' + (b.deposit.method ? ' (' + esc(b.deposit.method) + ')' : ''), '−' + money(b.deposit.amount));
     if (b.paid) R2 += row('Paid' + (b.paid.method ? ' (' + esc(b.paid.method) + ')' : '') + ' ' + esc(short(b.paid.at)), '−' + money(b.paid.amount));
-    if (!b.cancelled) R2 += row(owed > 0 ? 'Left to pay' : 'Paid in full ✓', money(owed), 'tt');
-    L += '<div class="rcpt">' + R2 + '</div>';
+    if (!b.cancelled) R2 += row(owed > 0 ? (b.photographer ? 'Left to pay (' + esc(b.photographer) + ' collects)' : 'Left to pay') : 'Paid in full ✓', money(owed), 'tt');
+    // Contracted session (Oct 30 2026): the split goes on the same receipt
     if (b.photographer) {
-      var how = b.split ? (b.split.mode === 'amt' ? '' : ' (' + b.split.val + '%' + (b.split.min ? ' or ' + money(b.split.min) : '') + ')') : '';
-      L += '<div class="rc"><div><span>Session total</span><span>' + money(total) + '</span></div><div><span>' + esc(b.photographer) + "'s pay</span><span>−" + money(payOf(b)) + '</span></div><div><span>Miranda\'s share' + how + '</span><span>' + money(mineOf(b)) + '</span></div></div>';
-      (b.shooterPaid || []).forEach(function(x, i, arr){ L += '<div class="kv">' + esc(b.photographer) + ' paid Miranda – <b>' + money(x.amount) + '</b> · ' + esc(short(x.at)) + (i === arr.length - 1 ? ' <button class="lnk" data-a="undo-shooter-paid">undo</button>' : '') + '</div>'; });
-      if (so) L += '<div class="owebox">💸 <b>' + esc(b.photographer) + ' owes Miranda ' + money(so) + '</b><br><span class="muted">' + esc(b.photographer) + ' collected the balance. This is the rest of Miranda\'s share.</span>' +
-        '<button class="btn" data-a="shooter-paid" style="width:100%;margin-top:8px">' + esc(b.photographer) + ' paid me ' + money(so) + '</button></div>';
-      if (b.deposit && owed > 0 && !b.cancelled) L += '<div class="kv">Balance – <b>' + esc(b.photographer) + ' collects ' + money(owed) + '</b> at the session</div>';
+      var how = b.split ? (b.split.mode === 'amt' ? '' : ' (' + b.split.val + '%' + (b.split.min ? ', at least ' + money(b.split.min) : '') + ')') : '';
+      R2 += '<div class="sp">📷 ' + esc(b.photographer) + ' shot it</div>' + row(esc(b.photographer) + "'s pay", money(payOf(b))) + row('Miranda\'s share' + how, money(mineOf(b)));
+      (b.shooterPaid || []).forEach(function(x, i, arr){ R2 += row(esc(b.photographer) + ' paid Miranda ' + esc(short(x.at)) + (i === arr.length - 1 ? ' <button class="lnk" data-a="undo-shooter-paid">undo</button>' : ''), money(x.amount)); });
+      if (so) R2 += row('💸 ' + esc(b.photographer) + ' owes Miranda', money(so), 'tt');
+      else if (b.paid && !b.cancelled) R2 += '<div class="tt"><span>✓ All settled with ' + esc(b.photographer) + '</span><span></span></div>';
     }
+    L += '<div class="rcpt">' + R2 + '</div>';
+    if (b.photographer && so) L += '<button class="btn" data-a="shooter-paid" style="width:100%;margin-bottom:8px">' + esc(b.photographer) + ' paid me ' + money(so) + '</button>';
     if (b.cancelled) L += '<div class="kv">Cancelled ' + esc(short(b.cancelled.at)) + (b.cancelled.by ? ' by ' + esc(b.cancelled.by) : '') + (b.cancelled.kept ? ' · kept ' + money(b.cancelled.kept) : b.cancelled.returned ? ' · returned ' + money(b.cancelled.returned) : '') + '</div>';
     if (b.notes) L += '<div class="kv">Notes – <b>' + esc(b.notes) + '</b></div>';
     if (b.reviewAsked) L += '<div class="kv">⭐ Review asked – <b>' + esc(b.reviewAsked.site) + '</b> · ' + esc(short(b.reviewAsked.at)) + '</div>';
@@ -885,7 +887,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   function isWed(b){ return /wedding/i.test(b.time || '') || /wedding/i.test(b.pkg || ''); }
   // Usual split (Oct 20 2026): a flat $50 to Miranda, except weddings at 25% (at least $50)
-  function usualSplit(b){ return isWed(b) ? { mode: 'pct', val: PH.split.pct, min: PH.split.min } : { mode: 'amt', val: 50 }; }
+  // Oct 30 2026: 25% to Miranda, never less than $50, on every session (changeable per booking)
+  function usualSplit(b){ return { mode: 'pct', val: PH.split.pct, min: PH.split.min }; }
   function dotOf(b){ return b.pen ? 'pen' : b.inq ? 'q' : (b.deposit || b.paid) ? 'full' : 'ring'; }
   function calendar(){
     var by = {}, tests = MORE.tests;
