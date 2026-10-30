@@ -283,7 +283,7 @@ footer a{color:#fff}
     </div>
     <div class="top-btns">
       <a class="btn btn-ghost btn-sm" href="#check-date">Check Date</a>
-      <a class="btn btn-text btn-sm sms" href="sms:+14482173502" onclick="return textTap();"><span class="ico">💬</span> Text Miranda</a>
+      <a class="btn btn-text btn-sm sms" href="sms:+14482196539" onclick="return textTap();"><span class="ico">💬</span> Text Miranda</a>
     </div>
   </div>
     <nav class="mini-nav" aria-label="Site"><a href="/photos?from=panama-city-beach-199">Photos</a><a href="#check-date">Check My Date</a></nav>
@@ -304,7 +304,7 @@ footer a{color:#fff}
       </div>
       <p class="hand" id="handline">Barefoot. Laughing.<br>Together. ♡</p>
       <div class="hero-ctas">
-        <a class="btn btn-text sms" href="sms:+14482173502" onclick="return textTap();">💬 Text Miranda</a>
+        <a class="btn btn-text sms" href="sms:+14482196539" onclick="return textTap();">💬 Text Miranda</a>
         <a class="btn btn-ghost" href="#check-date">Check My Date →</a>
       </div>
       <div class="checks"><span>✓ No payment to ask</span><span>✓ No obligation</span><span>✓ Miranda replies personally</span></div>
@@ -346,6 +346,14 @@ footer a{color:#fff}
         <label><input type="radio" name="who" value="Family" checked><span>Family</span></label>
         <label><input type="radio" name="who" value="Couple"><span>Couple</span></label>
         <label><input type="radio" name="who" value="Other"><span>Other</span></label>
+      </div>
+
+      <!-- Oct 30 2026: sunrise or sunset (not required, nothing picked ahead of time) -->
+      <label>Sunset or sunrise?</label>
+      <div class="pills" role="radiogroup">
+        <label><input type="radio" name="time" value="Sunset"><span>Sunset</span></label>
+        <label><input type="radio" name="time" value="Sunrise"><span>Sunrise</span></label>
+        <label><input type="radio" name="time" value="Other"><span>Other</span></label>
       </div>
 
       <label>Best way to reply</label>
@@ -538,7 +546,7 @@ footer a{color:#fff}
 <footer>
   <p>Miranda Rae Photography · Panama City Beach, Florida</p>
   <p>Serving Panama City Beach, Florida — family beach pictures, couples &amp; vacation photos</p>
-  <p><a class="sms" href="sms:+14482173502" onclick="return textTap();">💬 Text Miranda</a></p>
+  <p><a class="sms" href="sms:+14482196539" onclick="return textTap();">💬 Text Miranda</a></p>
   <p>© 2026 Miranda Rae Photography</p>
 </footer>
 
@@ -549,7 +557,7 @@ footer a{color:#fff}
   <b>Welcome back! ♡</b>
   <p>Like what you saw? Check if your date is open — it's free to ask.</p>
   <div class="hero-ctas" style="margin:0;justify-content:center">
-    <a class="btn btn-text btn-sm sms" href="sms:+14482173502" onclick="return textTap();">💬 Text Miranda</a>
+    <a class="btn btn-text btn-sm sms" href="sms:+14482196539" onclick="return textTap();">💬 Text Miranda</a>
     <a class="btn btn-ghost btn-sm" href="#check-date" onclick="document.getElementById('welcome-back').classList.remove('show')">Check My Date →</a>
   </div>
 </div>
@@ -561,9 +569,9 @@ footer a{color:#fff}
 <script>
   // Pre-filled text message
   (function(){
-    var body = encodeURIComponent("Hi! I'm interested in the $199 Panama City Beach Special. My dates are: ");
+    var body = encodeURIComponent("Hi Miranda! I'm interested in the $199 Panama City Beach Special. My dates are: ");
     var ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    document.querySelectorAll('a.sms').forEach(function(a){ a.href = 'sms:+14482173502' + (ios ? '&' : '?') + 'body=' + body; });
+    document.querySelectorAll('a.sms').forEach(function(a){ a.href = 'sms:+14482196539' + (ios ? '&' : '?') + 'body=' + body; });
   })();
 
   // Couples version: ads for couples searches link to ?for=couples

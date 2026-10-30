@@ -606,6 +606,13 @@ export async function textCustomer(base, phone, message, data) {
   return r.error ? { error: "Twilio: " + r.error } : { ok: true, ...(p === TEST_CUSTOMER ? { pretend_customer: "test only, counts as sent" } : { sent: r.sent }) };
 }
 
+// Oct 30 2026: Sandy only texts people who agreed: they texted her number, or checked "OK to text" on a website form
+export async function okToText(base, phone) {
+  const p = digits(phone);
+  if ((await getCustomers(base))[p]) return true;
+  return !!(await sandyStore(base).get("ok-text-" + p, { type: "json" }));
+}
+
 export async function sendConfirmLink(base, x, by) {
   const list = await getRequests(base), r = x.request_id ? list.find((q) => q.id === x.request_id) : null;
   if (x.request_id && !r) return { error: "no request with that id" };
@@ -623,6 +630,8 @@ export async function sendConfirmLink(base, x, by) {
     x: [], dc: 0, dr: "", note: "", by: "Sandy", total: price };
   if (dep !== 50) lk.dep = dep;
   const url = base.replace(/\/$/, "") + "/confirm?s=" + Buffer.from(JSON.stringify(lk), "utf8").toString("base64url");
+  if (phone !== TEST_CUSTOMER && !(await okToText(base, phone)))
+    return { error: lk.n + " never texted me or checked OK to text, so I can't text them. Tell Miranda to send it from her own phone, and give her this Confirm link to paste: " + url };
   // Tell the Bookings app first (so the card shows "Link texted"), like the Bookings page does
   await post(base, { kind: "pending", by: "Sandy", name: lk.n, date: lk.d, beach: lk.b, phone, time: lk.t, pkg: lk.pk, amount: price, dep, link: url });
   const t = low(lk.t), slot = t && t !== "other" && t !== "wedding" ? " (" + t + ")" : "", place = lk.b && lk.b !== "Other" ? " at " + lk.b : "";

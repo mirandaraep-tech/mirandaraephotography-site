@@ -6,6 +6,7 @@
 <title>Maternity Beach Photos | Florida Gulf Coast</title>
 <meta name="description" content="Maternity beach photographer on Florida's Gulf Coast. Relaxed maternity photo sessions at sunset or sunrise in Panama City Beach, Mexico Beach, Port St. Joe, Cape San Blas, St. George Island, Destin &amp; 30A. Maternity sessions $199 with 30–35 edited photos; partners and kids welcome.">
 <meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://mirandaraephotography.com/maternity">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Maternity Beach Photographer | Miranda Rae Photography">
 <meta property="og:description" content="Celebrate your bump on the beach before baby arrives. Relaxed maternity sessions on Florida's Gulf Coast, $199.">
@@ -326,7 +327,7 @@ footer a{color:#fff}
     </div>
     <div class="top-btns">
       <a class="btn btn-ghost btn-sm" href="#check-date">Check Date</a>
-      <a class="btn btn-text btn-sm sms" href="sms:+14482173502" onclick="return textTap();"><span class="ico">💬</span> Text Miranda</a>
+      <a class="btn btn-text btn-sm sms" href="sms:+14482196539" onclick="return textTap();"><span class="ico">💬</span> Text Miranda</a>
     </div>
   </div>
 </div>
@@ -450,6 +451,14 @@ footer a{color:#fff}
         <option>A bigger group</option>
       </select>
 
+      <!-- Oct 30 2026: sunrise or sunset (not required, nothing picked ahead of time) -->
+      <label>Sunset or sunrise?</label>
+      <div class="pills" role="radiogroup">
+        <label><input type="radio" name="time" value="Sunset"><span>Sunset</span></label>
+        <label><input type="radio" name="time" value="Sunrise"><span>Sunrise</span></label>
+        <label><input type="radio" name="time" value="Other"><span>Other</span></label>
+      </div>
+
       <label>Best way to reply</label>
       <div class="pills" role="radiogroup">
         <label><input type="radio" name="reply" value="Text" checked><span>Text</span></label>
@@ -524,7 +533,7 @@ footer a{color:#fff}
 <footer>
   <p>Miranda Rae Photography · Maternity Beach Photographer · Florida Gulf Coast</p>
   <p>Serving Panama City Beach, Mexico Beach, Port St. Joe, Cape San Blas, Indian Pass, St. George Island, Destin, Santa Rosa Beach, Seaside, Rosemary Beach &amp; WaterColor</p>
-  <p><a class="sms" href="sms:+14482173502" onclick="return textTap();">💬 Text Miranda</a> · <a href="/photos?from=maternity">See Photos</a></p>
+  <p><a class="sms" href="sms:+14482196539" onclick="return textTap();">💬 Text Miranda</a> · <a href="/photos?from=maternity">See Photos</a></p>
   <p>© 2026 Miranda Rae Photography</p>
 </footer>
 
@@ -542,9 +551,9 @@ footer a{color:#fff}
 
 <script>
   (function(){
-    var body = encodeURIComponent("Hi! I'd like to check a date for maternity beach photos. My beach and dates are: ");
+    var body = encodeURIComponent("Hi Miranda! I'd like to check a date for maternity beach photos. My beach and dates are: ");
     var ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    document.querySelectorAll('a.sms').forEach(function(a){ a.href = 'sms:+14482173502' + (ios ? '&' : '?') + 'body=' + body; });
+    document.querySelectorAll('a.sms').forEach(function(a){ a.href = 'sms:+14482196539' + (ios ? '&' : '?') + 'body=' + body; });
   })();
 
   function showWB(){ var b=document.getElementById('welcome-back'); if(b && !b.classList.contains('show')){ b.classList.add('show'); gtag('event','returned_from_link',{page:PAGE}); try{sessionStorage.removeItem('mrp-left')}catch(e){} } }
@@ -565,6 +574,16 @@ footer a{color:#fff}
       try{ localStorage.removeItem(KEY); sessionStorage.removeItem('mrp-left'); }catch(e){}
     });
   })();
+</script>
+
+<!-- Beach headline swap (Oct 30 2026): the ad link picks the beach, e.g. ?beach=destin. See /beach-swap.js -->
+<script src="/beach-swap.js"></script>
+<script>
+mrpBeachSwap({ variants: {
+  '': function (b) { return !b ? {} : {
+    set: { 'h1.kicker': 'Maternity Beach Photographer · ' + b.name + ', FL', '.hero-big': 'Maternity Photos ' + b.at + '<br><em>Before Baby Arrives</em>' },
+    title: 'Maternity Beach Photos | ' + b.name + ', FL' }; }
+}});
 </script>
 </body>
 </html>

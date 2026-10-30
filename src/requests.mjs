@@ -54,9 +54,9 @@ export async function readFields(req) {
 
 // ---------- The email ----------
 // Same order as the FormSubmit emails: the request first, tracking at the very bottom (Randy's choice, Oct 7 2026)
-const TOP = ["name", "phone", "email", "date", "beach", "who", "session-type", "session", "collection", "people", "reply", "contact-pref", "message", "heard-from", "text-consent"];
+const TOP = ["name", "phone", "email", "date", "time", "beach", "who", "session-type", "session", "collection", "people", "reply", "contact-pref", "message", "heard-from", "text-consent"];
 const TRACK = ["came-from", "campaign", "search-phrase", "google-ads-click-id", "referring-site", "first-page", "visits", "page", "form", "site"];
-const LABELS = { name: "Name", phone: "Phone", email: "Email", date: "Date", beach: "Beach", who: "Who's in the photos", "session-type": "Session type", session: "Session",
+const LABELS = { name: "Name", phone: "Phone", email: "Email", date: "Date", time: "Sunset or sunrise", beach: "Beach", who: "Who's in the photos", "session-type": "Session type", session: "Session",
   collection: "Wedding package", people: "How many people", reply: "Best way to reply", "contact-pref": "Best way to reply", message: "Message", "heard-from": "Heard about Miranda from",
   "text-consent": "OK to text", "came-from": "Came from", campaign: "Ad campaign", "search-phrase": "Search phrase", "google-ads-click-id": "Google Ads click ID",
   "referring-site": "Referring site", "first-page": "First page", visits: "Visits", page: "Page", form: "Form", site: "Website" };
@@ -162,7 +162,7 @@ export function alertText(f, { subject, site, page, emailed, test }) {
   const name = oneLine(f.name, 60) || "No name";
   const rest = line.split(" · ").filter((p, i) => !(i === 0 && p.trim().toLowerCase() === name.toLowerCase()));
   if (!rest.length) rest.push(f.date ? niceDate(f.date) : "no date yet", oneLine(f.beach, 40));
-  const extra = [oneLine(f.who || f["session-type"], 30), (f.reply || f["contact-pref"]) ? "reply by " + oneLine(f.reply || f["contact-pref"], 20) : "", f["text-consent"] ? "OK to text" : "", oneLine(f.details, 80)].filter(Boolean).join(" · ");
+  const extra = [oneLine(f.time, 12), oneLine(f.who || f["session-type"], 30), (f.reply || f["contact-pref"]) ? "reply by " + oneLine(f.reply || f["contact-pref"], 20) : "", f["text-consent"] ? "OK to text" : "", oneLine(f.details, 80)].filter(Boolean).join(" · ");
   return (test ? "🧪 TEST · " : "") + "📩 New website request\n" + name + ", " + fmtPhone(f.phone) + "\n" + rest.filter(Boolean).join(" · ") +
     (extra ? "\n" + extra : "") + (f.message && !/^Came from:/.test(f.message) ? '\n"' + oneLine(f.message.replace(/\n*Came from:[\s\S]*$/, ""), 160) + '"' : "") +
     "\nFrom " + site + (page ? " (" + page + ")" : "") + (emailed ? "" : "\n(The email didn't go out, so this text is your copy.)");

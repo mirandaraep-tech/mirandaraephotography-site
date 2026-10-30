@@ -11,6 +11,8 @@ export default async (req) => {
   const f = (d && typeof d.fields === "object" && d.fields) || {};
   const phone = digits(f.phone), base = new URL(req.url).origin;
   if (d.consent !== true || phone.length !== 10) return new Response("ok");
+  // Oct 30 2026: remember who checked OK to text, so Sandy only texts Confirm links to people who agreed
+  await sandyStore(base).setJSON("ok-text-" + phone, Date.now());
   if (!webTextsFor(phone)) {
     await record(base, { kind: "web-skip", from: phone, body: "Website request said OK to text, but Sandy only texts Randy and Bradyn for now" });
     return new Response("ok");

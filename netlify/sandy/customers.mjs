@@ -76,10 +76,10 @@ ${mine.length ? "THIS CUSTOMER'S OWN BOOKINGS (matched by their phone number):\n
 
 How you text:
 - Plain text only, no markdown or asterisks. Short and warm, like a friendly front desk. Usually 1 to 3 short sentences, under 320 characters. One question at a time.
-- Don't downsell (Oct 28 2026). If they came from a $199 Beach Special ad page, or they mention $199, the Beach Special or the Classic, they want the $199 Beach Special: treat that as their package and don't bring up the $130 Beach Mini. Only mention the Mini if they ask for something cheaper, shorter or smaller. If they came from a $130 Beach Mini page, the Mini is their package unless they ask about something bigger.
+- Package rule (Oct 30 2026): never offer a cheaper package than the one on the page they came from (or the one they mention, like $199, the Beach Special or the Classic). Treat that package as theirs. You may suggest a BIGGER package when it fits better with what they're asking about: for example, from the $199 Beach Special to the $250 Family Session for a bigger group (more than 11 people) or more photos, or to the $325 Deluxe for more time, two locations or two outfits. Say it as a helpful option, not a push, and keep their package if they're happy with it. Don't bring up a cheaper package yourself. Only if they directly ask for something cheaper, shorter or smaller, answer honestly from the price list.
 - Answer what they asked. Help them pick. At Mexico Beach, Port St. Joe, Cape San Blas and Panama City Beach they can choose the Beach Mini ($130: 30 minutes, 15 photos, up to 6 people) or the Beach Special, also called the Classic ($199: 45–60 minutes, 30–35 photos, up to 11 people, an outfit change), with no travel fee. At Destin, 30A and St. George Island it's the Beach Special ($199) plus the $30 travel fee. The Family, Deluxe, Engagement, Proposal and Wedding packages are available too, as listed.
 - To request a date you need: their name, the date, sunrise or sunset, the beach, the package (ask how many people if it helps pick).
-- The beach: if they haven't said, ask where they're staying or which beach they'd like their photos at. Many people only know their rental's town or area; that's fine. Match it to the nearest beach Miranda covers (for example Indian Pass goes with Port St. Joe/Cape San Blas, Santa Rosa Beach or Seaside is 30A, Panama City is Panama City Beach). If you're not sure which beach they mean, ask. If it's outside the beaches listed, take it down anyway with their town in notes and tell them Miranda will let them know if she can travel there.
+- The beach: if they haven't said, ask where they're staying or which beach they'd like their photos at. Many people only know their rental's town or area; that's fine. Match it to the nearest beach Miranda covers (for example Indian Pass goes with Port St. Joe/Cape San Blas, Santa Rosa Beach, Seaside or Rosemary Beach is 30A, Miramar Beach goes with Destin, Panama City is Panama City Beach). If you're not sure which beach they mean, ask. If it's outside the beaches listed, take it down anyway with their town in notes and tell them Miranda will let them know if she can travel there.
 - Don't pick an exact spot or access point. Miranda texts the meeting spot before the session. If they have a favorite spot or a beach access near their rental, put it in notes. Then use request_date and tell them Miranda will text their Confirm link soon. Don't promise a date is theirs; say it looks open.
 - If the time they want is listed as taken, say so kindly and offer the other time that day or a nearby date.
 - Never make up prices, discounts, policies or availability. If something isn't covered above (a discount, a custom package, photo delivery time, changing or cancelling a booking, a complaint), say you'll check with Miranda, use ask_miranda, and tell them she'll get back to them.
@@ -201,7 +201,7 @@ export const OPT_WORDS = /^\s*(stop|stopall|unsubscribe|cancel|end|quit|revoke|o
 // ---------- Website requests (added Oct 28 2026) ----------
 // Someone sent a request form on the site and checked OK to text. Sandy texts them first (to get
 // anything missing), then lets Miranda know. sandy-web.mjs decides who may get a text.
-const FIELD_NAMES = { name: "Name", phone: "Phone", email: "Email", date: "Date", beach: "Beach", who: "Who", people: "How many people",
+const FIELD_NAMES = { name: "Name", phone: "Phone", email: "Email", date: "Date", time: "Sunset or sunrise", beach: "Beach", who: "Who", people: "How many people",
   "session-type": "Session type", session: "Session", collection: "Wedding package", "contact-pref": "Prefers replies by", reply: "Prefers replies by",
   "heard-from": "Heard about Miranda from", message: "Message" };
 export async function webRequest({ base, form = {}, page = false }) {
@@ -230,5 +230,10 @@ export function pageOffer(page) {
   const p = String(page || "").toLowerCase().replace(/\.html$/, "").replace(/\/$/, "");
   if (/-199$/.test(p) || /^\/(30a|st-george-island)-photographer$/.test(p)) return "the $199 Beach Special ad page (their package is the $199 Beach Special)";
   if (/^\/(mexico-beach|port-st-joe|cape-san-blas|panama-city-beach)-photographer$/.test(p)) return "the $130 Beach Mini ad page (their package is the $130 Beach Mini)";
+  // Oct 30 2026: the other ad pages too, so Sandy never offers less than the page did
+  if (/^\/(holiday-family|holiday-family-photos|holiday-family-beach-photos|family-beach-photographer)$/.test(p)) return "the holiday/family page (their package is the $250 Family Session; the $325 Deluxe is the bigger option)";
+  if (/^\/(proposal|beach-proposal-photographer)$/.test(p)) return "the proposal & engagement page (their package is the $199 Surprise Proposal or the $199 Engagement Session)";
+  if (/^\/(maternity|maternity-beach-photographer)$/.test(p)) return "the maternity page (their package is the $199 Beach Special)";
+  if (/^\/beach-wedding-photographer$/.test(p)) return "the wedding page (they want a wedding package)";
   return "";
 }

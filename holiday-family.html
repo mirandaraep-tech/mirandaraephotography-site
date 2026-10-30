@@ -6,6 +6,7 @@
 <title>Holiday Family Beach Photos | Panama City Beach, Mexico Beach &amp; Cape San Blas, FL</title>
 <meta name="description" content="Holiday family beach photos on Florida's Gulf Coast. Thanksgiving and Christmas week sessions in Panama City Beach, Mexico Beach, Cape San Blas, Port St. Joe, Destin &amp; 30A. Family sessions for up to 15 people from $250, and Deluxe sessions with two locations.">
 <meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://mirandaraephotography.com/holiday-family">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Holiday Family Beach Photos | Miranda Rae Photography">
 <meta property="og:description" content="The whole family is finally together. Thanksgiving &amp; Christmas week family beach photos on Florida's Gulf Coast, for up to 15 people.">
@@ -472,6 +473,14 @@ footer a{color:#fff}
         <option>More than 15</option>
       </select>
 
+      <!-- Oct 30 2026: sunrise or sunset (not required, nothing picked ahead of time) -->
+      <label>Sunset or sunrise?</label>
+      <div class="pills" role="radiogroup">
+        <label><input type="radio" name="time" value="Sunset"><span>Sunset</span></label>
+        <label><input type="radio" name="time" value="Sunrise"><span>Sunrise</span></label>
+        <label><input type="radio" name="time" value="Other"><span>Other</span></label>
+      </div>
+
       <label>Best way to reply</label>
       <div class="pills" role="radiogroup">
         <label><input type="radio" name="reply" value="Text" checked><span>Text</span></label>
@@ -586,6 +595,22 @@ footer a{color:#fff}
       try{ localStorage.removeItem(KEY); sessionStorage.removeItem('mrp-left'); }catch(e){}
     });
   })();
+</script>
+
+<!-- Beach headline swap (Oct 30 2026): the ad link picks the beach, e.g. ?beach=destin. See /beach-swap.js -->
+<script src="/beach-swap.js"></script>
+<script>
+mrpBeachSwap({ variants: {
+  '': function (b) { return !b ? {} : {
+    set: { 'h1.kicker': 'Holiday Family Beach Photos · ' + b.name + ', FL', '.hero-big': 'Holiday Family Photos<br><em>' + b.at + '</em>' },
+    title: 'Holiday Family Beach Photos | ' + b.name + ', FL' }; },
+  reunion: function (b) { return {
+    set: { 'h1.kicker': 'Family Reunion Beach Photos · ' + (b ? b.name + ', FL' : 'Florida Gulf Coast'),
+           '.hero-big': 'Family Reunion Photos<br><em>' + (b ? b.at : 'on the Beach') + '</em>' },
+    swap: [['a.btn', 'Check My Holiday Date', 'Check My Reunion Date']],
+    session: 'Family reunion',
+    title: 'Family Reunion Beach Photos | ' + (b ? b.name + ', FL' : 'Florida Gulf Coast') }; }
+}});
 </script>
 </body>
 </html>
