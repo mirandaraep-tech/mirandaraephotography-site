@@ -664,6 +664,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       h += '<div class="pxr"><div><b>' + x[1] + '</b><br><span class="muted">$<input class="pxp" data-p="' + x[0] + '" type="number" inputmode="decimal" value="' + x[2] + '"> ' + x[3] + '</span></div>' +
         '<div class="step"><button type="button" data-s="' + x[0] + '" data-d="-1" aria-label="less">−</button><b data-n="' + x[0] + '">0</b><button type="button" data-s="' + x[0] + '" data-d="1" aria-label="more">+</button></div></div>';
     });
+    // Travel fee (Oct 30 2026): $30 on her price list (Destin, 30A, St. George Island). Never checked ahead of time,
+    // because links for those beaches usually have the travel fee in the price already.
+    h += '<div class="pxr"><label style="display:flex;gap:10px;align-items:center;margin:0"><input type="checkbox" data-trav style="width:22px;height:22px"><span><b>Travel fee</b><br><span class="muted">$<input class="pxp" data-p="trav" type="number" inputmode="decimal" value="30"></span></span></label></div>';
     h += '<div class="pxr"><label style="display:flex;gap:10px;align-items:center;margin:0"><input type="checkbox" data-rush style="width:22px;height:22px"><span><b>Rush editing</b><br><span class="muted">$<input class="pxp" data-p="rush" type="number" inputmode="decimal" value="50"></span></span></label></div>' +
       '<div class="pxr" style="display:block"><b>Other</b> <span class="muted">(use − for money off)</span><div class="row" style="margin-top:6px"><div class="money"><b>$</b><input data-o type="number" inputmode="decimal" placeholder="-20"></div><input data-ow maxlength="80" placeholder="Why (like fewer photos)"></div></div>' +
       '<div class="pxtot">New total <b data-tot>' + money(tot(b)) + '</b></div>' +
@@ -682,6 +685,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     function items_(){
       var out = [];
       XP.forEach(function(x){ if (N[x[0]]) out.push({ amt: N[x[0]] * pr(x[0]), what: '+' + N[x[0]] + ' ' + (x[0] === 'people' ? (N[x[0]] === 1 ? 'person' : 'people') : x[0] === 'photos' ? (N[x[0]] === 1 ? 'photo' : 'photos') : '× 20 min') + ' (' + money(pr(x[0])) + ' ' + x[3] + ')' }); });
+      if (V.querySelector('[data-trav]').checked) out.push({ amt: pr('trav'), what: 'Travel fee' + (b.beach && b.beach !== 'Other' ? ' (' + b.beach + ')' : '') });
       if (V.querySelector('[data-rush]').checked) out.push({ amt: pr('rush'), what: 'Rush editing' });
       var o = Math.round((parseFloat(V.querySelector('[data-o]').value) || 0) * 100) / 100, ow = V.querySelector('[data-ow]').value.trim();
       if (o) out.push({ amt: o, what: ow || (o > 0 ? 'Other' : 'Money off') });
