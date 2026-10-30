@@ -753,7 +753,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '</div><div class="rt">' + moneyBtn(b) + '</div></div>';
     if (!open) return h + '</div>';
     // Inside the card (Oct 30 2026): a money receipt, a tappable phone, and three buttons (Text, Edit, Photographer)
-    var L = '<div class="ln mut">' + (b.past ? 'Past entry' : b.num < 101 ? 'Early booking' : b.num < 900000 ? '#' + b.num : 'Test') + (b.by ? ' · set up by ' + esc(b.by) : '') + (b.photographer ? ' · 📷 ' + esc(b.photographer) : '') + '</div>';
+    var L = '<div class="ln mut">' + (b.past ? 'Past entry' : b.num < 101 ? 'Early booking' : b.num < 900000 ? '#' + b.num : 'Test') + (b.by ? ' · set up by ' + esc(b.by) : '') + '</div>' +
+      // Oct 30 2026: who's shooting is always shown; Miranda unless another photographer is set
+      (b.photographer ? '' : '<div class="ln"><b style="color:#4b42b8">📷 Miranda shooting</b></div>');
     if (b.phone) L += '<div class="ln"><a class="tel" href="tel:+1' + esc(String(b.phone).replace(/\D/g, '').slice(-10)) + '">📱 ' + esc(fmtPhone(b.phone)) + ' · Call</a></div>';
     var row = function(l, v, cls){ return '<div' + (cls ? ' class="' + cls + '"' : '') + '><span>' + l + '</span><span>' + v + '</span></div>'; };
     var R2 = row(esc(b.pkg || 'Session'), money(b.total || 0));
@@ -772,7 +774,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     // Contracted session (Oct 30 2026): the split goes on the same receipt
     if (b.photographer) {
       var how = b.split ? (b.split.mode === 'amt' ? '' : ' (' + b.split.val + '%' + (b.split.min ? ', at least ' + money(b.split.min) : '') + ')') : '';
-      R2 += '<div class="sp">📷 ' + esc(b.photographer) + ' shot it</div>' + row(esc(b.photographer) + "'s pay", money(payOf(b))) + row('Miranda\'s share' + how, money(mineOf(b)));
+      R2 += '<div class="sp">📷 ' + esc(b.photographer) + ' shooting</div>' + row(esc(b.photographer) + "'s pay", money(payOf(b))) + row('Miranda\'s share' + how, money(mineOf(b)));
       (b.shooterPaid || []).forEach(function(x, i, arr){ R2 += row(esc(b.photographer) + ' paid Miranda ' + esc(short(x.at)) + (i === arr.length - 1 ? ' <button class="lnk" data-a="undo-shooter-paid">undo</button>' : ''), money(x.amount)); });
       if (so) R2 += row('💸 ' + esc(b.photographer) + ' owes Miranda', money(so), 'tt');
       else if (b.paid && !b.cancelled) R2 += '<div class="tt"><span>✓ All settled with ' + esc(b.photographer) + '</span><span></span></div>';
