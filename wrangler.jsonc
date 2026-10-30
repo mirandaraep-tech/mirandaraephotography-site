@@ -19,6 +19,9 @@
     "not_found_handling": "none",
     "run_worker_first": true
   },
+  // The site's own emails (Oct 29 2026, replaces FormSubmit): Cloudflare Email Routing on mirandaraephotography.com,
+  // sending only to these two verified Gmail addresses (see src/requests.mjs)
+  "send_email": [{ "name": "EMAIL", "allowed_destination_addresses": ["mirandaraep@gmail.com", "bookmirandarae@gmail.com"] }],
   "durable_objects": { "bindings": [{ "name": "STORE", "class_name": "SiteStore" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SiteStore"] }],
   // Sandy's 9 AM Central check-in (wakes at both hours; Sandy only goes ahead at 9 AM Central)

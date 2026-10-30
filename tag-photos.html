@@ -175,7 +175,7 @@ $("emailBak").onclick=async()=>{
   const m=$("emailMsg"); m.textContent="Sending…"; const counts={}, lines=[];
   PHOTOS.forEach((p,k)=>{const v=tags[idOf(p)]; if(!v)return; counts[v]=(counts[v]||0)+1; lines.push((k+1)+". "+v+" | "+idOf(p));});
   if(!lines.length){m.textContent="Nothing tagged yet.";return;}
-  try{const r=await fetch("https://formsubmit.co/ajax/mirandaraep@gmail.com",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},
+  try{const r=await fetch("/api/notify",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},
       body:JSON.stringify({_subject:"📍 PHOTO BEACHES (backup): "+answered()+" of "+PHOTOS.length+" tagged",_template:"table",_captcha:"false",
         Summary:Object.entries(counts).map(([b,c])=>b+": "+c).join(", "),"Answers (photo # | beach | id)":lines.join("\n")})});
     if(!r.ok)throw 0; m.textContent="✓ Emailed.";}catch(e){m.textContent="Couldn't email just now. Try again in a bit.";}
