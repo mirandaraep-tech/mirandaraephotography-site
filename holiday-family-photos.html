@@ -6,6 +6,7 @@
 <title>Thanksgiving Family Beach Photos | Panama City Beach, Mexico Beach &amp; Cape San Blas, FL</title>
 <meta name="description" content="Holiday family beach photos on Florida's Gulf Coast. Thanksgiving and Christmas week sessions in Panama City Beach, Mexico Beach, Cape San Blas, Port St. Joe, Destin &amp; 30A. Family sessions for up to 15 people from $250, and Deluxe sessions with two locations.">
 <meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://mirandaraephotography.com/holiday-family-photos">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Thanksgiving Family Beach Photos | Miranda Rae Photography">
 <meta property="og:description" content="The whole family is finally together. Thanksgiving &amp; Christmas week family beach photos on Florida's Gulf Coast, for up to 15 people.">
@@ -582,6 +583,28 @@ footer a{color:#fff}
       try{ localStorage.removeItem(KEY); sessionStorage.removeItem('mrp-left'); }catch(e){}
     });
   })();
+</script>
+
+<!-- Beach headline swap (Oct 30 2026): the ad link picks the beach, e.g. ?beach=destin. See /beach-swap.js -->
+<script src="/beach-swap.js"></script>
+<script>
+(function () {
+  // ?for=thanksgiving (same as no option, for now) · christmas-card · christmas · new-years
+  function h(word, kick, session) { return function (b) { return {
+    set: { 'h1.kicker': kick + ' · ' + (b ? b.name + ', FL' : 'Florida Gulf Coast'),
+           '.hero-big': word + '<br><em>' + (b ? b.at : 'on the Beach') + '</em>' },
+    swap: [['a.btn', 'Check My Thanksgiving Date', 'Check My ' + session.short + ' Date'], ['#check-date h2', 'Check Your Thanksgiving Date', 'Check Your ' + session.short + ' Date']],
+    session: session.type,
+    title: kick + ' | ' + (b ? b.name + ', FL' : 'Panama City Beach, Mexico Beach &amp; Cape San Blas, FL').replace('&amp;', '&') }; }; }
+  var tg = h('Thanksgiving Family Photos', 'Thanksgiving Family Beach Photos', { short: 'Thanksgiving', type: 'Thanksgiving family' });
+  mrpBeachSwap({ variants: {
+    '': function (b) { return b ? tg(b) : {}; },
+    thanksgiving: tg,
+    christmascard: h('Christmas Card Photos', 'Christmas Card Beach Photos', { short: 'Christmas', type: 'Christmas card photos' }),
+    christmas: h('Christmas Family Photos', 'Christmas Family Beach Photos', { short: 'Christmas', type: 'Christmas family' }),
+    newyears: h('New Year&#8217;s Family Photos', 'New Year&#8217;s Family Beach Photos', { short: 'New Year&#8217;s', type: "New Year's family" })
+  }});
+})();
 </script>
 </body>
 </html>

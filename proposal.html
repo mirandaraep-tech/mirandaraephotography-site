@@ -6,6 +6,7 @@
 <title>Surprise Beach Proposal Photographer | Florida Gulf Coast</title>
 <meta name="description" content="Surprise beach proposal and engagement photographer on Florida's Gulf Coast. Miranda helps plan your proposal, stays out of sight and captures every second in Panama City Beach, Mexico Beach, Port St. Joe, Cape San Blas, St. George Island, Destin &amp; 30A. Surprise proposals and engagement sessions $199.">
 <meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://mirandaraephotography.com/proposal">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Beach Proposal &amp; Engagement Photographer | Miranda Rae Photography">
 <meta property="og:description" content="Your proposal only happens once. Miranda helps you plan it, stays out of sight and captures every second. Surprise proposals $199 on Florida's Gulf Coast.">
@@ -361,7 +362,7 @@ footer a{color:#fff}
     </div>
     <div class="top-btns">
       <a class="btn btn-ghost btn-sm" href="#check-date">Check Date</a>
-      <a class="btn btn-text btn-sm sms" href="sms:+14482173502" onclick="return textTap();"><span class="ico">💬</span> Text Miranda</a>
+      <a class="btn btn-text btn-sm sms" href="sms:+14482196539" onclick="return textTap();"><span class="ico">💬</span> Text Miranda</a>
     </div>
   </div>
 </div>
@@ -557,7 +558,7 @@ footer a{color:#fff}
 <footer>
   <p>Miranda Rae Photography · Beach Proposal &amp; Engagement Photographer · Florida Gulf Coast</p>
   <p>Serving Panama City Beach, Mexico Beach, Port St. Joe, Cape San Blas, Indian Pass, St. George Island, Destin, Santa Rosa Beach, Seaside, Rosemary Beach &amp; WaterColor</p>
-  <p><a class="sms" href="sms:+14482173502" onclick="return textTap();">💬 Text Miranda</a> · <a href="/photos?from=proposal">See Photos</a></p>
+  <p><a class="sms" href="sms:+14482196539" onclick="return textTap();">💬 Text Miranda</a> · <a href="/photos?from=proposal">See Photos</a></p>
   <p>© 2026 Miranda Rae Photography</p>
 </footer>
 
@@ -575,9 +576,9 @@ footer a{color:#fff}
 
 <script>
   (function(){
-    var body = encodeURIComponent("Hi! I'm planning a proposal and would like to check a date. Our beach and dates are: ");
+    var body = encodeURIComponent("Hi Miranda! I'm planning a proposal and would like to check a date. Our beach and dates are: ");
     var ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    document.querySelectorAll('a.sms').forEach(function(a){ a.href = 'sms:+14482173502' + (ios ? '&' : '?') + 'body=' + body; });
+    document.querySelectorAll('a.sms').forEach(function(a){ a.href = 'sms:+14482196539' + (ios ? '&' : '?') + 'body=' + body; });
   })();
 
   function showWB(){ var b=document.getElementById('welcome-back'); if(b && !b.classList.contains('show')){ b.classList.add('show'); gtag('event','returned_from_link',{page:PAGE}); try{sessionStorage.removeItem('mrp-left')}catch(e){} } }
@@ -609,6 +610,16 @@ footer a{color:#fff}
       try{ localStorage.removeItem(KEY); sessionStorage.removeItem('mrp-left'); }catch(e){}
     });
   })();
+</script>
+
+<!-- Beach headline swap (Oct 30 2026): the ad link picks the beach, e.g. ?beach=destin. See /beach-swap.js -->
+<script src="/beach-swap.js"></script>
+<script>
+mrpBeachSwap({ variants: {
+  '': function (b) { return !b ? {} : {
+    set: { 'h1.kicker': 'Beach Proposal &amp; Engagement Photographer · ' + b.name + ', FL', '.hero-big': 'Your ' + b.name + ' Proposal<br><em>Only Happens Once</em>' },
+    title: b.wb + ' Proposal Photographer | ' + b.name + ', FL' }; }
+}});
 </script>
 </body>
 </html>
