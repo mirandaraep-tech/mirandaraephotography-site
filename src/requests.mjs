@@ -94,6 +94,43 @@ export function mime({ from, fromName, to, replyTo, subject, html, text }) {
     "--" + bound, "Content-Type: text/html; charset=UTF-8", "Content-Transfer-Encoding: base64", "", wrap(b64(html)), "--" + bound + "--", ""].filter((l, i) => l !== "" || i > 5).join("\r\n");
 }
 
+// ---------- Miranda's short emails (Oct 30 2026) ----------
+// Every email to bookmirandarae@gmail.com is now a short note that points her to the Bookings app, e.g.
+//   Subject: 📩 New inquiry: Jane Smith · Thu, Nov 26 · check the Bookings app
+//   Body:    Jane Smith, Thu, Nov 26. Open the Bookings app to see the details: mirandaraephotography.com/log
+// Randy's copy at mirandaraep@gmail.com keeps every detail.
+const APP_URL = "https://mirandaraephotography.com/log";
+const KINDS = [[/NEW REQUEST/i, "📩 New inquiry"], [/CONFIRMED/i, "✅ Confirmed"], [/DEPOSIT/i, "💳 Deposit"], [/ADD-ON/i, "➕ Extra added"],
+  [/DEDUCTED/i, "➖ Deducted"], [/TIME ALREADY BOOKED/i, "⚠️ Time already booked"]];
+const shortDay = (v) => {
+  v = oneLine(v, 80);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) { try { return new Date(v + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }); } catch (e) { return v; } }
+  return v.split(" · ")[0].replace(/,?\s*\d{4}$/, "").trim();
+};
+export async function mirandaNote(f, subject, deps) {
+  if (/TEXT MIRANDA TAPPED/i.test(subject)) return { subject: "👆 Text Miranda tapped", line: "Someone tapped Text Miranda on the website, so a text may be on its way.", link: false };
+  if (/LINK CLICKED/i.test(subject)) return { subject: "🔗 Link clicked on the website", line: "Someone clicked a link on the website.", link: false };
+  const kind = (KINDS.find(([rx]) => rx.test(subject)) || [null, "📬 Website note"])[1];
+  const name = oneLine(f.name, 60) || "No name";
+  let date = shortDay(f.date || f["session-date"] || "");
+  // Deposits from the Bookings page or Confirm page don't carry the date: look it up by booking number
+  const num = parseInt(String(f["booking-number"] || "").replace(/\D/g, ""), 10);
+  if (!date && num && deps && deps.getStore) {
+    try { const b = ((await deps.getStore({ name: "booking-counter", consistency: "strong" }).get("bookings", { type: "json" })) || []).find((x) => x.num === num); if (b && b.date) date = shortDay(b.date); } catch (e) {}
+  }
+  date = date || "no date yet";
+  return { subject: kind + ": " + name + " · " + date + " · check the Bookings app", line: name + ", " + date + ". Open the Bookings app to see the details:", link: true };
+}
+export function noteEmail(n) {
+  const html = '<div style="font-family:Arial,Helvetica,sans-serif;color:#26394a;font-size:16px;line-height:1.5"><p style="margin:0 0 10px">' + esc(n.line) + "</p>" +
+    (n.link ? '<p style="margin:0"><a href="' + APP_URL + '" style="color:#1d5b6b;font-weight:bold">mirandaraephotography.com/log</a></p>' : "") + "</div>";
+  return { subject: n.subject, html, text: n.line + (n.link ? "\n" + APP_URL : "") };
+}
+async function sendMiranda(env, deps, f, subject) {
+  const e = noteEmail(await mirandaNote(f, subject, deps));
+  return sendEmail(env, deps, { to: [MIRANDA_TO], ...e });
+}
+
 // Sends one email to each address. Returns { ok, error }
 export async function sendEmail(env, deps, { to, subject, html, text, replyTo }) {
   if (!env || !env.EMAIL) return { ok: false, error: "email isn't set up in Cloudflare yet" };
@@ -189,11 +226,13 @@ async function handleOne({ f, req, env, deps, site, kind }) {
   // Double tap of Send, or the same request arriving twice: keep it, but don't email/text again
   if (was.full || (kind === "copy" && was.copy)) { await keep(store, { ...entry, skipped: "already sent" }); return; }
   const live = isLiveHost(req.url);
-  const to = [MAIN_TO].concat(live && !test ? [MIRANDA_TO] : []);
+  const to = [MAIN_TO];
   const note = kind === "copy" ? "Backup copy from " + site + ". That site's own email has every detail; if it didn't come, this is what reached the Bookings page." : "";
   const { html, text } = buildEmail(f, { subject, note, footer: kind === "copy" ? "Sent by Miranda's website (mirandaraephotography.com) from " + site + "'s Bookings copy." : "" });
   const replyTo = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(f.email || "").trim()) ? String(f.email).trim() : "";
   const mail = await sendEmail(env, deps, { to, subject, html, text, replyTo });
+  // Miranda gets the short note right away (Oct 30 2026)
+  if (live && !test) { const m = await sendMiranda(env, deps, f, subject); if (!m.ok) mail.error = [mail.error, m.error].filter(Boolean).join("; "); }
   await textAlerts(deps, new URL(req.url).origin, alertText(f, { subject, site, page, emailed: mail.ok, test }), test);
   await keep(store, { ...entry, emailed: mail.ok, ...(mail.error ? { emailError: mail.error } : {}) });
 }
@@ -246,9 +285,13 @@ export async function handleNotify(req, env, ctx, deps) {
   const subject = oneLine(f._subject || f.subject || "Website note", 250);
   const live = isLiveHost(req.url);
   // Miranda gets a copy only when the page asked for it (pages leave her off for tests), and only on the real site
-  const to = [MAIN_TO].concat(live && /^bookmirandarae@gmail\.com$/i.test(String(f._cc || "").trim()) ? [MIRANDA_TO] : []);
   const { html, text } = buildEmail(f, { subject });
-  const mail = await sendEmail(env, deps, { to, subject, html, text });
+  const mail = await sendEmail(env, deps, { to: [MAIN_TO], subject, html, text });
+  // Oct 30 2026: Miranda's copy is a short note pointing to the Bookings app
+  if (live && /^bookmirandarae@gmail\.com$/i.test(String(f._cc || "").trim())) {
+    const m = await sendMiranda(env, deps, f, subject);
+    if (!m.ok) { mail.ok = false; mail.error = [mail.error, m.error].filter(Boolean).join("; "); }
+  }
   if (!mail.ok) {
     const list = (await store.get("notify-failed", { type: "json" })) || [];
     await store.setJSON("notify-failed", list.concat({ at: new Date().toISOString(), subject, error: mail.error, fields: f }).slice(-200));

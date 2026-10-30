@@ -113,7 +113,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 24px}
   if (AS !== 'Randy' && AS !== 'Miranda' && AS !== 'Customer') AS = 'Miranda';
   var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); };
   var when = function(iso){ try { var d = new Date(iso); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
-  var NAMES = { '2563996736': 'Randy', '4482196539': 'Miranda', '8505550100': 'pretend customer' };
+  var NAMES = { '2563996736': 'Randy', '4482196539': 'Miranda', '2566134522': 'Bradyn', '8505550100': 'pretend customer' };
 
   function call(body){
     return fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify(Object.assign({ as: AS }, body)) }).then(function(r){ return r.json(); });
