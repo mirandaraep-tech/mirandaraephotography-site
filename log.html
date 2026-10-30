@@ -768,7 +768,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     // Oct 30 2026: Miranda collects the deposit; on a contracted session the photographer collects the rest
     if (b.deposit) R2 += row('Deposit', '−' + money(b.deposit.amount));
     if (b.paid) R2 += row((b.photographer ? 'Rest paid to ' + esc(b.photographer) : 'Paid') + (b.paid.method ? ' (' + esc(b.paid.method) + ')' : '') + ' ' + esc(short(b.paid.at)), '−' + money(b.paid.amount));
-    if (!b.cancelled) R2 += row(owed > 0 ? (b.photographer ? 'Left to pay (' + esc(b.photographer) + ' collects)' : 'Left to pay') : 'Paid in full ✓', money(owed), 'tt');
+    if (!b.cancelled) R2 += row(owed > 0 ? (b.photographer ? 'Photographer collects' : 'Left to pay') : 'Paid in full ✓', money(owed), 'tt');
     // Contracted session (Oct 30 2026): the split goes on the same receipt
     if (b.photographer) {
       var how = b.split ? (b.split.mode === 'amt' ? '' : ' (' + b.split.val + '%' + (b.split.min ? ', at least ' + money(b.split.min) : '') + ')') : '';
