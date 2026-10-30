@@ -116,6 +116,8 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .chip{border:1.5px solid #cfdde1;background:#fff;color:var(--ink);border-radius:999px;padding:6px 12px;font-size:14px;cursor:pointer;white-space:nowrap}
 .chip.on{background:var(--teal);border-color:var(--teal);color:#fff}
 .panel .foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px}
+.histbtn{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;background:none;padding:2px 0;font:bold 18px Georgia,serif;color:var(--ink);cursor:pointer}
+.histbtn span:last-child{font:15px Arial,sans-serif;color:var(--teal)}
 .lnk{border:0;background:none;color:var(--teal);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:4px 0}
 
 /* ---------- List ---------- */
@@ -299,16 +301,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <div id="inqAfter"></div>
     <p style="text-align:center;margin:4px 0 18px"><button class="lnk" id="tblTog">Spreadsheet view</button> &nbsp;·&nbsp; <button class="lnk" id="testTog">Show tests</button></p>
 
+    <!-- Oct 30 2026: Miranda's totals card removed (the money boxes at the top cover it); the history list is folded up -->
     <div class="card">
-      <h2 style="margin-bottom:10px">Miranda's totals</h2>
-      <div class="chips"><button class="chip on" data-p="month">This month</button><button class="chip" data-p="year">This year</button><button class="chip" data-p="all">All time</button></div>
-      <div class="chips" style="margin-top:8px"><button class="chip on" data-k="booked">Booked</button><button class="chip" data-k="collected">Collected</button></div>
-      <div id="mt" style="margin-top:12px"></div>
-    </div>
-
-    <div class="card">
-      <h2 style="margin-bottom:10px">Everything that came in</h2>
-      <div id="feed"></div>
+      <button class="histbtn" id="histTog" type="button"><span>🕘 History</span><span id="histArr">Show ▾</span></button>
+      <p class="muted" style="margin:6px 0 0;font-size:13px">Everything that came in: requests, links, confirmations, deposits and changes.</p>
+      <div id="feed" hidden style="margin-top:10px"></div>
     </div>
     <p style="text-align:center" class="muted"><span id="whoLine"></span> · <button class="lnk" id="whoChg">Change</button></p>
     <p style="text-align:center"><button class="lnk" id="clearTests" style="color:var(--bad)">Clear all tests</button></p>
@@ -596,7 +593,6 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('testTog').textContent = MORE.tests ? 'Hide tests' : 'Show tests' + (nT ? ' (' + nT + ')' : '');
     $('head').classList.toggle('compact', !!document.querySelector('#app .bk.open'));
     if (!$('calPop').hidden) $('calPop').innerHTML = calendar();
-    mirandaTotals(all.filter(function(b){ return real(b); }));
     feed(tests);
     $('whoLine').textContent = 'Using this phone: ' + WHO;
   }
@@ -854,6 +850,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     else { q.value = ''; Q = ''; q.hidden = true; $('srchBtn').classList.remove('on'); draw(); }
   });
   $('q').addEventListener('input', function(){ Q = $('q').value; draw(); });
+  $('histTog').addEventListener('click', function(){ var f = $('feed'); f.hidden = !f.hidden; $('histArr').textContent = f.hidden ? 'Show ▾' : 'Hide ▴'; });
   $('tblTog').addEventListener('click', function(){ TABLE = !TABLE; draw(); });
   $('testTog').addEventListener('click', function(){ MORE.tests = !MORE.tests; OPEN = null; draw(); });
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-p]'), function(c){ c.addEventListener('click', function(){ TP = c.getAttribute('data-p'); Array.prototype.forEach.call(document.querySelectorAll('.chip[data-p]'), function(x){ x.classList.toggle('on', x === c); }); draw(); }); });
