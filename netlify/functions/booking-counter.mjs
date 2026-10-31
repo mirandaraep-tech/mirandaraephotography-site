@@ -264,6 +264,15 @@ export default async (req) => {
       if (!(amt > 0) || !b.photographer) return json({ error: "amount" });
       b.shooterPaid = (b.shooterPaid || []).concat({ amount: amt, at: now, by: who });
       data.detail = b.photographer + " paid Miranda";
+    } else if (a === "paid-shooter") {
+      // Oct 30 2026: the other way around. Miranda held more than her share (the deposit), so she pays the photographer the difference.
+      const amt = cents(cleanMoney(data.amount));
+      if (!(amt > 0) || !b.photographer) return json({ error: "amount" });
+      b.paidShooter = (b.paidShooter || []).concat({ amount: amt, at: now, by: who });
+      data.detail = "Miranda paid " + b.photographer;
+    } else if (a === "undo-paid-shooter") {
+      if (!(b.paidShooter && b.paidShooter.length)) return json({ error: "nothing" });
+      b.paidShooter.pop(); if (!b.paidShooter.length) delete b.paidShooter;
     } else if (a === "undo-shooter-paid") {
       if (!(b.shooterPaid && b.shooterPaid.length)) return json({ error: "nothing" });
       b.shooterPaid.pop(); if (!b.shooterPaid.length) delete b.shooterPaid;
@@ -360,11 +369,11 @@ export default async (req) => {
     } else return json({ error: "action" });
     await store.setJSON("bookings", list);
     if (a === "edit" && data.fields && data.fields.total != null) { state.updated = now; await store.setJSON("state", state); }
-    const amt = a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : a === "deduct" ? b.deducts[b.deducts.length - 1].amount : a === "shooter-paid" ? b.shooterPaid[b.shooterPaid.length - 1].amount : 0;
+    const amt = a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : a === "deduct" ? b.deducts[b.deducts.length - 1].amount : a === "shooter-paid" ? b.shooterPaid[b.shooterPaid.length - 1].amount : a === "paid-shooter" ? b.paidShooter[b.paidShooter.length - 1].amount : 0;
     const cxd = a === "cancel" && b.cancelled.deposit ? (b.cancelled.deposit === "kept" ? "Deposit kept" + (b.cancelled.kept ? " $" + b.cancelled.kept : "") : "Deposit returned" + (b.cancelled.returned ? " $" + b.cancelled.returned : "")) : "";
     await logIt({ kind: a === "move" ? "moved" : a, num: b.num, name: b.name, amount: amt, by: who, test: !!b.test,
       ...(a === "move" ? { date: b.date, detail: "Moved from " + b.movedFrom } : a === "deduct" ? { detail: b.deducts[b.deducts.length - 1].why }
-        : a === "edit" || a === "photographer" || a === "shooter-paid" || a === "review" || a === "ad" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
+        : a === "edit" || a === "photographer" || a === "shooter-paid" || a === "paid-shooter" || a === "review" || a === "ad" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
     return json({ ok: true, booking: b });
   }
   // Sandy (Oct 30 2026): Miranda said no to a time after Bradyn's yes, before the deposit. The Confirm link that

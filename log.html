@@ -367,6 +367,12 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // What Miranda keeps of the money collected: all of it on her own sessions, only her share on contracted ones
   // On a contracted session Miranda gets the deposit; the photographer collects the balance and hands over
   // whatever else is Miranda's ("Kallie paid me")
+  // Oct 30 2026: Miranda held more than her share (her deposit), so she owes the photographer the difference
+  function paidOut(b){ return (b.paidShooter || []).reduce(function(s, x){ return s + (x.amount || 0); }, 0); }
+  function mirandaOwes(b){
+    if (!b.photographer || b.cancelled || !(b.paid || (b.date && b.date < TODAY))) return 0;
+    return Math.max(0, Math.round((((b.deposit && b.deposit.amount) || 0) + handed(b) - paidOut(b) - mineOf(b)) * 100) / 100);
+  }
   function handed(b){ return (b.shooterPaid || []).reduce(function(s, x){ return s + (x.amount || 0); }, 0); }
   function keepOf(b){
     // Cancelled with the deposit kept: Miranda keeps all of it, even on a contracted session (nobody else worked)
@@ -788,7 +794,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       // Oct 30 2026: the session time goes in the date line (change it with Edit)
       '<div class="sub">' + esc([b.date ? nice(b.date) : 'No date', b.time ? SESS_LBL[sessType(b)] === 'Other' ? b.time : SESS_LBL[sessType(b)].replace('♥ ', '') : '', b.beach].filter(Boolean).join(' · ')) + '</div>' +
       (fl ? '<div class="flag">⚠️ Date passed — shot or moved?</div>' : '') +
-      (so ? '<div class="flag owes">💸 ' + esc(b.photographer) + ' owes Miranda ' + money(so) + '</div>' : '') +
+      (so ? '<div class="flag owes">💸 ' + esc(b.photographer) + ' owes Miranda ' + money(so) + '</div>' : mirandaOwes(b) ? '<div class="flag owes">💸 Miranda owes ' + esc(b.photographer) + ' ' + money(mirandaOwes(b)) + '</div>' : '') +
       '</div><div class="rt">' + moneyBtn(b) + '</div></div>';
     if (!open) return h + '</div>';
     // Inside the card (Oct 30 2026): a money receipt, a tappable phone, and three buttons (Text, Edit, Photographer)
@@ -815,7 +821,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       var how = b.split ? (b.split.mode === 'amt' ? '' : ' (' + b.split.val + '%' + (b.split.min ? ', at least ' + money(b.split.min) : '') + ')') : '';
       R2 += '<div class="sp">📷 ' + esc(b.photographer) + ' shooting</div>' + row(esc(b.photographer) + "'s pay", money(payOf(b))) + row('Miranda\'s share' + how, money(mineOf(b)));
       (b.shooterPaid || []).forEach(function(x, i, arr){ R2 += row(esc(b.photographer) + ' paid Miranda ' + esc(short(x.at)) + (i === arr.length - 1 ? ' <button class="lnk" data-a="undo-shooter-paid">undo</button>' : ''), money(x.amount)); });
+      (b.paidShooter || []).forEach(function(x, i, arr){ R2 += row('Miranda paid ' + esc(b.photographer) + ' ' + esc(short(x.at)) + (i === arr.length - 1 ? ' <button class="lnk" data-a="undo-paid-shooter">undo</button>' : ''), money(x.amount)); });
+      var mo = mirandaOwes(b);
       if (so) R2 += row('💸 ' + esc(b.photographer) + ' owes Miranda', money(so), 'tt');
+      else if (mo) R2 += row('💸 Miranda owes ' + esc(b.photographer), money(mo), 'tt');
       else if (b.paid && !b.cancelled) R2 += '<div class="tt"><span>✓ All settled with ' + esc(b.photographer) + '</span><span></span></div>';
     }
     // Advertising (Oct 30 2026): what an ad cost for this booking, taken from Miranda's part
@@ -826,6 +835,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     }
     L += '<div class="rcpt">' + R2 + '</div>';
     if (b.photographer && so) L += '<button class="btn" data-a="shooter-paid" style="width:100%;margin-bottom:8px">' + esc(b.photographer) + ' paid me ' + money(so) + '</button>';
+    else if (b.photographer && mirandaOwes(b)) L += '<button class="btn" data-a="paid-shooter" style="width:100%;margin-bottom:8px">I paid ' + esc(b.photographer) + ' ' + money(mirandaOwes(b)) + '</button>';
     if (b.cancelled) L += '<div class="kv">Cancelled ' + esc(short(b.cancelled.at)) + (b.cancelled.by ? ' by ' + esc(b.cancelled.by) : '') + (b.cancelled.kept ? ' · kept ' + money(b.cancelled.kept) : b.cancelled.returned ? ' · returned ' + money(b.cancelled.returned) : '') + '</div>';
     if (b.notes) L += '<div class="kv">Notes – <b>' + esc(b.notes) + '</b></div>';
     if (b.reviewAsked) L += '<div class="kv">⭐ Review asked – <b>' + esc(b.reviewAsked.site) + '</b> · ' + esc(short(b.reviewAsked.at)) + '</div>';
@@ -907,7 +917,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('mt').innerHTML = line('📸 From her own sessions', own) + line('📷 Her share from contracted sessions' + (n ? ' <span class="muted">(' + n + ')</span>' : ''), share) +
       line('Total to Miranda', own + share, true) + '<p class="muted" style="margin:10px 0 0">Paid to photographers: <b>' + money(paidOut) + '</b>' + (who ? ' (' + who + ')' : '') + '</p>';
   }
-  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', 'shooter-paid': '💸 Photographer paid Miranda', review: '⭐ Review asked', ad: '📣 Advertising', 'undo-shooter-paid': '↩️ Photographer payment undone' };
+  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', 'shooter-paid': '💸 Photographer paid Miranda', 'paid-shooter': '💸 Miranda paid photographer', review: '⭐ Review asked', ad: '📣 Advertising', 'undo-shooter-paid': '↩️ Photographer payment undone' };
   function feed(tests){
     var log = DATA.log || [], done = {};
     log.forEach(function(e){ if (e.kind === 'confirm' || e.kind === 'added') done[low(e.name) + '|' + (e.date || '')] = 1; });
@@ -1136,6 +1146,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'undo-deduct') return ask('Undo the last deduction?', '', 'Undo', 'Keep it', function(){ act(b, 'undo-deduct'); });
     if (a === 'shooter-paid') return ask(esc(b.photographer) + ' paid Miranda ' + money(shooterOwes(b)) + '?', 'This marks Miranda\'s share of ' + esc(b.name) + '\'s session as fully paid.', 'Yes, paid', 'Not yet', function(){ act(b, 'shooter-paid', { amount: shooterOwes(b) }); });
     if (a === 'undo-shooter-paid') return ask('Undo that payment?', '', 'Undo', 'Keep it', function(){ act(b, 'undo-shooter-paid'); });
+    if (a === 'paid-shooter') { var mo = mirandaOwes(b); return ask('Paid ' + esc(b.photographer) + ' ' + money(mo) + '?', 'Miranda kept the ' + money((b.deposit && b.deposit.amount) || 0) + ' deposit, which is more than her ' + money(mineOf(b)) + ' share, so this is the difference.', 'Yes, paid', 'Not yet', function(){ act(b, 'paid-shooter', { amount: mo }); }); }
+    if (a === 'undo-paid-shooter') return ask('Undo that payment?', '', 'Undo', 'Keep it', function(){ act(b, 'undo-paid-shooter'); });
     if (a === 'cancel') return cancelSheet(b);
     if (a === 'undo-cancel') return ask('Bring this booking back?', esc(b.name) + "'s booking goes back on the list and the totals.", 'Undo cancel', 'Leave cancelled', function(){ act(b, 'undo-cancel'); });
   }
