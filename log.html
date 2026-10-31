@@ -880,13 +880,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
   // ---------- Spreadsheet view ----------
   function table(rows){
-    var h = '<div class="card" style="padding:10px"><div class="tbl"><table><tr><th>#</th><th>Date</th><th>Time</th><th>Client</th><th>Beach</th><th>Package</th><th>Total</th><th>Deposit</th><th>Paid in full</th><th>Still due</th><th>Photographer</th><th>Their pay</th><th>Miranda&#39;s share</th><th>Set up by</th><th>Status</th><th style="min-width:70px">&nbsp;</th></tr>';
+    var h = '<div class="card" style="padding:10px"><div class="tbl"><table><tr><th>#</th><th>Date</th><th>Time</th><th>Client</th><th>Beach</th><th>Package</th><th>Total</th><th>Deposit</th><th>Paid in full</th><th>Still due</th><th>Photographer</th><th>Their pay</th><th>Miranda&#39;s share</th><th>Set up by</th><th>Status</th></tr>';
     rows.forEach(function(b){
       h += '<tr class="' + (b.cancelled ? 'cx' : '') + (b.test ? ' tst' : '') + '"><td>' + (b.past ? 'past' : b.num < 101 ? 'early' : b.num < 900000 ? b.num : 'test') + '</td><td>' + esc(b.date ? nice(b.date) : '') + '</td><td>' + esc(b.time || '') +
         '</td><td>' + esc(b.name) + '</td><td>' + esc(b.beach || '') + '</td><td>' + esc(b.pkg || '') + '</td><td>' + money(tot(b)) +
         '</td><td>' + (b.deposit ? money(b.deposit.amount) + ' ' + esc(b.deposit.method || '') : '') + '</td><td>' + (b.paid ? money(b.paid.amount) : '') +
         '</td><td>' + (b.cancelled ? '' : money(due(b))) + '</td><td>' + esc(b.photographer || 'Miranda') +
-        '</td><td>' + (b.photographer ? money(payOf(b)) : '') + '</td><td>' + money(mineOf(b)) + '</td><td>' + esc(b.by || '') + '</td><td>' + statusOf(b)[0] + '</td><td>' + (adOf(b) ? money(adOf(b)) : '') + '</td></tr>';
+        '</td><td>' + (b.photographer ? money(payOf(b)) : '') + '</td><td>' + money(mineOf(b)) + '</td><td>' + esc(b.by || '') + '</td><td>' + statusOf(b)[0] + '</td></tr>';
     });
     return h + '</table></div></div>';
   }
