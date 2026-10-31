@@ -36,8 +36,11 @@
     "SANDY_TEXTING": "on",
     // Live phone conversations (Oct 28 2026): "on" sends Randy's and Miranda's calls to the live version
     "SANDY_LIVE_CALLS": "on",
-    // Sandy answers customers who text her number when "on" (Oct 28 2026). "off" = real customer texts still go to Miranda; the pretend customer on /sandy works either way
-    "SANDY_CUSTOMERS": "on",
+    // Sandy answers customers who text her number when "on" (Oct 28 2026; turned off Oct 31 2026). "off" = real customer texts still go to Miranda; the pretend customer on /sandy works either way
+    "SANDY_CUSTOMERS": "off",
+    // Oct 31 2026 (Randy): Miranda doesn't want Sandy texting customers for now. "off" = anything meant for a
+    // customer goes to Miranda instead; customer texts to Sandy's number are forwarded to Miranda. "on" turns it back on.
+    "SANDY_TEXT_CUSTOMERS": "off",
     // Sandy texts people who send a website request and check OK to text (Oct 28 2026).
     // "testers" = only Randy's and Bradyn's numbers. Change to "everyone" when Randy says turn it on for everyone.
     "SANDY_WEB_TEXTS": "testers"
