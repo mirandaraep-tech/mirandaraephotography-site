@@ -368,13 +368,19 @@ footer a{color:#fff}
 .band-grid{display:grid;grid-template-columns:1fr auto auto;gap:24px;align-items:center;padding:26px 0}
 .hero-sub{font-size:18px;margin:0;max-width:440px}
 .band-grid .hero-ctas{margin:0;flex-wrap:nowrap}
-@media(min-width:861px){.hero{background:#14262d;align-items:center;min-height:min(80vh,760px)}.hero-photo{left:auto;right:0;width:62%;object-position:50% 28%}.hero-shade{background:linear-gradient(90deg,#14262d 38%,rgba(20,38,45,.75) 46%,rgba(20,38,45,0) 62%)}.hero-copy{max-width:520px}.hero .hero-big{font-size:72px}.hero-grid{padding:90px 0}}
+/* Writing on the left, the couple on the right (phones and computers) */
+.hero{background:#14262d;align-items:center}.hero-photo{left:auto;right:0;width:62%;object-position:50% 28%}.hero-shade{background:linear-gradient(90deg,#14262d 38%,rgba(20,38,45,.75) 46%,rgba(20,38,45,0) 62%)}
+@media(min-width:861px){.hero{min-height:min(80vh,760px)}.hero-copy{max-width:520px}.hero .hero-big{font-size:72px}.hero-grid{padding:90px 0}}
 @media(max-width:860px){
-  .hero{min-height:calc(100svh - 104px)}
-  .hero-grid{padding:220px 0 20px}
+  .hero{min-height:560px;align-items:center}
+  .hero-photo{width:64%;object-position:40% 30%}
+  .hero-shade{background:linear-gradient(90deg,#14262d 36%,rgba(20,38,45,.7) 44%,rgba(20,38,45,0) 58%)}
+  .hero-grid{padding:36px 0}
+  .hero-copy{max-width:56%}
   .hero .eyebrow{display:none}
-  .hero h1.kicker{font-size:11px;letter-spacing:1.2px;margin-bottom:6px}
-  .hero .hero-big{font-size:50px}
+  .hero h1.kicker{font-size:10px;letter-spacing:1.2px;margin-bottom:10px}
+  .hero .hero-big{font-size:38px;line-height:1}
+  .hero-pill{flex-direction:column;align-items:flex-start;gap:6px;border-radius:16px;padding:10px 12px}
   .hero .checks{gap:12px;font-size:12px}
   .band-grid{grid-template-columns:1fr;gap:14px;padding:20px 0 24px}
   .hero-sub{font-size:16px}
@@ -386,7 +392,7 @@ footer a{color:#fff}
 .hero-pill b{font:15px Georgia,serif;letter-spacing:.5px;text-transform:none}
 .band-grid{grid-template-columns:1fr auto;grid-template-areas:"sub ctas" "checks checks"}
 .band-grid .hero-sub{grid-area:sub}.band-grid .hero-ctas{grid-area:ctas}.band-grid .checks{grid-area:checks;margin:0;color:var(--ink)}
-@media(max-width:860px){.band-grid{grid-template-columns:1fr;grid-template-areas:"sub" "ctas" "checks"}.hero-pill strong{font-size:30px}}
+@media(max-width:860px){.band-grid{grid-template-columns:1fr;grid-template-areas:"sub" "ctas" "checks"}.hero-pill strong{font-size:28px;padding:8px 14px}.hero-pill span{font-size:10px}}
 </style>
 </head>
 <body>
