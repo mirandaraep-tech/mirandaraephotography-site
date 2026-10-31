@@ -39,7 +39,7 @@ const NAMES = {
   "port-st-joe-photographer": "Port St. Joe page", "cape-san-blas-photographer": "Cape San Blas page",
   "st-george-island-photographer": "St. George Island page",
   // hidden ad pages
-  elopement: "Elopement ad page", proposal: "Proposal ad page", maternity: "Maternity ad page", senior: "Senior ad page",
+  elopement: "Elopement ad page", "mini-elopement": "Mini Elopement ad page", proposal: "Proposal ad page", maternity: "Maternity ad page", senior: "Senior ad page",
   "last-minute": "Last-Minute ad page", "holiday-family": "Holiday family ad page", "holiday-family-photos": "Thanksgiving ad page",
   "gulf-coast-199": "$199 Gulf Coast ad page", "destin-199": "$199 Destin ad page", "panama-city-beach-199": "$199 Panama City Beach ad page",
   "mexico-beach-199": "$199 Mexico Beach ad page", "port-st-joe-199": "$199 Port St. Joe ad page", "cape-san-blas-199": "$199 Cape San Blas ad page",
