@@ -1,17 +1,19 @@
 {
   "_readme": "MASTER PRICE LIST for mirandaraephotography.com. Change a number here, then run `node tools/prices.mjs` and every page (home, Prices page, /book, beach pages, New Booking, /log, llms.txt) is rewritten to match. Keep this matching Miranda's Pixieset Services page.",
-  "updated": "2026-10-30",
+  "updated": "2026-10-31",
   "deposit": 50,
   "packages": {
     "mini": {
       "name": "Beach Mini Session",
       "booking": "Beach Mini",
       "price": 130,
-      "time": "30 min",
-      "timeWords": "30 minutes",
+      "time": "20–30 min",
+      "timeWords": "20–30 minutes",
       "photos": "15",
       "people": 6,
-      "details": [],
+      "details": [
+        "1 location"
+      ],
       "where": "Mexico Beach · Port St. Joe · Cape San Blas · Panama City Beach",
       "blurb": "Perfect for busy families, couples, or anyone who wants beautiful photos in a shorter, relaxed session.",
       "more": [
@@ -118,6 +120,22 @@
         "No set time limit"
       ]
     },
+    "elopementMini": {
+      "name": "Mini Elopement",
+      "booking": "Mini Elopement",
+      "price": 349,
+      "time": "1 hour",
+      "timeWords": "1 hour",
+      "photos": "50+",
+      "people": null,
+      "details": [],
+      "blurb": "A shorter beach ceremony for just the two of you or a few favorite people: the ceremony plus portraits, in one easy hour.",
+      "more": [
+        "Your ceremony and a few family photos",
+        "Couple's portraits right after",
+        "Help choosing the spot and timing"
+      ]
+    },
     "elopement": {
       "name": "Beach Elopement",
       "booking": "Beach Elopement",
@@ -137,7 +155,7 @@
     "wedding6": {
       "name": "Wedding: Étoile Collection",
       "booking": "Wedding (6 hours)",
-      "price": 999,
+      "price": 799,
       "time": "6 hours",
       "timeWords": "6 hours",
       "photos": "",
@@ -152,7 +170,7 @@
     "wedding10": {
       "name": "Wedding: Grand Coastal Collection",
       "booking": "Wedding (10 hours)",
-      "price": 1999,
+      "price": 1500,
       "time": "10 hours",
       "timeWords": "10 hours",
       "photos": "",
@@ -161,9 +179,7 @@
       "blurb": "The ultimate coastal wedding: every chapter of the day, from getting ready to the very last celebration.",
       "more": [
         "Getting ready, ceremony, portraits, family photos, reception and send-off",
-        "Full curated gallery, no set photo count",
-        "Bonus beach session during your wedding week (the day before or the morning after)",
-        "Sneak peek: 20–30 edited photos within 48 hours"
+        "Full curated gallery, no set photo count"
       ]
     }
   },
@@ -171,11 +187,13 @@
     "person": {
       "name": "Extra person (over the package limit)",
       "price": 15,
-      "unit": "each"
+      "unit": "each",
+      "hidden": true,
+      "note": "Not on Miranda's Pixieset, so it is NOT shown on regular pages, the Prices page, llms.txt or by Sandy. Kept only because the hidden holiday ad pages still mention it (Oct 31 2026)."
     },
     "photo": {
       "name": "Extra edited photo",
-      "price": 10,
+      "price": 5,
       "unit": "each"
     },
     "time": {

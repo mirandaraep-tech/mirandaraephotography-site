@@ -118,7 +118,7 @@ const BLOCKS = {
   }).join('') + '\n    ',
 
   // Prices page: extras + travel table
-  'prices-extras': () => Object.values(P.extras).map(x =>
+  'prices-extras': () => Object.values(P.extras).filter(x => !x.hidden).map(x =>
     '\n        <li><span>' + esc(x.name) + '</span><b>' + money(x.price) + (x.unit ? ' <small>' + esc(x.unit) + '</small>' : '') + '</b></li>').join('') +
     Object.entries(P.travel).map(([b, fee]) => '\n        <li><span>Travel fee: ' + esc(b) + '</span><b>' + money(fee) + '</b></li>').join('') + '\n      ',
 
@@ -153,7 +153,7 @@ const BLOCKS = {
 
   // llms.txt price section
   'llms': () => '\n' + Object.entries(P.packages).map(([id, p]) => '- ' + p.name + (p.where ? ' (' + p.where.replace(/ · /g, ', ') + ')' : '') + ' — ' + money(p.price) + ': ' + summary(p).replace(/ · /g, ', ') + '.').join('\n') +
-    '\n- Extras: ' + Object.values(P.extras).map(x => x.name.toLowerCase() + ' ' + money(x.price) + (x.unit ? ' ' + x.unit : '')).join('; ') + '.' +
+    '\n- Extras: ' + Object.values(P.extras).filter(x => !x.hidden).map(x => x.name.toLowerCase() + ' ' + money(x.price) + (x.unit ? ' ' + x.unit : '')).join('; ') + '.' +
     '\n- Travel: ' + travelLine() + '.' +
     '\n- A ' + money(P.deposit) + ' non-refundable deposit holds your date and comes off the session price.\n',
 

@@ -10,7 +10,6 @@ Disallow: /favorites
 Disallow: /log
 Disallow: /confirm
 Disallow: /sandy
-Disallow: /price-preview
 
 User-agent: Googlebot
 Allow: /
