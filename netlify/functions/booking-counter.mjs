@@ -21,7 +21,8 @@ const DEFAULT_PHOTOGRAPHERS = ["Kallie"];
 // Split for contracted-out sessions (Oct 15 2026): Miranda's share is a percentage of the session
 // (default 25%, or $50 if that's more) or a dollar amount she types. The photographer gets the rest,
 // and add-ons are split the same way. Miranda can change the usual percentage from the New Booking page.
-const DEFAULT_SPLIT = { pct: 25, min: 50 };
+// Oct 30 2026 (Randy): the usual split is now 20% to Miranda, no minimum. She can change it per booking (% or $).
+const DEFAULT_SPLIT = { pct: 20, min: 0 };
 const cleanSplit = (s) => {
   if (!s || typeof s !== "object") return null;
   const val = Number(s.val);
@@ -140,6 +141,8 @@ export default async (req) => {
   // "strong" = always read the very latest numbers, so two quick entries can't overwrite each other
   const store = getStore({ name: live ? "booking-counter" : "booking-counter-test", consistency: "strong" });
   const state = (await store.get("state", { type: "json" })) || { last: START, total: 0, count: 0, addons: 0 };
+  // One-time switch (Oct 30 2026): replace any older saved usual split with the new 20%
+  if (!state.split20) { state.splitDefault = { ...DEFAULT_SPLIT }; state.split20 = new Date().toISOString(); await store.setJSON("state", state); }
 
   // Photographer names for the New Booking page's one-tap buttons (names only, no numbers)
   const getList = async (k) => (await store.get(k, { type: "json" })) || [];
@@ -327,7 +330,7 @@ export default async (req) => {
       b.photographer = shooter;
       if (shooter) {
         // Usual split (Oct 30 2026): 25% to Miranda, never less than $50, on every session (weddings too)
-        b.split = cleanSplit(data.split) || { mode: "pct", val: (state.splitDefault || DEFAULT_SPLIT).pct, min: (state.splitDefault || DEFAULT_SPLIT).min };
+        b.split = cleanSplit(data.split) || cleanSplit({ mode: "pct", val: (state.splitDefault || DEFAULT_SPLIT).pct, min: (state.splitDefault || DEFAULT_SPLIT).min });
         resplit(b);
         const names = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS.slice();
         if (!names.some((n) => n.toLowerCase() === shooter.toLowerCase())) names.push(shooter);

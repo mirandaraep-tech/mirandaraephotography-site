@@ -392,7 +392,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw();
     }).catch(function(){ $('asof').textContent = "Couldn't load. Pull down to refresh."; });
   }
-  var PH = { names: ['Kallie'], split: { pct: 25, min: 50 }, adPct: 20 };
+  var PH = { names: ['Kallie'], split: { pct: 20, min: 0 }, adPct: 20 };
   try { fetch(API).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ if (j && j.photographers && j.photographers.length) PH.names = j.photographers; if (j && j.split && isFinite(j.split.pct)) PH.split = j.split; if (j && isFinite(j.adPct)) PH.adPct = j.adPct; }).catch(function(){}); } catch (e) {}
 
   // ---------- Inquiries: website requests and texted Confirm links nobody has confirmed yet ----------
@@ -935,7 +935,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   function isWed(b){ return /wedding/i.test(b.time || '') || /wedding/i.test(b.pkg || ''); }
   // Usual split (Oct 20 2026): a flat $50 to Miranda, except weddings at 25% (at least $50)
-  // Oct 30 2026: 25% to Miranda, never less than $50, on every session (changeable per booking)
+  // Oct 30 2026: 20% to Miranda on every session (changeable per booking, % or $)
   function usualSplit(b){ return { mode: 'pct', val: PH.split.pct, min: PH.split.min }; }
   function dotOf(b){ return b.pen ? 'pen' : b.inq ? 'q' : (b.deposit || b.paid) ? 'full' : 'ring'; }
   function calendar(){
@@ -1377,7 +1377,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<div><label class="l">Price</label><div class="money"><b>$</b><input data-f="base" type="number" inputmode="decimal" value="' + (o.amount || PK[pi][1]) + '"></div></div></div>' +
       '<label class="l">Deposit</label><div class="money"><b>$</b><input data-f="dep" type="number" inputmode="decimal" value="50"></div><div class="muted" data-dn style="font-size:13px;margin-top:4px"></div>' +
       '<label class="l">Who\'s shooting</label><div class="chips" data-who><button class="chip on" type="button" data-n="">Miranda</button>' + PH.names.filter(function(n){ return low(n) !== 'miranda'; }).map(function(n){ return '<button class="chip" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>' +
-      '<p class="muted" style="margin:6px 0 0">A contracted session uses the usual split: $50 to Miranda, or ' + PH.split.pct + '% on a wedding (and the wedding deposit is her full share). Change it later with the Photographer button.</p>' +
+      '<p class="muted" style="margin:6px 0 0">A contracted session uses the usual split: ' + PH.split.pct + '% to Miranda (on a wedding the deposit is her full share). Change it later with the Photographer button.</p>' +
       '<p class="err" data-e hidden>Fill in the name and date first.</p>' +
       '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>' + (direct ? 'Book it' : 'Text Confirm link') + '</button></div>' +
       (direct ? '' : '<p style="text-align:center;margin:10px 0 0"><button class="lnk" data-alt>They already said yes? Book without texting</button></p>'),
