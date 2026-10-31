@@ -11,11 +11,11 @@
 <meta property="og:title" content="Mini Elopement Photographer | Miranda Rae Photography">
 <meta property="og:description" data-tpl="A small beach elopement in one easy hour: your ceremony, a few family photos and couple's portraits. {elopementMini.price} Mini Elopement on Florida's Gulf Coast." content="A small beach elopement in one easy hour: your ceremony, a few family photos and couple's portraits. $349 Mini Elopement on Florida's Gulf Coast.">
 <meta property="og:url" content="https://mirandaraephotography.com/mini-elopement-photographer">
-<meta property="og:image" content="https://mirandaraephotography.com/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FQ499noO%2FDSC08876-639a0f0c-2500.jpg&amp;w=1500&amp;fm=webp&amp;q=80">
+<meta property="og:image" content="https://mirandaraephotography.com/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F6all1G3%2FDSC08918-fae47bb4-1000.jpeg&amp;w=1500&amp;fm=webp&amp;q=80">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FQ499noO%2FDSC08876-639a0f0c-2500.jpg&amp;w=1500&amp;fm=webp&amp;q=80" fetchpriority="high">
+<link rel="preload" as="image" href="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F6all1G3%2FDSC08918-fae47bb4-1000.jpeg&amp;w=1000&amp;fm=webp&amp;q=80" fetchpriority="high">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
@@ -80,8 +80,6 @@ a{color:inherit}
 .btn-sm{min-height:42px;padding:10px 18px;font-size:14px}
 
 .hero{position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:0;background:url('/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FQ499noO%2FDSC08876-639a0f0c-2500.jpg&w=1500&fm=webp&q=80') 50% 40%/cover;filter:brightness(1.18) saturate(1.1);z-index:0}
-.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,247,230,.82),rgba(255,247,230,.33) 42%,rgba(255,247,230,0) 62%);z-index:0}
 .hero-grid{position:relative;z-index:1}
 .hero-grid{padding:60px 0 66px}
 .hero-copy{max-width:540px}
@@ -195,9 +193,6 @@ footer a{color:#fff}
   .brand span{font-size:8px;letter-spacing:1.5px;text-align:left;margin-top:3px}
   .brand-wrap img{display:none}
   .topbar .shell{width:94%}
-  .hero::before{background-position:50% 100%}
-  .hero::after{background:linear-gradient(180deg,rgba(255,247,230,.9) 0%,rgba(255,247,230,.7) 38%,rgba(255,247,230,0) 60%)}
-  .hero-grid{padding:26px 0 230px}
   h1{font-size:42px;max-width:360px}
   h1.kicker{font-size:13px;max-width:none}
   .hero-big{font-size:44px;max-width:360px}
@@ -357,8 +352,49 @@ footer a{color:#fff}
 .secret{background:#fff6e6;border:1px solid #f0d9b5;border-radius:10px;padding:10px 12px;font-size:13px;margin-top:8px;display:none}
 .steps5{grid-template-columns:repeat(4,1fr)}
 @media(max-width:860px){.pk{grid-template-columns:1fr}.hgal{grid-template-columns:repeat(2,minmax(0,1fr))}.steps5{grid-template-columns:1fr}}
-@media(min-width:861px){.hero{background:#f3d9c4}.hero::before{left:30%;background-position:50% 40%}.hero::after{background:linear-gradient(90deg,#f3d9c4 30%,rgba(243,217,196,.55) 40%,rgba(243,217,196,0) 52%)}}
-@media(max-width:860px){.hero{background:#fbf3ea}.hero::before{top:auto;bottom:0;height:300px;background-position:50% 35%}.hero::after{top:auto;bottom:0;height:300px;background:linear-gradient(180deg,#fbf3ea 0%,rgba(251,243,234,0) 22%)}.hero-grid{padding:26px 0 310px}}
+</style>
+<style>
+/* Oct 31 2026: big full-photo hero with the headline written over the photo */
+.hero{position:relative;overflow:hidden;background:#1b2a30;color:#fff;min-height:min(84vh,780px);display:flex;align-items:flex-end}
+.hero-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 25%;z-index:0}
+.hero-shade{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(10,22,28,.25) 0%,rgba(10,22,28,0) 16%,rgba(10,22,28,0) 50%,rgba(10,22,28,.6) 72%,rgba(10,22,28,.9) 100%)}
+.hero-grid{position:relative;z-index:1;width:min(1140px,92%);margin:auto;padding:120px 0 34px}
+.hero-copy{max-width:640px}
+.hero h1.kicker{color:#ffe7c4;text-shadow:0 1px 8px rgba(0,0,0,.5);margin-bottom:10px}
+.hero .hero-big{color:#fff;font-size:80px;line-height:.95;text-shadow:0 2px 24px rgba(0,0,0,.45)}
+.hero .hero-big em{color:#ffe7c4}
+.hero .checks{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.6);margin-top:16px}
+.hero-band{background:var(--cream);border-bottom:1px solid var(--line)}
+.band-grid{display:grid;grid-template-columns:1fr auto auto;gap:24px;align-items:center;padding:26px 0}
+.hero-sub{font-size:18px;margin:0;max-width:440px}
+.band-grid .hero-ctas{margin:0;flex-wrap:nowrap}
+/* Writing on the left, the couple on the right (phones and computers) */
+.hero{background:#14262d;align-items:center}.hero-photo{left:auto;right:0;width:62%;object-position:50% 28%}.hero-shade{background:linear-gradient(90deg,#14262d 38%,rgba(20,38,45,.75) 46%,rgba(20,38,45,0) 62%)}
+@media(min-width:861px){.hero{min-height:min(80vh,760px)}.hero-copy{max-width:520px}.hero .hero-big{font-size:72px}.hero-grid{padding:90px 0}}
+@media(max-width:860px){
+  .hero{min-height:560px;align-items:center}
+  .hero-photo{width:64%;object-position:40% 30%}
+  .hero-shade{background:linear-gradient(90deg,#14262d 36%,rgba(20,38,45,.7) 44%,rgba(20,38,45,0) 58%)}
+  .hero-grid{padding:36px 0}
+  .hero-copy{max-width:56%}
+  .hero .eyebrow{display:none}
+  .hero h1.kicker{font-size:10px;letter-spacing:1.2px;margin-bottom:10px}
+  .hero .hero-big{font-size:38px;line-height:1}
+  .hero-pill{display:block;border-radius:14px;padding:10px 12px 12px;width:max-content;max-width:100%}
+  .hero-pill strong{display:inline-block;margin-bottom:8px}
+  .hero-pill span{display:block}
+  .hero .checks{gap:12px;font-size:12px}
+  .band-grid{grid-template-columns:1fr;gap:14px;padding:20px 0 24px}
+  .hero-sub{font-size:16px}
+  .band-grid .hero-ctas{flex-wrap:wrap}
+}
+.hero-pill{display:inline-flex;align-items:center;gap:14px;margin:20px 0 0;background:rgba(255,249,241,.96);color:var(--ink);border-radius:999px;padding:8px 22px 8px 10px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.hero-pill strong{font:34px/1 Georgia,serif;color:#fff;background:var(--teal);border-radius:999px;padding:10px 16px}
+.hero-pill span{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:bold;line-height:1.45}
+.hero-pill b{font:15px Georgia,serif;letter-spacing:.5px;text-transform:none}
+.band-grid{grid-template-columns:1fr auto;grid-template-areas:"sub ctas" "checks checks"}
+.band-grid .hero-sub{grid-area:sub}.band-grid .hero-ctas{grid-area:ctas}.band-grid .checks{grid-area:checks;margin:0;color:var(--ink)}
+@media(max-width:860px){.band-grid{grid-template-columns:1fr;grid-template-areas:"sub" "ctas" "checks"}.hero-pill{display:block;border-radius:14px;padding:10px 14px 12px;width:max-content;max-width:100%}.hero-pill strong{display:inline-block;font-size:28px;padding:6px 14px;margin-bottom:8px}.hero-pill span{display:block;font-size:10px}}
 </style>
 </head>
 <body>
@@ -378,21 +414,28 @@ footer a{color:#fff}
 </div>
 
 <header class="hero" id="top">
-  <div class="shell hero-grid">
+  <img class="hero-photo" src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F6all1G3%2FDSC08918-fae47bb4-1000.jpeg&amp;w=1000&amp;fm=webp&amp;q=80" alt="Groom kissing his bride on the forehead by the Gulf after their mini elopement on the Florida Gulf Coast, by Miranda Rae Photography" width="1000" height="1496" fetchpriority="high">
+  <div class="hero-shade"></div>
+  <div class="hero-grid">
     <div class="hero-copy">
       <p class="eyebrow">Miranda Rae Photography</p>
       <h1 class="kicker">Mini Elopement Photographer · Florida Gulf Coast</h1>
       <p class="hero-big">Small Ceremony.<br><em>Big Moment.</em></p>
-      <p style="font-size:18px;max-width:440px;margin:0 0 6px"><b>A small beach elopement in one easy hour:</b> your ceremony, a few family photos and couple's portraits.</p>
-      <div class="price2"><div class="pp"><em class="ptag">Mini Elopement</em><strong data-p="elopementMini.price">$349</strong><span><data data-p="elopementMini.timeWords">1 hour</data> · <data data-p="elopementMini.photos">50+</data> edited photos</span></div></div>
-      <div class="hero-ctas">
-        <a class="btn btn-text" href="#check-date">Check My Date →</a>
-        <a class="btn btn-ghost" href="#prices">What's Included</a>
-      </div>
-      <div class="checks"><span>✓ No payment to ask</span><span>✓ Help with the spot &amp; timing</span></div>
+      <p class="hero-pill"><strong data-p="elopementMini.price">$349</strong><span><b>Mini Elopement</b><br><data data-p="elopementMini.timeWords">1 hour</data> · <data data-p="elopementMini.photos">50+</data> edited photos</span></p>
     </div>
   </div>
 </header>
+<div class="hero-band">
+  <div class="shell band-grid">
+    <p class="hero-sub"><b>A small beach elopement in one easy hour:</b> your ceremony, a few family photos and couple's portraits.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-text" href="#check-date">Check My Date →</a>
+      <a class="btn btn-ghost" href="#prices">What's Included</a>
+    </div>
+    <div class="checks"><span>✓ No payment to ask</span><span>✓ Help with the spot &amp; timing</span></div>
+  </div>
+</div>
+
 
 <div class="proof" id="reviews">
   <div class="shell proof-grid">
