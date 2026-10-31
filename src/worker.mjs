@@ -24,7 +24,7 @@ import sandyPencil from "../netlify/functions/sandy-pencil.mjs";
 import { EmailMessage } from "cloudflare:email";
 import { getHistory, saveHistory, deliver, sandyKey } from "../netlify/sandy/brain.mjs";
 import { handleRequest, handleNotify, handleSisterCopy } from "./requests.mjs";
-import { photoSwapsApi, swapPage, stemOf, isSwappable } from "./photo-swaps.mjs";
+import { photoSwapsApi, swapPage, stemOf, isSwappable, refreshPixieset } from "./photo-swaps.mjs";
 
 // The site's own request emails + Sandy's alert texts (Oct 29 2026, replaces FormSubmit; see src/requests.mjs)
 const SISTERS = { "affordablebeachphotographer.com": "AffordableBeachPhotographer.com", "mirandaraephotos.com": "MirandaRaePhotos.com" };
@@ -263,6 +263,8 @@ export default {
     setEnv(env); CTX_ENV = env;
     if (env.LIVE !== "yes") return;
     if (event.cron === PENCIL_CRON) {
+      // Miranda's photo picks: hourly check that each one is still in her Pixieset (Oct 31 2026)
+      ctx.waitUntil(refreshPixieset(true, async () => (await pixiesetPhotos(new Request("https://" + LIVE_HOST + "/api/pixieset-photos"))).json()).catch(() => {}));
       const base = env.URL || "https://" + LIVE_HOST;
       ctx.waitUntil((async () => globalThis.fetch(base + BACKGROUND, {
         method: "POST", headers: { "Content-Type": "application/json", "x-sandy-key": await sandyKey() },

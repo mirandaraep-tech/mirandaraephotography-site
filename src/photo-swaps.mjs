@@ -57,11 +57,14 @@ async function loadState(live, fresh) {
   try { s = await store(live).get("state", { type: "json" }); } catch (e) { return CACHE[k] || { pages: {}, history: [] }; }
   s = s || { pages: {}, history: [] };
   s.pages = s.pages || {}; s.history = s.history || [];
+  // her Pixieset photo list as of the last hourly check (see refreshPixieset)
+  try { const px = await store(live).get("pix", { type: "json" }); s.pix = px && Array.isArray(px.ids) ? new Set(px.ids) : null; } catch (e) { s.pix = null; }
   CACHE[k] = s; CACHE_AT[k] = Date.now();
   return s;
 }
 async function saveState(live, s) {
-  await store(live).setJSON("state", s);
+  const { pix, ...keep } = s;
+  await store(live).setJSON("state", keep);
   CACHE[live ? "live" : "test"] = s; CACHE_AT[live ? "live" : "test"] = Date.now();
 }
 
@@ -140,13 +143,31 @@ export function applySwaps(html, swaps, tags) {
   return html;
 }
 
+// A picked photo that's no longer in her Pixieset (she deleted it): the original goes back automatically
+const idOfSrc = (src) => { const m = String(src || "").match(/pixieset\.com\/site\/B8woOD\/([A-Za-z0-9]+)\//); return m ? m[1] : null; };
+const isGone = (sw, pix) => !!(pix && sw && sw.src && idOfSrc(sw.src) && !pix.has(idOfSrc(sw.src)));
+const liveSwaps = (swaps, pix) => Object.fromEntries(Object.entries(swaps || {}).filter(([, sw]) => !isGone(sw, pix)));
+
+// Hourly (from the site's every-minute timer): re-read her Pixieset photo list. Only trusted when the
+// check finds most of her photos, so a Pixieset hiccup never sends every pick back to the original.
+export async function refreshPixieset(live, getList) {
+  const st = store(live);
+  const old = (await st.get("pix", { type: "json" })) || { ids: [], at: 0 };
+  if (Date.now() - (old.at || 0) < 55 * 60000) return;
+  let ids = [];
+  try { ids = ((await getList()).photos || []).map((p) => String(p).split("/")[0]).filter(Boolean); } catch (e) { return; }
+  if (ids.length < 20 || ids.length < (old.ids || []).length * 0.6) { await st.setJSON("pix", { ...old, at: Date.now(), skipped: ids.length }); return; }
+  await st.setJSON("pix", { ids, at: Date.now() });
+  const k = live ? "live" : "test"; CACHE_AT[k] = 0; // pages pick it up right away
+}
+
 // Called by src/worker.mjs for every page it serves
 export async function swapPage(res, stem, reqUrl) {
   if (!isSwappable(stem) || !res.ok || !/text\/html/.test(res.headers.get("content-type") || "")) return res;
   const live = isLive(reqUrl);
   const state = await loadState(live);
-  const swaps = state.pages[stem];
-  if (!swaps || !Object.keys(swaps).length) {
+  const swaps = liveSwaps(state.pages[stem], state.pix);
+  if (!Object.keys(swaps).length) {
     const out = new Response(res.body, res);
     out.headers.delete("ETag"); // the page can now change without its file changing
     return out;
@@ -223,7 +244,8 @@ export async function photoSwapsApi(req, env) {
     const s = await loadState(live, true);
     let picks = { favs: [], top: [] };
     try { picks = (await getStore({ name: live ? "photo-favorites" : "photo-favorites-test" }).get("state", { type: "json" })) || picks; } catch (e) {}
-    return j({ role, pages, swaps: s.pages, history: s.history.slice(-30).reverse(), picks: { favs: picks.favs || [], top: picks.top || [] }, hasOwnPass: !!s.pass, test: !live });
+    return j({ role, pages, swaps: s.pages, history: s.history.slice(-30).reverse(), picks: { favs: picks.favs || [], top: picks.top || [] }, hasOwnPass: !!s.pass, test: !live,
+      gone: Object.entries(s.pages).flatMap(([stem, pg]) => Object.entries(pg).filter(([, sw]) => isGone(sw, s.pix)).map(([orig]) => ({ stem, orig }))) });
   }
   if (req.method !== "POST") return j({ error: "not found" }, 404);
   let d = {}; try { d = await req.json(); } catch (e) {}

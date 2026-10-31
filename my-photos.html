@@ -116,6 +116,7 @@ input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);bord
       </ol>
       <p class="muted" style="margin-top:8px">Changed your mind? <b style="display:inline;font-size:inherit;color:inherit">Put back original</b> undoes it anytime.</p>
     </div>
+    <div class="how" id="goneNote" hidden style="background:#fff3dc;border:1px solid #f0d49b;margin-top:10px"></div>
     <h2>Website pages</h2>
     <div id="siteList"></div>
     <h2>Ad pages <span style="text-transform:none;letter-spacing:0">(hidden, only people who tap an ad see them)</span></h2>
@@ -186,8 +187,9 @@ input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);bord
   }
 
   // ---------- pages ----------
-  var current = function(stem, raw){ var s = (DATA.swaps[stem] || {})[raw]; return s && s.src ? s.src : dec(raw); };
-  var changed = function(stem, raw){ var s = (DATA.swaps[stem] || {})[raw]; return !!(s && s.src); };
+  var gone = function(stem, raw){ return (DATA.gone || []).some(function(g){ return g.stem === stem && g.orig === raw; }); };
+  var current = function(stem, raw){ var s = (DATA.swaps[stem] || {})[raw]; return s && s.src && !gone(stem, raw) ? s.src : dec(raw); };
+  var changed = function(stem, raw){ var s = (DATA.swaps[stem] || {})[raw]; return !!(s && s.src) && !gone(stem, raw); };
   var pageOf = function(stem){ return DATA.pages.filter(function(p){ return p.stem === stem; })[0]; };
   var nameOf = function(stem){ var p = pageOf(stem); return p ? p.name : stem; };
   var urlOf = function(stem){ return "/" + (stem === "index" ? "" : stem); };
@@ -197,9 +199,15 @@ input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);bord
       $(g === "site" ? "siteList" : "adList").innerHTML = DATA.pages.filter(function(p){ return p.group === g; }).map(function(p){
         var n = p.photos.filter(function(ph){ return changed(p.stem, ph.raw); }).length;
         return '<button class="pg" data-stem="' + esc(p.stem) + '"><span class="th">' + p.photos.slice(0, 3).map(function(ph){ return '<img loading="lazy" alt="" src="' + img(current(p.stem, ph.raw), 120) + '">'; }).join("") +
-          '</span><span class="nm"><b>' + esc(p.name) + '</b><small>' + p.photos.length + ' photo' + (p.photos.length === 1 ? "" : "s") + (n ? ' <span class="badge">' + n + ' changed</span>' : "") + '</small></span><span class="ch">›</span></button>';
+          '</span><span class="nm"><b>' + esc(p.name) + '</b><small>' + p.photos.length + ' photo' + (p.photos.length === 1 ? "" : "s") + (n ? ' <span class="badge">' + n + ' changed</span>' : "") + (p.photos.some(function(ph){ return gone(p.stem, ph.raw); }) ? ' <span class="badge" style="background:#fff3dc;color:#8a5a00">needs a new pick</span>' : "") + '</small></span><span class="ch">›</span></button>';
       }).join("");
     });
+    var g = DATA.gone || [];
+    $("goneNote").hidden = !g.length;
+    if (g.length) {
+      var gp = []; g.forEach(function(x){ if (gp.indexOf(x.stem) < 0) gp.push(x.stem); });
+      $("goneNote").innerHTML = "<b>Heads up:</b> " + (g.length === 1 ? "A photo you picked was" : g.length + " photos you picked were") + " removed from your Pixieset, so the original is showing again on the " + gp.map(function(x){ return esc(nameOf(x)); }).join(", ") + ". Tap the page to pick a new one.";
+    }
     var h = DATA.history || [];
     $("hist").innerHTML = h.length ? h.slice(0, 10).map(function(x){
       var d = new Date(x.at), when = d.toLocaleDateString([], { month: "short", day: "numeric" }) + " " + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
@@ -235,6 +243,7 @@ input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);bord
       var others = DATA.pages.filter(function(p){ return p.stem !== stem && p.photos.some(function(x){ return x.raw === ph.raw; }); }).length;
       return '<div class="ph' + (ph.kind === "photo" ? " tall" : "") + '"><div class="pic"><img loading="lazy" alt="" src="' + img(current(stem, ph.raw), 900) + '"' + (pos != null ? ' style="object-position:50% ' + pos + '%"' : "") + '>' +
         '<span class="lbl">' + labelOf(ph, i) + '</span>' + (ch ? '<span class="new">✓ Your pick</span>' : "") + '</div><div class="act">' +
+        (gone(stem, ph.raw) ? '<div class="also" style="color:#8a5a00;font-size:14px">The photo you picked here was removed from your Pixieset, so the original is back. Tap Change photo to pick a new one.</div>' : "") +
         '<button class="solid" data-change="' + i + '">Change photo</button>' +
         (ch ? '<button data-reset="' + i + '">Put back original</button>' : "") +
         (ch && ph.kind !== "phone" ? '<div class="pos">Show more of the: ' + [["Top",15],["Middle",50],["Bottom",85]].map(function(o){ return '<button data-pos="' + i + '" data-v="' + o[1] + '" class="' + (pos === o[1] ? "on" : "") + '">' + o[0] + '</button>'; }).join("") + '</div>' : "") +
