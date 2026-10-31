@@ -93,6 +93,10 @@ const travelLine = () => {
   return Object.entries(groups).map(([fee, bs]) => money(fee) + ' travel fee for ' + bs.join(', ').replace(/, ([^,]*)$/, ' & $1')).join('; ');
 };
 
+// Oct 31 2026: each package's own page (home price list names + Prices page cards link here). Beach Mini and Beach Special have no single page.
+const PAGE_LINK = { special: '/affordable-beach-photographer', senior: '/senior-portrait-photographer', family: '/family-beach-photographer', deluxe: '/family-beach-photographer', engagement: '/beach-proposal-photographer', proposal: '/beach-proposal-photographer', elopementMini: '/mini-elopement-photographer', elopement: '/beach-elopement-photographer', wedding6: '/beach-wedding-photographer', wedding10: '/beach-wedding-photographer' };
+const PAGE_LABEL = { '/affordable-beach-photographer': 'affordable beach photos page', '/senior-portrait-photographer': 'senior portraits page', '/family-beach-photographer': 'family photos page', '/beach-proposal-photographer': 'proposal & engagement page', '/mini-elopement-photographer': 'Mini Elopement page', '/beach-elopement-photographer': 'Beach Elopement page', '/beach-wedding-photographer': 'wedding page' };
+
 // ---------- generated blocks ----------
 const offer = id => { const p = pkg(id); return { '@type': 'Offer', name: p.name + (p.where ? ' — ' + p.where.replace(/ · /g, ', ') : ''), price: String(p.price), priceCurrency: 'USD', description: summary(p).replace(/ · /g, ', ') + '.' }; };
 const ids = a => (a.ids || '').split(',').filter(Boolean);
@@ -100,7 +104,7 @@ const ids = a => (a.ids || '').split(',').filter(Boolean);
 const BLOCKS = {
   // Home page price list (li rows)
   'home-list': (a, old) => ids(a).map(id => {
-    const p = pkg(id), nm = /^wedding/.test(id) ? '<a href="/beach-wedding-photographer">' + esc(p.name) + '</a>' : id === 'elopement' ? '<a href="/beach-elopement-photographer">' + esc(p.name) + '</a>' : id === 'elopementMini' ? '<a href="/mini-elopement-photographer">' + esc(p.name) + '</a>' : id === 'senior' ? '<a href="/senior-portrait-photographer">' + esc(p.name) + '</a>' : esc(p.name);
+    const p = pkg(id), nm = PAGE_LINK[id] ? '<a href="' + PAGE_LINK[id] + '">' + esc(p.name) + '</a>' : esc(p.name);
     return '\n      <li><div><b>' + nm + '</b><small>' + esc(summary(p)) + '</small>' + (p.where ? '<small class="where">' + esc(p.where) + '</small>' : '') + '</div><strong>' + money(p.price) + '</strong></li>';
   }).join('') + '\n      ',
 
@@ -114,7 +118,7 @@ const BLOCKS = {
   'prices-cards': a => ids(a).map(id => {
     const p = pkg(id);
     return '\n      <article class="pkg" id="' + id + '"><div class="pkg-top"><h3>' + esc(p.name) + '</h3><strong>' + money(p.price) + '</strong></div>' +
-      (p.where ? '<p class="where">' + esc(p.where) + '</p>' : '') + '<p>' + esc(p.blurb) + '</p><ul>' + includes(p).map(i => '<li>' + esc(i) + '</li>').join('') + '</ul></article>';
+      (p.where ? '<p class="where">' + esc(p.where) + '</p>' : '') + '<p>' + esc(p.blurb) + '</p><ul>' + includes(p).map(i => '<li>' + esc(i) + '</li>').join('') + '</ul>' + (PAGE_LINK[id] ? '<a class="pkg-more" href="' + PAGE_LINK[id] + '">See the ' + esc(PAGE_LABEL[PAGE_LINK[id]]) + ' →</a>' : '') + '</article>';
   }).join('') + '\n    ',
 
   // Prices page: extras + travel table
