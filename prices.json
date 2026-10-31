@@ -120,22 +120,6 @@
         "No set time limit"
       ]
     },
-    "elopement": {
-      "name": "Beach Elopement",
-      "booking": "Beach Elopement",
-      "price": 549,
-      "time": "2 hours",
-      "timeWords": "2 hours",
-      "photos": "100+",
-      "people": null,
-      "details": [],
-      "blurb": "A small, relaxed beach ceremony with just your favorite people, photographed from the first look to the last light.",
-      "more": [
-        "Your ceremony, family photos and sunset portraits",
-        "Help choosing the spot and timing",
-        "Help finding an officiant"
-      ]
-    },
     "elopementMini": {
       "name": "Mini Elopement",
       "booking": "Mini Elopement",
@@ -150,6 +134,22 @@
         "Your ceremony and a few family photos",
         "Couple's portraits right after",
         "Help choosing the spot and timing"
+      ]
+    },
+    "elopement": {
+      "name": "Beach Elopement",
+      "booking": "Beach Elopement",
+      "price": 549,
+      "time": "2 hours",
+      "timeWords": "2 hours",
+      "photos": "100+",
+      "people": null,
+      "details": [],
+      "blurb": "A small, relaxed beach ceremony with just your favorite people, photographed from the first look to the last light.",
+      "more": [
+        "Your ceremony, family photos and sunset portraits",
+        "Help choosing the spot and timing",
+        "Help finding an officiant"
       ]
     },
     "wedding6": {
