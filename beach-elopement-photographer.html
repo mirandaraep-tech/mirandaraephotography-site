@@ -119,7 +119,7 @@ h2{font:36px/1.15 Georgia,serif;margin:8px 0 16px}
 .areas{background:#fff}
 .area-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:26px;text-align:left}
 .area{display:block;text-decoration:none;border:1px solid var(--line);border-radius:14px;padding:18px;background:var(--cream);transition:.2s}
-.area:hover{border-color:var(--teal);box-shadow:0 6px 18px #16677a22}
+a.area:hover{border-color:var(--teal);box-shadow:0 6px 18px #16677a22}
 .area b{display:block;font:21px Georgia,serif}
 .area .cost{display:block;font:bold 15px Arial;color:var(--teal);margin:4px 0 6px}
 .area small{display:block;font-size:13px;color:var(--muted);line-height:1.4}
@@ -253,7 +253,7 @@ footer a{color:#fff}
       "name": "Can we book a regular photo session for our ceremony?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Ceremonies are booked as the Beach Elopement or one of Miranda's wedding packages, so there's enough time for the ceremony, your family photos and your portraits. The shorter portrait sessions don't include a ceremony."
+        "text": "Ceremonies are booked as the Beach Elopement, the Mini Elopement or one of Miranda's wedding packages, so there's enough time for the ceremony, your family photos and your portraits. The shorter portrait sessions don't include a ceremony."
       }
     },
     {
@@ -424,7 +424,7 @@ footer a{color:#fff}
     <h2>Two simple prices for your beach ceremony</h2>
     <p>Professionally edited photos in a private online gallery. Checking your date is free.</p>
     <div class="pk">
-      <div><span class="tag">Mini Elopement</span><b>1 hour on the beach</b><span class="cost" data-p="elopementMini.price">$349</span><small><span data-p="elopementMini.timeWords" data-f="cap">1 hour</span> of coverage · <span data-p="elopementMini.photos">50+</span> edited photos</small><ul><li>Your ceremony, start to finish</li><li>A few family photos</li><li>Couple's portraits right after</li></ul></div>
+      <div><span class="tag">Mini Elopement</span><b>1 hour on the beach</b><span class="cost" data-p="elopementMini.price">$349</span><small><span data-p="elopementMini.timeWords" data-f="cap">1 hour</span> of coverage · <span data-p="elopementMini.photos">50+</span> edited photos</small><ul><li>Your ceremony, start to finish</li><li>A few family photos</li><li>Couple's portraits right after</li></ul><p style="margin:10px 0 0;font-size:14px"><a href="/mini-elopement-photographer" style="font-weight:bold;color:var(--teal)">See the Mini Elopement →</a></p></div>
       <div><span class="tag">Beach Elopement</span><b>2 hours on the beach</b><span class="cost" data-p="elopement.price">$549</span><small><span data-p="elopement.timeWords" data-f="cap">2 hours</span> of coverage · <span data-p="elopement.photos">100+</span> edited photos</small><ul><li>Your ceremony, start to finish</li><li>Family photos with everyone who came</li><li>Sunset portraits, just the two of you</li></ul></div>
       <div><span class="tag">Planning help included</span><b>Miranda helps you plan it</b><span class="cost">Included</span><small>So the day feels easy, not stressful</small><ul><li>Choosing the beach and the spot</li><li>Timing it around the sunset light</li><li>Finding an officiant</li></ul></div>
     </div>
@@ -437,13 +437,13 @@ footer a{color:#fff}
     <p class="eyebrow">Where Miranda photographs elopements</p>
     <h2>Elopement spots up and down the Gulf Coast</h2>
     <div class="area-grid">
-      <a class="area" href="/panama-city-beach-photographer"><b>Panama City Beach</b><small>Big sunsets and the pier</small><span class="go">Panama City Beach →</span></a>
-      <a class="area" href="/mexico-beach-photographer"><b>Mexico Beach</b><small>Quiet sand, few people around</small><span class="go">Mexico Beach →</span></a>
-      <a class="area" href="/port-st-joe-photographer"><b>Port St. Joe</b><small>Calm bay water and small-town charm</small><span class="go">Port St. Joe →</span></a>
-      <a class="area" href="/cape-san-blas-photographer"><b>Cape San Blas</b><small>Dunes, sea oats and boardwalks</small><span class="go">Cape San Blas →</span></a>
-      <a class="area" href="/st-george-island-photographer"><b>St. George Island</b><small>Wide, peaceful beaches</small><span class="go">St. George Island →</span></a>
-      <a class="area" href="/destin-199"><b>Destin</b><small>Emerald water and soft white sand</small><span class="go">Destin →</span></a>
-      <a class="area" href="/30a-photographer"><b>30A</b><small>Seaside, Rosemary Beach, WaterColor &amp; more</small><span class="go">30A →</span></a>
+      <div class="area"><b>Panama City Beach</b><small>Big sunsets and the pier</small></div>
+      <div class="area"><b>Mexico Beach</b><small>Quiet sand, few people around</small></div>
+      <div class="area"><b>Port St. Joe</b><small>Calm bay water and small-town charm</small></div>
+      <div class="area"><b>Cape San Blas</b><small>Dunes, sea oats and boardwalks</small></div>
+      <div class="area"><b>St. George Island</b><small>Wide, peaceful beaches</small></div>
+      <div class="area"><b>Destin</b><small>Emerald water and soft white sand</small></div>
+      <div class="area"><b>30A</b><small>Seaside, Rosemary Beach, WaterColor &amp; more</small></div>
       <a class="area" href="/beach-wedding-photographer"><b>Bigger wedding?</b><small>6 and 10 hour wedding packages</small><span class="go">Wedding photography →</span></a>
     </div>
   </div>
@@ -557,9 +557,9 @@ footer a{color:#fff}
 <section class="fits" id="questions">
   <div class="shell" style="max-width:760px;margin:0 auto">
     <h2 style="text-align:center">Beach elopement questions</h2>
-    <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">How much does a beach elopement photographer cost?</summary><p style="margin:8px 0 0">Miranda's Beach Elopement is <span data-p="elopement.price">$549</span>. It includes <span data-p="elopement.timeWords">2 hours</span> and <span data-p="elopement.photos">100+</span> edited photos: your ceremony, family photos and sunset portraits, plus help choosing the spot and timing and finding an officiant. For a shorter ceremony, the Mini Elopement is <span data-p="elopementMini.price">$349</span> for <span data-p="elopementMini.timeWords">1 hour</span> and <span data-p="elopementMini.photos">50+</span> edited photos.</p></details>
+    <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">How much does a beach elopement photographer cost?</summary><p style="margin:8px 0 0">Miranda's Beach Elopement is <span data-p="elopement.price">$549</span>. It includes <span data-p="elopement.timeWords">2 hours</span> and <span data-p="elopement.photos">100+</span> edited photos: your ceremony, family photos and sunset portraits, plus help choosing the spot and timing and finding an officiant. For a shorter ceremony, the <a href="/mini-elopement-photographer">Mini Elopement</a> is <span data-p="elopementMini.price">$349</span> for <span data-p="elopementMini.timeWords">1 hour</span> and <span data-p="elopementMini.photos">50+</span> edited photos.</p></details>
     <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">Can Miranda help us find an officiant?</summary><p style="margin:8px 0 0">Yes. Miranda can help you find a local officiant who does beach ceremonies and line up the timing with them. Your officiant is booked and paid separately.</p></details>
-    <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">Can we book a regular photo session for our ceremony?</summary><p style="margin:8px 0 0">Ceremonies are booked as the Beach Elopement or one of Miranda's <a href="/beach-wedding-photographer">wedding packages</a>, so there's enough time for the ceremony, your family photos and your portraits. The shorter portrait sessions don't include a ceremony.</p></details>
+    <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">Can we book a regular photo session for our ceremony?</summary><p style="margin:8px 0 0">Ceremonies are booked as the Beach Elopement, the <a href="/mini-elopement-photographer">Mini Elopement</a> or one of Miranda's <a href="/beach-wedding-photographer">wedding packages</a>, so there's enough time for the ceremony, your family photos and your portraits. The shorter portrait sessions don't include a ceremony.</p></details>
     <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">Should we get married at sunset or sunrise?</summary><p style="margin:8px 0 0">Most couples pick sunset for the warm, golden light. Miranda plans the timing so your portraits land in the best light. Sunrise is just as pretty and the beach is much quieter, if you'd like more privacy.</p></details>
     <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">Which beaches can we elope on?</summary><p style="margin:8px 0 0">Panama City Beach, Mexico Beach, Port St. Joe, Cape San Blas, Indian Pass, St. George Island, Destin and 30A, including Santa Rosa Beach, Seaside, Rosemary Beach and WaterColor. Not sure where? Miranda can help you pick a spot.</p></details>
     <details style="padding:12px 0;border-bottom:1px solid rgba(0,0,0,.08)"><summary style="font-weight:600;cursor:pointer">What if the weather doesn't cooperate?</summary><p style="margin:8px 0 0">Just reach out. Miranda will do her best to find a new date or time that works for you.</p></details>
@@ -580,7 +580,7 @@ footer a{color:#fff}
 <footer>
   <p>Miranda Rae Photography · Beach Elopement Photographer · Florida Gulf Coast</p>
   <p>Serving Panama City Beach, Mexico Beach, Port St. Joe, Cape San Blas, Indian Pass, St. George Island, Destin, Santa Rosa Beach, Seaside, Rosemary Beach &amp; WaterColor</p>
-  <p><a class="sms" href="sms:+14482196539" onclick="return textTap();">💬 Text Miranda</a> · <a href="/gallery">Gallery</a> · <a href="/beach-wedding-photographer">Weddings</a> · <a href="/">Home</a></p>
+  <p><a class="sms" href="sms:+14482196539" onclick="return textTap();">💬 Text Miranda</a> · <a href="/gallery">Gallery</a> · <a href="/mini-elopement-photographer">Mini Elopement</a> · <a href="/beach-wedding-photographer">Weddings</a> · <a href="/">Home</a></p>
   <p>© 2026 Miranda Rae Photography</p>
 </footer>
 

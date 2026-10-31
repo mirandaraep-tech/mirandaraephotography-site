@@ -100,7 +100,7 @@ const ids = a => (a.ids || '').split(',').filter(Boolean);
 const BLOCKS = {
   // Home page price list (li rows)
   'home-list': (a, old) => ids(a).map(id => {
-    const p = pkg(id), nm = /^wedding/.test(id) ? '<a href="/beach-wedding-photographer">' + esc(p.name) + '</a>' : id === 'elopement' ? '<a href="/beach-elopement-photographer">' + esc(p.name) + '</a>' : id === 'senior' ? '<a href="/senior-portrait-photographer">' + esc(p.name) + '</a>' : esc(p.name);
+    const p = pkg(id), nm = /^wedding/.test(id) ? '<a href="/beach-wedding-photographer">' + esc(p.name) + '</a>' : id === 'elopement' ? '<a href="/beach-elopement-photographer">' + esc(p.name) + '</a>' : id === 'elopementMini' ? '<a href="/mini-elopement-photographer">' + esc(p.name) + '</a>' : id === 'senior' ? '<a href="/senior-portrait-photographer">' + esc(p.name) + '</a>' : esc(p.name);
     return '\n      <li><div><b>' + nm + '</b><small>' + esc(summary(p)) + '</small>' + (p.where ? '<small class="where">' + esc(p.where) + '</small>' : '') + '</div><strong>' + money(p.price) + '</strong></li>';
   }).join('') + '\n      ',
 
