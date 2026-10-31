@@ -136,6 +136,22 @@
         "Help finding an officiant"
       ]
     },
+    "elopementMini": {
+      "name": "Mini Elopement",
+      "booking": "Mini Elopement",
+      "price": 349,
+      "time": "1 hour",
+      "timeWords": "1 hour",
+      "photos": "50+",
+      "people": null,
+      "details": [],
+      "blurb": "A shorter beach ceremony for just the two of you or a few favorite people: the ceremony plus portraits, in one easy hour.",
+      "more": [
+        "Your ceremony and a few family photos",
+        "Couple's portraits right after",
+        "Help choosing the spot and timing"
+      ]
+    },
     "wedding6": {
       "name": "Wedding: Étoile Collection",
       "booking": "Wedding (6 hours)",
