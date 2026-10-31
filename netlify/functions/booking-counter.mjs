@@ -21,7 +21,8 @@ const DEFAULT_PHOTOGRAPHERS = ["Kallie"];
 // Split for contracted-out sessions (Oct 15 2026): Miranda's share is a percentage of the session
 // (default 25%, or $50 if that's more) or a dollar amount she types. The photographer gets the rest,
 // and add-ons are split the same way. Miranda can change the usual percentage from the New Booking page.
-const DEFAULT_SPLIT = { pct: 25, min: 50 };
+// Oct 30 2026 (Randy): the usual split is now 20% to Miranda, no minimum. She can change it per booking (% or $).
+const DEFAULT_SPLIT = { pct: 20, min: 0 };
 const cleanSplit = (s) => {
   if (!s || typeof s !== "object") return null;
   const val = Number(s.val);
@@ -140,6 +141,8 @@ export default async (req) => {
   // "strong" = always read the very latest numbers, so two quick entries can't overwrite each other
   const store = getStore({ name: live ? "booking-counter" : "booking-counter-test", consistency: "strong" });
   const state = (await store.get("state", { type: "json" })) || { last: START, total: 0, count: 0, addons: 0 };
+  // One-time switch (Oct 30 2026): replace any older saved usual split with the new 20%
+  if (!state.split20) { state.splitDefault = { ...DEFAULT_SPLIT }; state.split20 = new Date().toISOString(); await store.setJSON("state", state); }
 
   // Photographer names for the New Booking page's one-tap buttons (names only, no numbers)
   const getList = async (k) => (await store.get(k, { type: "json" })) || [];
@@ -194,7 +197,7 @@ export default async (req) => {
   }
   if (req.method === "GET") {
     const list = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS;
-    return json({ photographers: list, split: state.splitDefault || DEFAULT_SPLIT });
+    return json({ photographers: list, split: state.splitDefault || DEFAULT_SPLIT, adPct: state.adPct != null ? state.adPct : 20 });
   }
   if (req.method !== "POST") return new Response("Not found", { status: 404 });
 
@@ -261,6 +264,15 @@ export default async (req) => {
       if (!(amt > 0) || !b.photographer) return json({ error: "amount" });
       b.shooterPaid = (b.shooterPaid || []).concat({ amount: amt, at: now, by: who });
       data.detail = b.photographer + " paid Miranda";
+    } else if (a === "paid-shooter") {
+      // Oct 30 2026: the other way around. Miranda held more than her share (the deposit), so she pays the photographer the difference.
+      const amt = cents(cleanMoney(data.amount));
+      if (!(amt > 0) || !b.photographer) return json({ error: "amount" });
+      b.paidShooter = (b.paidShooter || []).concat({ amount: amt, at: now, by: who });
+      data.detail = "Miranda paid " + b.photographer;
+    } else if (a === "undo-paid-shooter") {
+      if (!(b.paidShooter && b.paidShooter.length)) return json({ error: "nothing" });
+      b.paidShooter.pop(); if (!b.paidShooter.length) delete b.paidShooter;
     } else if (a === "undo-shooter-paid") {
       if (!(b.shooterPaid && b.shooterPaid.length)) return json({ error: "nothing" });
       b.shooterPaid.pop(); if (!b.shooterPaid.length) delete b.shooterPaid;
@@ -298,6 +310,14 @@ export default async (req) => {
       data.detail = "Changed " + changed.join(", ");
       b.edited = { at: now, by: who };
     }
+    else if (a === "ad") {
+      // Advertising button (Oct 30 2026): what an ad cost for this booking, a % of the session or a $ amount. 0 clears it.
+      const mode = data.mode === "amt" ? "amt" : "pct", val = Math.max(0, Math.min(mode === "pct" ? 100 : 10000, Number(data.val) || 0));
+      // plus lines with a name and a $ amount for each ad
+      const items = (Array.isArray(data.items) ? data.items : []).slice(0, 10).map((i) => ({ what: clip(i && i.what, 60), amt: cents(Math.max(0, Math.min(10000, Number(i && i.amt) || 0))) })).filter((i) => i.amt > 0);
+      if (val || items.length) b.ad = { mode, val: cents(val), ...(items.length ? { items } : {}) }; else delete b.ad;
+      data.detail = val || items.length ? "Advertising " + [val ? (mode === "pct" ? val + "%" : "$" + val) : "", ...items.map((i) => (i.what ? i.what + " " : "") + "$" + i.amt)].filter(Boolean).join(", ") : "Advertising cleared";
+    }
     else if (a === "review") {
       // Ask for review button (Oct 29 2026): notes that Miranda texted this customer a review link
       b.reviewAsked = { at: now, by: who, site: clip(data.site, 20) === "Facebook" ? "Facebook" : "Google" };
@@ -318,9 +338,8 @@ export default async (req) => {
       if (counted && b.photographer) { state.contracted = Math.max(0, (state.contracted || 0) - 1); state.payouts = cents((state.payouts || 0) - (b.payout || 0)); }
       b.photographer = shooter;
       if (shooter) {
-        // Usual split (Oct 20 2026): flat $50 to Miranda, weddings 25% (at least $50)
-        const wed = /wedding/i.test(b.time || "") || /wedding/i.test(b.pkg || "");
-        b.split = cleanSplit(data.split) || (wed ? { mode: "pct", val: (state.splitDefault || DEFAULT_SPLIT).pct, min: (state.splitDefault || DEFAULT_SPLIT).min } : { mode: "amt", val: 50 });
+        // Usual split (Oct 30 2026): 25% to Miranda, never less than $50, on every session (weddings too)
+        b.split = cleanSplit(data.split) || cleanSplit({ mode: "pct", val: (state.splitDefault || DEFAULT_SPLIT).pct, min: (state.splitDefault || DEFAULT_SPLIT).min });
         resplit(b);
         const names = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS.slice();
         if (!names.some((n) => n.toLowerCase() === shooter.toLowerCase())) names.push(shooter);
@@ -350,11 +369,11 @@ export default async (req) => {
     } else return json({ error: "action" });
     await store.setJSON("bookings", list);
     if (a === "edit" && data.fields && data.fields.total != null) { state.updated = now; await store.setJSON("state", state); }
-    const amt = a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : a === "deduct" ? b.deducts[b.deducts.length - 1].amount : a === "shooter-paid" ? b.shooterPaid[b.shooterPaid.length - 1].amount : 0;
+    const amt = a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : a === "deduct" ? b.deducts[b.deducts.length - 1].amount : a === "shooter-paid" ? b.shooterPaid[b.shooterPaid.length - 1].amount : a === "paid-shooter" ? b.paidShooter[b.paidShooter.length - 1].amount : 0;
     const cxd = a === "cancel" && b.cancelled.deposit ? (b.cancelled.deposit === "kept" ? "Deposit kept" + (b.cancelled.kept ? " $" + b.cancelled.kept : "") : "Deposit returned" + (b.cancelled.returned ? " $" + b.cancelled.returned : "")) : "";
     await logIt({ kind: a === "move" ? "moved" : a, num: b.num, name: b.name, amount: amt, by: who, test: !!b.test,
       ...(a === "move" ? { date: b.date, detail: "Moved from " + b.movedFrom } : a === "deduct" ? { detail: b.deducts[b.deducts.length - 1].why }
-        : a === "edit" || a === "photographer" || a === "shooter-paid" || a === "review" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
+        : a === "edit" || a === "photographer" || a === "shooter-paid" || a === "paid-shooter" || a === "review" || a === "ad" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
     return json({ ok: true, booking: b });
   }
   // Sandy (Oct 30 2026): Miranda said no to a time after Bradyn's yes, before the deposit. The Confirm link that
@@ -401,6 +420,15 @@ export default async (req) => {
     items.forEach((it) => log.push({ at, kind: "dismiss", name: clip(it.name, 60), date: day(it.date), beach: clip(it.beach, 40), by: clip(data.by, 40), test: !!it.test, ...(items.length > 1 ? { bulk: true } : {}) }));
     await store.setJSON("log", log.slice(-1000));
     return json({ ok: true, cleared: items.length });
+  }
+  // Advertising form "Make this the usual" (Oct 30 2026): the % the Advertising box starts at (20% to begin with)
+  if (data.kind === "ad-default") {
+    if (!(await okPass(req, data))) return json({ error: "passcode" });
+    const pct = Number(data.pct);
+    if (!isFinite(pct) || pct < 0 || pct > 100) return json({ error: "pct" });
+    state.adPct = Math.round(pct * 100) / 100; state.updated = new Date().toISOString(); await store.setJSON("state", state);
+    await logIt({ kind: "split-default", detail: "Usual advertising now " + state.adPct + "%", by: clip(data.by, 40) });
+    return json({ ok: true, adPct: state.adPct });
   }
   // New Booking page "Make this the usual" (Oct 15 2026): saves Miranda's usual percentage
   if (data.kind === "split-default") {

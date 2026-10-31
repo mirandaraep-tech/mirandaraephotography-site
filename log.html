@@ -42,13 +42,15 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 /* Oct 20 2026: while a card is open, the money boxes slide up out of the way; they come back when it closes */
 .head.compact .card{max-height:0;opacity:0;margin-bottom:0;padding-top:0;padding-bottom:0;box-shadow:none}
 .asof{font-size:14px;color:var(--muted);margin:0 2px 8px}
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.tile{border:1px solid var(--line);border-radius:14px;padding:8px 12px;background:#fff;text-align:left;font:inherit;color:inherit;cursor:pointer;min-height:84px}
-.tile b{display:block;font:bold 25px/1.1 Georgia,serif;margin:2px 0}
+/* Oct 30 2026: three small boxes side by side */
+.tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.tile{border:1px solid var(--line);border-radius:12px;padding:6px 8px;background:#fff;text-align:left;font:inherit;color:inherit;cursor:pointer;min-height:0}
+.tile b{display:block;font:bold 21px/1.1 Georgia,serif;margin:2px 0}
+.tile .hd{display:block;white-space:nowrap}
 .tile .lb{font-size:13px;color:var(--muted)}
 .tile .hd{font-size:13px;font-weight:bold;color:var(--teal)}
 .tile .nx{font-size:13px;color:var(--teal);margin-top:1px}
-.tile.bk1{border:2px solid var(--teal)}
+.tile.bk1{border:2px solid var(--teal)}.tile .nx{display:none}
 .tile.grn{background:#eef8f1;border-color:#bfe3cb;cursor:default}.tile.grn b{color:var(--ok)}
 .tile.dueT{cursor:default}
 .tile.blu{background:#e9f4f6;border-color:#bcdce3}.tile.blu.on{border:2px solid var(--teal)}.tile.blu b{color:var(--teal)}
@@ -64,6 +66,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .mini{display:flex;border:1px solid #c9d3d6;border-radius:7px;overflow:hidden;line-height:1}
 .mini i{font-style:normal;background:var(--teal);color:#fff;font-size:11px;font-weight:bold;letter-spacing:1px;padding:9px 6px}
 .mini u{text-decoration:none;font:bold 19px Georgia,serif;color:var(--ink);padding:5px 7px;background:#fff}
+#tmrBtn.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:bold}
 .sbtn{border:2px solid var(--line);background:#fff;border-radius:14px;padding:0 14px;color:var(--teal);font-size:15px;cursor:pointer;min-height:46px}
 .sbtn.on{border-color:var(--teal)}
 #q{flex:1;min-width:0;min-height:46px;border-radius:14px}
@@ -158,6 +161,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .s-cx{background:#f7dede;color:var(--bad);border-color:#ebc0c0}
 .s-past{background:#eceff1;color:#455a64;border-color:#d5dce0}
 .tg{display:inline-block;font-size:12px;font-weight:bold;border-radius:999px;padding:3px 8px;margin-left:4px;vertical-align:1px}
+.tg.tm{background:#fff;color:var(--ink);border:2px solid var(--ink);margin-left:0;margin-right:4px}
 .tg.k{background:#eeedfe;color:#4b42b8}
 .tg.t{background:#eceff1;color:#455a64}
 .tg.w{background:#e1f0f3;color:var(--teal)}
@@ -178,7 +182,23 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .a-red{background:var(--bad);color:#ffe066}
 .a-yel{background:#ffd84d;color:#111}
 .a-grn{background:#bfe8cb;color:#123f8c}
-.a-gry{background:#eceff1;color:#455a64}
+.a-gry{background:#eceff1;color:#455a64;text-align:center;line-height:1.2}
+.amt.mb{border:0;cursor:pointer;font:inherit;font-size:15px;font-weight:bold;text-align:center;line-height:1.2;padding:7px 12px;border-radius:14px;min-width:116px}
+.amt small{font-size:12px;font-weight:bold}
+.sq{width:220px;max-width:70%;height:44px;border:2px solid var(--line);border-radius:8px;background:#fff;margin:0 0 4px}
+.sq.sm{display:inline-block;width:120px;height:20px;margin:0;vertical-align:middle}
+.adl{display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:8px;align-items:center}
+.pxr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:16px}
+.pxp{width:64px !important;padding:4px 6px !important;font-size:15px !important;min-height:0 !important;display:inline-block}
+.step{display:flex;align-items:center;gap:10px}
+.step button{width:44px;height:44px;border-radius:12px;border:2px solid var(--teal);background:#fff;color:var(--teal);font-size:24px;font-weight:bold;cursor:pointer}
+.step b{min-width:22px;text-align:center;font-size:20px}
+.pxtot{display:flex;justify-content:space-between;font-size:18px;margin-top:12px}
+.rcpt{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:14px}
+.rcpt div{display:flex;justify-content:space-between;gap:8px;padding:2px 0}.rcpt div span:last-child{white-space:nowrap}
+.rcpt div.sp{display:block;border-top:2px dashed var(--line);margin-top:6px;padding-top:6px;font-weight:bold;color:#4b42b8}
+.rcpt div.tt{border-top:1px solid var(--line);margin-top:4px;padding-top:5px;font-weight:bold}
+a.tel{color:var(--teal);font-weight:bold;text-decoration:none}
 .a-inq{background:#fff;color:#7a4f00;border:1.5px solid #f0d58f}
 .dep{border:1.5px solid var(--line);background:#fff;color:var(--teal);border-radius:12px;min-width:122px;min-height:40px;font-size:14px;cursor:pointer;padding:0 10px}
 .dep.in{background:#15603a;border-color:#15603a;color:#fff;font-weight:bold}
@@ -236,7 +256,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .tline.big{font-weight:bold;font-size:18px}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 .who-card .chips .chip{font-size:16px;padding:10px 18px}
-@media (max-width:370px){.rt,.acol{min-width:108px}.acol .btn{width:108px}.sess,.dep{min-width:104px}.tile b{font-size:22px}}
+@media (max-width:370px){.rt,.acol{min-width:108px}.acol .btn{width:108px}.sess,.dep{min-width:104px}.tile b{font-size:18px}}
 </style>
 </head>
 <body>
@@ -272,9 +292,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
             <span class="lb" id="tBookedN">Booked</span>
             <div class="nx" id="tNext"></div>
           </button>
-          <div class="tile grn"><b id="tCollected">–</b><span class="lb">Collected</span></div>
-          <div class="tile dueT"><b id="tDue">–</b><span class="lb">Still to collect</span></div>
-          <button class="tile blu" id="tUpTile" type="button"><b id="tUp">–</b><span class="lb">Upcoming sessions</span></button>
+          <div class="tile grn"><span class="hd">&nbsp;</span><b id="tCollected">–</b><span class="lb">Collected</span></div>
+          <div class="tile dueT"><span class="hd">&nbsp;</span><b id="tDue">–</b><span class="lb">Still to collect</span></div>
+          <!-- Oct 30 2026: Upcoming sessions box removed (the Booked tab shows the count) -->
+          <button class="tile blu" id="tUpTile" type="button" hidden><b id="tUp">–</b><span class="lb">Upcoming sessions</span></button>
         </div>
       </div>
     <div class="head" id="head">
@@ -288,7 +309,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         <div class="calpop" id="calPop" hidden></div>
         <button class="cbtn" id="calBtn" type="button"><span class="mini"><i id="calMon">OCT</i><u id="calDay">19</u></span>Calendar</button>
         <button class="sbtn" id="srchBtn" type="button">Search</button>
-        <input id="q" type="search" autocomplete="off" placeholder="Name (or Kallie)" hidden>
+        <button class="sbtn" id="tmrBtn" type="button">Tomorrow</button>
+        <input id="q" type="search" autocomplete="off" placeholder="Name or phone" hidden>
       </div>
       <div class="daychip" id="fChip" hidden><span id="fTxt"></span><button id="fClr" type="button">✕ Show all</button></div>
       <div class="daychip" id="dayChip" hidden><span id="dayTxt"></span><button id="dayClr" type="button">✕ Show all</button></div>
@@ -348,6 +370,12 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // What Miranda keeps of the money collected: all of it on her own sessions, only her share on contracted ones
   // On a contracted session Miranda gets the deposit; the photographer collects the balance and hands over
   // whatever else is Miranda's ("Kallie paid me")
+  // Oct 30 2026: Miranda held more than her share (her deposit), so she owes the photographer the difference
+  function paidOut(b){ return (b.paidShooter || []).reduce(function(s, x){ return s + (x.amount || 0); }, 0); }
+  function mirandaOwes(b){
+    if (!b.photographer || b.cancelled || !(b.paid || (b.date && b.date < TODAY))) return 0;
+    return Math.max(0, Math.round((((b.deposit && b.deposit.amount) || 0) + handed(b) - paidOut(b) - mineOf(b)) * 100) / 100);
+  }
   function handed(b){ return (b.shooterPaid || []).reduce(function(s, x){ return s + (x.amount || 0); }, 0); }
   function keepOf(b){
     // Cancelled with the deposit kept: Miranda keeps all of it, even on a contracted session (nobody else worked)
@@ -373,8 +401,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw();
     }).catch(function(){ $('asof').textContent = "Couldn't load. Pull down to refresh."; });
   }
-  var PH = { names: ['Kallie'], split: { pct: 25, min: 50 } };
-  try { fetch(API).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ if (j && j.photographers && j.photographers.length) PH.names = j.photographers; if (j && j.split && isFinite(j.split.pct)) PH.split = j.split; }).catch(function(){}); } catch (e) {}
+  var PH = { names: ['Kallie'], split: { pct: 20, min: 0 }, adPct: 20 };
+  try { fetch(API).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ if (j && j.photographers && j.photographers.length) PH.names = j.photographers; if (j && j.split && isFinite(j.split.pct)) PH.split = j.split; if (j && isFinite(j.adPct)) PH.adPct = j.adPct; }).catch(function(){}); } catch (e) {}
 
   // ---------- Inquiries: website requests and texted Confirm links nobody has confirmed yet ----------
   // A client leaves the Inquiry list when they confirm, when Miranda books them here, or taps "Not booking".
@@ -495,6 +523,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function ord(b){ var t = low(b.time); return ORDER[t] != null ? ORDER[t] : 5; }
   function sorter(back){ return function(a, b){ var c = (a.date || '9999').localeCompare(b.date || '9999'); if (back) c = -c; return c || ord(a) - ord(b) || (a.num || 0) - (b.num || 0); }; }
 
+  // Search by phone too (Oct 30 2026): 3 or more digits typed match anywhere in the number
+  function phoneHit(ph, q){ var d = String(q).replace(/\D/g, ''); return d.length >= 3 && digits10(ph).indexOf(d) >= 0; }
   function draw(){
     var all = (DATA.bookings || []).slice(), tests = MORE.tests, per = PERIODS[PI][0];
     var INQ = inquiries().filter(function(o){ return tests || !o.test; });
@@ -507,9 +537,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     pool.forEach(function(b){ keep += keepOf(b); if (b.cancelled) return; n++;
       if (b.photographer) { booked += mineOf(b); owe += Math.max(0, mineOf(b) - keepOf(b)); } else { booked += tot(b); owe += due(b); } });
     var up = all.filter(function(b){ return real(b) && !b.cancelled && (b.date || '') >= TODAY; }).length;
-    $('tPer').textContent = (DAY ? nice(DAY) : PERIODS[PI][1]) + ' ↻';
+    var SHORT = { current: 'Current', today: 'Today', tomorrow: 'Tomorrow', week: 'This week', month: 'This month', year: 'This year', lastyear: 'Last year', all: 'All' };
+    $('tPer').textContent = (DAY ? nice(DAY) : SHORT[PERIODS[PI][0]]) + ' ↻';
     $('tBooked').textContent = money(booked);
-    $('tBookedN').textContent = 'Booked · ' + n + ' session' + (n === 1 ? '' : 's');
+    $('tBookedN').textContent = 'Booked';
     $('tNext').textContent = DAY ? 'Tap for Current →' : 'Tap for ' + PERIODS[(PI + 1) % PERIODS.length][1] + ' →';
     $('tCollected').textContent = money(keep); $('tDue').textContent = money(owe); $('tUp').textContent = up;
 
@@ -517,7 +548,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var log = DATA.log || [], last = log[log.length - 1];
     // Oct 20 2026: name the client after "Client confirmed" / "Website request"
     var whoMade = last ? (last.kind === 'confirm' ? 'Client confirmed' + (last.name ? ': ' + last.name : '') : last.kind === 'request' ? 'Website request' + (last.name ? ': ' + last.name : '') : last.by || '') : '';
-    $('asof').textContent = (DATA.test ? 'TEST COPY · ' : '') + 'Updated: ' + (last ? when(last.at) : '—') + (whoMade ? ' · ' + whoMade : '');
+    // Oct 30 2026: one short line, e.g. "Updated 6:23 PM" (or "Updated Oct 29, 6:23 PM" on another day)
+    var upd = '—'; if (last) { var ld = new Date(last.at), tm = ld.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); upd = ymd(ld) === TODAY ? tm : ld.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + tm; }
+    $('asof').textContent = (DATA.test ? 'TEST COPY · ' : '') + 'Updated ' + upd;
 
     // Tabs (Oct 30 2026): the one you're on is filled in with a ✓; each shows how many are in it
     CON = VIEW === 'inq' ? 'no' : VIEW === 'booked' ? 'yes' : ''; DEP = '';
@@ -532,7 +565,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     });
     $('tUpTile').classList.toggle('on', MORE.status === 'upcoming');
     var cm = dt(DAY || TODAY); $('calMon').textContent = cm.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(); $('calDay').textContent = cm.getDate();
-    $('calBtn').classList.toggle('on', !!DAY);
+    $('calBtn').classList.toggle('on', !!DAY && DAY !== TOMORROW);
+    $('tmrBtn').classList.toggle('on', DAY === TOMORROW); $('tmrBtn').textContent = (DAY === TOMORROW ? '✓ ' : '') + 'Tomorrow';
     $('dayChip').hidden = !DAY;
     // Oct 20 2026: one tap back to everything when Confirmed / Deposit / Needs a look is on
     var fOn = [];
@@ -544,7 +578,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var q = low(Q);
     var rows = all.filter(function(b){
       if (b.test && !tests) return false;
-      if (q) return low(b.name + ' ' + (b.photographer || '')).indexOf(q) >= 0;
+      if (q) return low(b.name + ' ' + (b.photographer || '')).indexOf(q) >= 0 || phoneHit(b.phone, q);
       if (DAY) return b.date === DAY && !b.cancelled;
       if (MORE.status === 'cancelled') return !!b.cancelled && fitsPeriodAny(b);
       if (MORE.status === 'pastentries') return !!b.past;
@@ -561,7 +595,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
     // Inquiries: their own folded strip at the top (or the whole list when "Not confirmed" is on)
     var inq = INQ.filter(function(o){
-      if (q) return low(o.name).indexOf(q) >= 0;
+      if (q) return low(o.name).indexOf(q) >= 0 || phoneHit(o.phone, q);
       if (DAY) return o.date === DAY || (o.pen && o.sreq.date === DAY);
       if (VIEW === 'todo') return todoI(o);
       if (CON === 'yes' || DEP || MORE.bal || (MORE.status && MORE.status !== 'upcoming') || MORE.shooter) return false;
@@ -631,6 +665,126 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (o <= 0) return '<span class="amt a-grn">Paid ✓ ' + money(tot(b)) + '</span>';
     return '<span class="amt ' + (b.deposit ? 'a-yel' : 'a-red') + '">Owes ' + money(o) + '</span>';
   }
+  // Oct 30 2026: one money badge per card, e.g. "Owes $80 / ✓ deposit in". Tap it for the payment buttons.
+  function moneyBtn(b){
+    if (b.cancelled) return '<span class="amt a-gry">' + (b.cancelled.deposit === 'kept' ? 'Cancelled<br><small>deposit kept</small>' : b.cancelled.deposit === 'returned' ? 'Cancelled<br><small>deposit returned</small>' : 'Cancelled') + '</span>';
+    var o = due(b);
+    if (o <= 0) return '<button class="amt mb a-grn" type="button" data-a="money">Paid ✓ ' + money(tot(b)) + '</button>';
+    return '<button class="amt mb ' + (b.deposit ? 'a-yel' : 'a-red') + '" type="button" data-a="money">Owes ' + money(o) + '<br><small>' + (b.past ? 'past entry' : b.deposit ? '✓ deposit in' : '✕ no deposit') + '</small></button>';
+  }
+  // Change price (Oct 30 2026, replaces + Extra and − Deduct): − and + for people, photos and time at her
+  // price-list prices (tap a price to change it for this customer), rush editing, and Other for anything else.
+  // − only goes down to zero; money off goes in Other with a reason.
+  var XP = [['people', 'Extra people', 15, 'each'], ['photos', 'Extra photos', 10, 'each'], ['time', 'Extra time', 30, 'per 20 min']];
+  function priceSheet(b){
+    var h = '<h3>Change price</h3><p class="muted">' + esc(b.name) + ' · now ' + money(tot(b)) + '</p>';
+    XP.forEach(function(x){
+      h += '<div class="pxr"><div><b>' + x[1] + '</b><br><span class="muted">$<input class="pxp" data-p="' + x[0] + '" type="number" inputmode="decimal" value="' + x[2] + '"> ' + x[3] + '</span></div>' +
+        '<div class="step"><button type="button" data-s="' + x[0] + '" data-d="-1" aria-label="less">−</button><b data-n="' + x[0] + '">0</b><button type="button" data-s="' + x[0] + '" data-d="1" aria-label="more">+</button></div></div>';
+    });
+    // Travel fee (Oct 30 2026): $30 on her price list (Destin, 30A, St. George Island). Never checked ahead of time,
+    // because links for those beaches usually have the travel fee in the price already.
+    h += '<div class="pxr"><label style="display:flex;gap:10px;align-items:center;margin:0"><input type="checkbox" data-trav style="width:22px;height:22px"><span><b>Travel fee</b><br><span class="muted">$<input class="pxp" data-p="trav" type="number" inputmode="decimal" value="30"></span></span></label></div>';
+    h += '<div class="pxr"><label style="display:flex;gap:10px;align-items:center;margin:0"><input type="checkbox" data-rush style="width:22px;height:22px"><span><b>Rush editing</b><br><span class="muted">$<input class="pxp" data-p="rush" type="number" inputmode="decimal" value="50"></span></span></label></div>' +
+      '<div class="pxr" style="display:block"><b>Other</b> <span class="muted">(use − for money off)</span><div class="row" style="margin-top:6px"><div class="money"><b>$</b><input data-o type="number" inputmode="decimal" placeholder="-20"></div><input data-ow maxlength="80" placeholder="Why (like fewer photos)"></div></div>' +
+      '<div class="pxtot">New total <b data-tot>' + money(tot(b)) + '</b></div>' +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>';
+    var N = { people: 0, photos: 0, time: 0 };
+    var s = sheet(h, function(e, v, close){
+      var st = e.target.closest('[data-s]');
+      if (st) { var k = st.getAttribute('data-s'); N[k] = Math.max(0, N[k] + Number(st.getAttribute('data-d'))); v.querySelector('[data-n="' + k + '"]').textContent = N[k]; calc(); return; }
+      if (!e.target.closest('[data-save]')) return;
+      var items = items_();
+      if (!items.length) { close(); return; }
+      close(); saveItems(b, items);
+    });
+    var V = s.el;
+    function pr(k){ return Math.max(0, Math.round((parseFloat(V.querySelector('[data-p="' + k + '"]').value) || 0) * 100) / 100); }
+    function items_(){
+      var out = [];
+      XP.forEach(function(x){ if (N[x[0]]) out.push({ amt: N[x[0]] * pr(x[0]), what: '+' + N[x[0]] + ' ' + (x[0] === 'people' ? (N[x[0]] === 1 ? 'person' : 'people') : x[0] === 'photos' ? (N[x[0]] === 1 ? 'photo' : 'photos') : '× 20 min') + ' (' + money(pr(x[0])) + ' ' + x[3] + ')' }); });
+      if (V.querySelector('[data-trav]').checked) out.push({ amt: pr('trav'), what: 'Travel fee' + (b.beach && b.beach !== 'Other' ? ' (' + b.beach + ')' : '') });
+      if (V.querySelector('[data-rush]').checked) out.push({ amt: pr('rush'), what: 'Rush editing' });
+      var o = Math.round((parseFloat(V.querySelector('[data-o]').value) || 0) * 100) / 100, ow = V.querySelector('[data-ow]').value.trim();
+      if (o) out.push({ amt: o, what: ow || (o > 0 ? 'Other' : 'Money off') });
+      return out;
+    }
+    function calc(){ var t = tot(b); items_().forEach(function(i){ t += i.amt; }); V.querySelector('[data-tot]').textContent = money(Math.max(0, t)); }
+    V.addEventListener('input', calc); V.addEventListener('change', calc);
+  }
+  // Each item is saved like the old + Extra / − Deduct buttons did (same receipt lines and emails)
+  function saveItems(b, items){
+    var chain = Promise.resolve();
+    items.forEach(function(i){
+      chain = chain.then(function(){
+        if (i.amt > 0) return post({ kind: 'addon', amount: i.amt, ref: b.num, name: b.name, what: i.what }).then(function(){
+          if (!b.test) mail({ name: b.name, 'booking-number': '#' + b.num, 'extra-amount': '+' + money(i.amt), 'what-was-added': i.what, 'session-date': b.date ? nice(b.date) : '', 'added-by': WHO }, '➕ ADD-ON: ' + [b.name, '#' + b.num, '+' + money(i.amt)].join(' · '));
+        });
+        return post({ kind: 'status', num: b.num, action: 'deduct', amount: -i.amt, why: i.what, by: WHO }).then(function(j){ if (j && j.ok) emailFor(b, 'deduct', { amount: -i.amt, why: i.what }, j.booking); });
+      });
+    });
+    chain.then(function(){ toast('Price updated'); load(); }).catch(function(){ alert("That didn't all save. Please check the card and try again."); load(); });
+  }
+  // Advertising (Oct 30 2026): set up like the photographer split, a % of the session or a $ amount; starts at 0
+  // Advertising (Oct 30 2026): a % of the session (or $), plus lines with a name and a $ amount for each ad
+  function adOf(b){
+    var a = b.ad; if (!a) return 0;
+    var main = !a.val ? 0 : a.mode === 'amt' ? a.val : tot(b) * a.val / 100;
+    (a.items || []).forEach(function(i){ main += i.amt || 0; });
+    return Math.round(Math.min(tot(b), main) * 100) / 100;
+  }
+  function adSheet(b){
+    // Oct 30 2026: a booking with nothing saved yet starts at the usual % (20% to begin with); it only counts once saved
+    var a = b.ad || { mode: 'pct', val: PH.adPct, items: [] }, items = (a.items || []).slice();
+    while (items.length < 3) items.push({ what: '', amt: '' });
+    var line = function(i){ return '<div class="adl"><input data-iw maxlength="60" value="' + esc(i.what || '') + '"><div class="money"><b>$</b><input data-ia type="number" inputmode="decimal" placeholder="0" value="' + (i.amt || '') + '"></div></div>'; };
+    // Oct 30 2026: a small blank square where the title goes, to fill in later
+    var s = sheet('<div class="sq" aria-label="Advertising"></div><p class="muted">' + esc(b.name) + ' · ' + money(tot(b)) + '</p><label class="l">&nbsp;</label>' +
+      '<div class="chips"><button class="chip' + (a.mode !== 'amt' ? ' on' : '') + '" type="button" data-mode="pct">%</button><button class="chip' + (a.mode === 'amt' ? ' on' : '') + '" type="button" data-mode="amt">$</button></div>' +
+      '<div class="money" style="margin-top:8px"><b data-sym>' + (a.mode === 'amt' ? '$' : '%') + '</b><input data-v type="number" inputmode="decimal" value="' + (a.val || 0) + '"></div>' +
+      '<div data-lines style="margin-top:12px">' + items.map(line).join('') + '</div>' +
+      '<p style="margin:6px 0 0"><button class="lnk" type="button" data-more>+ Add another line</button></p>' +
+      '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>',
+      function(e, v, close){
+        var md = e.target.closest('[data-mode]');
+        if (md) { Array.prototype.forEach.call(v.querySelectorAll('[data-mode]'), function(x){ x.classList.toggle('on', x === md); }); v.querySelector('[data-sym]').textContent = md.getAttribute('data-mode') === 'amt' ? '$' : '%'; return; }
+        if (e.target.closest('[data-usual]')) {
+          var pv = parseFloat(v.querySelector('[data-v]').value) || 0;
+          if (v.querySelector('[data-mode].on').getAttribute('data-mode') !== 'pct') { alert('Switch to % first.'); return; }
+          post({ kind: 'ad-default', pct: pv, by: WHO }).then(function(j){ if (j.ok) { PH.adPct = j.adPct; toast('Usual advertising is now ' + j.adPct + '%'); e.target.closest('p').firstChild.textContent = 'Usual: ' + j.adPct + '% · '; } });
+          return;
+        }
+        if (e.target.closest('[data-more]')) { v.querySelector('[data-lines]').insertAdjacentHTML('beforeend', line({})); return; }
+        if (!e.target.closest('[data-save]')) return;
+        var its = [];
+        Array.prototype.forEach.call(v.querySelectorAll('.adl'), function(r){ var w = r.querySelector('[data-iw]').value.trim(), m = Math.round((parseFloat(r.querySelector('[data-ia]').value) || 0) * 100) / 100; if (m > 0) its.push({ what: w, amt: m }); });
+        close(); act(b, 'ad', { mode: v.querySelector('[data-mode].on').getAttribute('data-mode'), val: parseFloat(v.querySelector('[data-v]').value) || 0, items: its });
+      });
+  }
+  // One Text button (Oct 30 2026): pick what to send; each opens Messages with the text ready
+  function textMenu(b){
+    var done = b.paid || b.past || (b.date && b.date < TODAY);
+    var h = '<h3>Text ' + esc(first(b.name)) + '</h3><div class="choice">' +
+      '<button class="btn" data-t="confirm">Confirmation</button>' +
+      (b.date && b.date >= TODAY ? '<button class="btn ghost" data-t="remind">Reminder' + (b.date === TOMORROW ? ' (tomorrow)' : '') + '</button>' : '') +
+      (done ? '<button class="btn ghost" data-t="review">Review request' + (b.reviewAsked ? ' (sent ✓)' : '') + '</button>' : '') +
+      '<button class="btn ghost" data-t="blank">Blank text</button><button class="btn ghost" data-x>Cancel</button></div>';
+    sheet(h, function(e, v, close){ var t = e.target.closest('[data-t]'); if (!t) return; close(); var k = t.getAttribute('data-t');
+      if (k === 'confirm') compose(b, 'Confirmation text', msgConfirm(b));
+      else if (k === 'remind') compose(b, 'Reminder', b.date === TOMORROW ? msgRemind(b) : 'Hi ' + first(b.name) + '! Just a reminder about your ' + tWord(b) + 'session on ' + longDay(b.date) + at(b) + '. Text me if anything changes. See you then!');
+      else if (k === 'review') bookingAction(b, 'review');
+      else compose(b, 'Text ' + first(b.name), 'Hi ' + first(b.name) + '! ');
+    });
+  }
+  function moneySheet(b){
+    var o = due(b), h = '<h3>' + esc(b.name) + '</h3><p class="muted">' + (o > 0 ? 'Owes ' + money(o) : 'Paid in full') + (b.deposit ? ' · ' + money(b.deposit.amount) + ' deposit in' : '') + '</p><div class="choice">';
+    if (!b.deposit && !b.paid && !b.past) h += '<button class="btn" data-m="dep">Deposit received</button>';
+    if (o > 0) h += '<button class="btn" data-m="paid">' + (b.paid ? 'Mark ' + money(o) + ' paid' : 'Paid in full') + '</button>';
+    if (b.deposit) h += '<button class="btn ghost" data-m="dep-undo">Undo deposit</button>';
+    if (b.paid) h += '<button class="btn ghost" data-m="undo-paid-ask">Undo paid</button>';
+    h += '<button class="btn ghost" data-x>Cancel</button></div>';
+    sheet(h, function(e, v, close){ var m = e.target.closest('[data-m]'); if (!m) return; close(); bookingAction(b, m.getAttribute('data-m')); });
+  }
   function depBtn(b){
     if (b.cancelled) return '<button class="dep na" type="button" tabindex="-1">' + (b.cancelled.deposit === 'kept' ? 'Deposit kept' : b.cancelled.deposit === 'returned' ? 'Deposit returned' : 'Cancelled') + '</button>';
     if (b.paid && !b.deposit) return '<button class="dep in" type="button" data-a="undo-paid-ask">Paid all at once</button>';
@@ -639,52 +793,66 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function card(b){
     var s = statusOf(b), open = OPEN === 'b' + b.num, fl = flagged(b), total = tot(b), owed = due(b);
     var so = shooterOwes(b);
-    var tags = (b.photographer ? '<span class="tg k">📷 ' + esc(b.photographer) + '</span>' : '') + (b.test ? '<span class="tg t">TEST</span>' : '');
+    var tags = (b.date === TOMORROW && !b.cancelled ? '<span class="tg tm">Tomorrow</span>' : '') + (b.photographer ? '<span class="tg k">📷 ' + esc(b.photographer) + '</span>' : '') + (b.test ? '<span class="tg t">TEST</span>' : '');
     var h = '<div class="bk' + (open ? ' open' : '') + (fl ? ' fl' : '') + (b.cancelled ? ' cx' : '') + '" data-num="' + b.num + '">' +
       '<div class="sum" data-tog role="button" tabindex="0" aria-expanded="' + open + '"><div class="lt">' +
-      '<span class="pm">' + (open ? '−' : '+') + '</span><span class="st ' + s[1] + '">' + s[0] + '</span>' + tags +
-      '<div class="nm">' + esc(b.name) + '</div>' +
-      '<div class="sub">' + esc([b.date ? nice(b.date) : 'No date', b.beach].filter(Boolean).join(' · ')) + '</div>' +
+      // Oct 30 2026: no "Confirmed" tag (the Booked tab says it); a tag only when something's different
+      '<span class="pm">' + (open ? '−' : '+') + '</span>' + (s[1] === 's-con' ? '' : '<span class="st ' + s[1] + '">' + s[0] + '</span>') + tags +
+      '<div class="nm"' + (s[1] === 's-con' && !tags ? ' style="margin-top:0"' : '') + '>' + esc(b.name) + '</div>' +
+      // Oct 30 2026: the session time goes in the date line (change it with Edit)
+      '<div class="sub">' + esc([b.date ? nice(b.date) : 'No date', b.time ? SESS_LBL[sessType(b)] === 'Other' ? b.time : SESS_LBL[sessType(b)].replace('♥ ', '') : '', b.beach].filter(Boolean).join(' · ')) + '</div>' +
       (fl ? '<div class="flag">⚠️ Date passed — shot or moved?</div>' : '') +
-      (so ? '<div class="flag owes">💸 ' + esc(b.photographer) + ' owes Miranda ' + money(so) + '</div>' : '') +
-      '</div><div class="rt">' + sessBtn(b, b.cancelled || b.past) + amtBadge(b) + (b.past ? '' : depBtn(b)) + '</div></div>';
+      (so ? '<div class="flag owes">💸 ' + esc(b.photographer) + ' owes Miranda ' + money(so) + '</div>' : mirandaOwes(b) ? '<div class="flag owes">💸 Miranda owes ' + esc(b.photographer) + ' ' + money(mirandaOwes(b)) + '</div>' : '') +
+      '</div><div class="rt">' + moneyBtn(b) + '</div></div>';
     if (!open) return h + '</div>';
-    // Details: only what isn't already on the card's top half
-    var L = '<div class="ln">' + esc(b.pkg || 'Session') + ' · ' + money(b.total || 0) + ' · ' + (b.past ? 'past entry' : b.num < 101 ? 'early booking' : b.num < 900000 ? '#' + b.num : 'test') + '</div>';
-    if (b.by) L += '<div class="ln mut">Set up by ' + esc(b.by) + '</div>';
-    if (b.phone) L += '<div class="ln mut">📱 ' + esc(fmtPhone(b.phone)) + '</div>';
-    L += '<hr>';
-    if (b.photographer) {
-      var how = b.split ? (b.split.mode === 'amt' ? '' : ' (' + b.split.val + '%' + (b.split.min ? ' or ' + money(b.split.min) : '') + ')') : '';
-      L += '<div class="rc"><div><span>Session total</span><span>' + money(total) + '</span></div><div><span>' + esc(b.photographer) + "'s pay</span><span>−" + money(payOf(b)) + '</span></div><div><span>Miranda\'s share' + how + '</span><span>' + money(mineOf(b)) + '</span></div></div>';
-      (b.shooterPaid || []).forEach(function(x, i, arr){ L += '<div class="kv">' + esc(b.photographer) + ' paid Miranda – <b>' + money(x.amount) + '</b> · ' + esc(short(x.at)) + (i === arr.length - 1 ? ' <button class="lnk" data-a="undo-shooter-paid">undo</button>' : '') + '</div>'; });
-      if (so) L += '<div class="owebox">💸 <b>' + esc(b.photographer) + ' owes Miranda ' + money(so) + '</b><br><span class="muted">' + esc(b.photographer) + ' collected the balance. This is the rest of Miranda\'s share.</span>' +
-        '<button class="btn" data-a="shooter-paid" style="width:100%;margin-top:8px">' + esc(b.photographer) + ' paid me ' + money(so) + '</button></div>';
+    // Inside the card (Oct 30 2026): a money receipt, a tappable phone, and three buttons (Text, Edit, Photographer)
+    var L = '<div class="ln mut">' + (b.past ? 'Past entry' : b.num < 101 ? 'Early booking' : b.num < 900000 ? '#' + b.num : 'Test') + (b.by ? ' · set up by ' + esc(b.by) : '') + '</div>' +
+      // Oct 30 2026: who's shooting is always shown; Miranda unless another photographer is set
+      (b.photographer ? '' : '<div class="ln"><b style="color:#4b42b8">📷 Miranda shooting</b></div>');
+    if (b.phone) L += '<div class="ln"><a class="tel" href="tel:+1' + esc(String(b.phone).replace(/\D/g, '').slice(-10)) + '">📱 ' + esc(fmtPhone(b.phone)) + ' · Call</a></div>';
+    var row = function(l, v, cls){ return '<div' + (cls ? ' class="' + cls + '"' : '') + '><span>' + l + '</span><span>' + v + '</span></div>'; };
+    var R2 = row(esc(b.pkg || 'Session'), money(b.total || 0));
+    // Each extra on its own line (from the history), e.g. "+2 people ($15 each)"
+    if (b.addons) {
+      var ad = ((DATA && DATA.log) || []).filter(function(e){ return e.kind === 'addon' && e.num === b.num && e.amount; }), adSum = ad.reduce(function(t, e){ return t + e.amount; }, 0);
+      if (ad.length && Math.abs(adSum - b.addons) < 0.01) ad.forEach(function(e){ R2 += row(esc(e.detail || 'Extra'), '+' + money(e.amount)); });
+      else R2 += row('Extras', '+' + money(b.addons));
     }
-    if (b.addons) L += '<div class="kv">Extras – <b>+' + money(b.addons) + '</b></div>';
-    (b.deducts || []).forEach(function(x, i, arr){ L += '<div class="kv">Deducted – <b>−' + money(x.amount) + '</b>' + (x.why ? ' · ' + esc(x.why) : '') + (i === arr.length - 1 && !b.cancelled ? ' <button class="lnk" data-a="undo-deduct">undo</button>' : '') + '</div>'; });
-    if (b.photographer && b.deposit && due(b) > 0 && !b.cancelled) L += '<div class="kv">Balance – <b>' + esc(b.photographer) + ' collects ' + money(due(b)) + '</b> at the session</div>';
-    if (b.deposit) L += '<div class="kv">Deposit – <b>' + money(b.deposit.amount) + '</b>' + (b.deposit.method ? ' · ' + esc(b.deposit.method) : '') + '</div>';
-    if (b.paid) L += '<div class="kv">Paid in full – <b>' + money(b.paid.amount) + '</b>' + (b.paid.method ? ' · ' + esc(b.paid.method) : '') + ' · ' + esc(short(b.paid.at)) + '</div>';
+    (b.deducts || []).forEach(function(x, i, arr){ R2 += row('Taken off' + (x.why ? ' (' + esc(x.why) + ')' : '') + (i === arr.length - 1 && !b.cancelled ? ' <button class="lnk" data-a="undo-deduct">undo</button>' : ''), '−' + money(x.amount)); });
+    if (b.addons || (b.deducts || []).length) R2 += row('Total', money(total), 'tt');
+    // Oct 30 2026: Miranda collects the deposit; on a contracted session the photographer collects the rest
+    if (b.deposit) R2 += row('Deposit', '−' + money(b.deposit.amount));
+    if (b.paid) R2 += row((b.photographer ? 'Rest paid to ' + esc(b.photographer) : 'Paid') + (b.paid.method ? ' (' + esc(b.paid.method) + ')' : '') + ' ' + esc(short(b.paid.at)), '−' + money(b.paid.amount));
+    if (!b.cancelled) R2 += row(owed > 0 ? (b.photographer ? 'Photographer collects' : 'Left to pay') : 'Paid in full ✓', money(owed), 'tt');
+    // Contracted session (Oct 30 2026): the split goes on the same receipt
+    if (b.photographer) {
+      var how = b.split ? (b.split.mode === 'amt' ? '' : ' (' + b.split.val + '%' + (b.split.min ? ', at least ' + money(b.split.min) : '') + ')') : '';
+      R2 += '<div class="sp">📷 ' + esc(b.photographer) + ' shooting</div>' + row(esc(b.photographer) + "'s pay", money(payOf(b))) + row('Miranda\'s share' + how, money(mineOf(b)));
+      (b.shooterPaid || []).forEach(function(x, i, arr){ R2 += row(esc(b.photographer) + ' paid Miranda ' + esc(short(x.at)) + (i === arr.length - 1 ? ' <button class="lnk" data-a="undo-shooter-paid">undo</button>' : ''), money(x.amount)); });
+      (b.paidShooter || []).forEach(function(x, i, arr){ R2 += row('Miranda paid ' + esc(b.photographer) + ' ' + esc(short(x.at)) + (i === arr.length - 1 ? ' <button class="lnk" data-a="undo-paid-shooter">undo</button>' : ''), money(x.amount)); });
+      var mo = mirandaOwes(b);
+      if (so) R2 += row('💸 ' + esc(b.photographer) + ' owes Miranda', money(so), 'tt');
+      else if (mo) R2 += row('💸 Miranda owes ' + esc(b.photographer), money(mo), 'tt');
+      else if (b.paid && !b.cancelled) R2 += '<div class="tt"><span>✓ All settled with ' + esc(b.photographer) + '</span><span></span></div>';
+    }
+    // Advertising (Oct 30 2026): what an ad cost for this booking, taken from Miranda's part
+    if (b.ad && (b.ad.val || (b.ad.items || []).length)) {
+      R2 += '<div class="sp"><span class="sq sm"></span></div>';
+      if (b.ad.val) R2 += row(b.ad.mode === 'pct' ? b.ad.val + '%' : '', '−' + money(Math.min(tot(b), b.ad.mode === 'amt' ? b.ad.val : Math.round(tot(b) * b.ad.val) / 100)));
+      (b.ad.items || []).forEach(function(i){ R2 += row(esc(i.what || ''), '−' + money(i.amt)); });
+    }
+    L += '<div class="rcpt">' + R2 + '</div>';
+    if (b.photographer && so) L += '<button class="btn" data-a="shooter-paid" style="width:100%;margin-bottom:8px">' + esc(b.photographer) + ' paid me ' + money(so) + '</button>';
+    else if (b.photographer && mirandaOwes(b)) L += '<button class="btn" data-a="paid-shooter" style="width:100%;margin-bottom:8px">I paid ' + esc(b.photographer) + ' ' + money(mirandaOwes(b)) + '</button>';
     if (b.cancelled) L += '<div class="kv">Cancelled ' + esc(short(b.cancelled.at)) + (b.cancelled.by ? ' by ' + esc(b.cancelled.by) : '') + (b.cancelled.kept ? ' · kept ' + money(b.cancelled.kept) : b.cancelled.returned ? ' · returned ' + money(b.cancelled.returned) : '') + '</div>';
     if (b.notes) L += '<div class="kv">Notes – <b>' + esc(b.notes) + '</b></div>';
     if (b.reviewAsked) L += '<div class="kv">⭐ Review asked – <b>' + esc(b.reviewAsked.site) + '</b> · ' + esc(short(b.reviewAsked.at)) + '</div>';
     if (b.movedFrom) L += '<div class="kv">Moved from ' + esc(nice(b.movedFrom)) + '</div>';
-    if (!b.cancelled) L += '<div class="smb"><button class="btn ghost" data-a="extra">+ Extra</button><button class="btn ghost" data-a="deduct">− Deduct</button></div>' +
+    if (!b.cancelled) L += '<div class="smb"><button class="btn ghost" data-a="price">± Change price</button></div>' +
       '<button class="btn red cxb" data-a="cancel">Cancel booking</button>';
     var R = '';
     if (b.cancelled) R = '<button class="btn ghost" data-a="undo-cancel">Undo cancel</button>';
-    else {
-      R += '<button class="btn b-con" data-a="confirmed">Confirmed ✓</button>';
-      R += '<button class="btn ghost" data-a="text">Text</button>';
-      if (b.date === TOMORROW) R += '<button class="btn b-rem" data-a="remind">Text reminder</button>';
-      if (owed > 0) R += '<button class="btn b-paid" data-a="paid">' + (b.paid ? 'Mark ' + money(owed) + ' paid' : 'Paid in Full') + '</button>';
-      if (b.paid) R += '<button class="btn ghost" data-a="undo-paid-ask">Undo paid</button>';
-      if (!b.past) R += '<button class="btn ghost" data-a="move">Move date</button>';
-      R += '<button class="btn ghost" data-a="edit">Edit</button>';
-      R += '<button class="btn ghost" data-a="shooter">Photographer</button>';
-      if (b.paid || b.past || (b.date && b.date < TODAY)) R += '<button class="btn ' + (b.reviewAsked ? 'ghost' : 'b-rev') + '" data-a="review">' + (b.reviewAsked ? 'Review asked ✓' : 'Ask for review') + '</button>';
-    }
+    else R = '<button class="btn b-con" data-a="textmenu">💬 Text</button><button class="btn ghost" data-a="edit">Edit</button><button class="btn ghost" data-a="shooter">Photographer</button><button class="btn ghost" type="button" tabindex="-1" aria-hidden="true" style="cursor:default">&nbsp;</button>';
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
   }
   // What the customer filled in on the form (Oct 30 2026): only the lines they filled in
@@ -701,14 +869,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var open = OPEN === 'i' + o.key, sent = !!o.sent && !o.pen;
     var h = '<div class="bk inq' + (o.pen ? ' pen' : '') + (open ? ' open' : '') + '" data-inq="' + esc(o.key) + '">' +
       '<div class="sum" data-tog role="button" tabindex="0" aria-expanded="' + open + '"><div class="lt">' +
-      '<span class="pm">' + (open ? '−' : '+') + '</span><span class="st s-inq">Inquiry</span>' + (o.test ? '<span class="tg t">TEST</span>' : '') +
+      '<span class="pm">' + (open ? '−' : '+') + '</span>' + (o.test ? '<span class="tg t">TEST</span>' : '') +
       (o.pen ? '<span class="tg pen">✏️ Penciled in</span>' : '<span class="tg w">' + (sent ? '💬 Link texted' : '📩 New request') + '</span>') +
       '<div class="nm">' + esc(o.name) + '</div>' +
-      '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' +
-      '</div><div class="rt">' + (o.time ? sessBtn(o, true) : '') + (o.amount ? '<span class="amt a-inq">' + money(o.amount) + '</span>' : '') +
+      '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.time ? (SESS_LBL[sessType(o)] === 'Other' ? o.time : SESS_LBL[sessType(o)].replace('♥ ', '')) : '', o.beach].filter(Boolean).join(' · ')) + '</div>' +
+      '</div><div class="rt">' + (o.amount ? '<span class="amt a-inq">' + money(o.amount) + '</span>' : '') +
       (o.pen ? '<button class="dep na pen" type="button" tabindex="-1">✏️ Penciled in ' + esc(slotTxt(o.sreq)) + ', waiting on your OK</button>'
         : '<button class="dep na" type="button" tabindex="-1">' + (sent ? 'Waiting on customer to confirm' : o.texting ? '💬 Sandy is texting them' : 'Needs reply') + '</button>') +
-      (o.asked ? '<span class="came">' + (o.request ? 'Came in ' : 'Added ') + esc(shortDay(o.asked)) + '<br>' + ago(o.asked) + '</span>' : '') + '</div></div>';
+      (o.asked ? '<span class="came">' + (o.request ? 'Came in ' : 'Added ') + ago(o.asked) + '</span>' : '') + '</div></div>';
     if (!open) return h + '</div>';
     var L = '';
     if (o.request) L += '<div class="ln">Asked ' + esc(short(o.request.at)) + '</div>' + (o.detail ? '<div class="ln mut">' + esc(o.detail) + '</div>' : '');
@@ -757,7 +925,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('mt').innerHTML = line('📸 From her own sessions', own) + line('📷 Her share from contracted sessions' + (n ? ' <span class="muted">(' + n + ')</span>' : ''), share) +
       line('Total to Miranda', own + share, true) + '<p class="muted" style="margin:10px 0 0">Paid to photographers: <b>' + money(paidOut) + '</b>' + (who ? ' (' + who + ')' : '') + '</p>';
   }
-  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', 'shooter-paid': '💸 Photographer paid Miranda', review: '⭐ Review asked', 'undo-shooter-paid': '↩️ Photographer payment undone' };
+  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', 'shooter-paid': '💸 Photographer paid Miranda', 'paid-shooter': '💸 Miranda paid photographer', review: '⭐ Review asked', ad: '📣 Advertising', 'undo-shooter-paid': '↩️ Photographer payment undone' };
   function feed(tests){
     var log = DATA.log || [], done = {};
     log.forEach(function(e){ if (e.kind === 'confirm' || e.kind === 'added') done[low(e.name) + '|' + (e.date || '')] = 1; });
@@ -785,7 +953,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   function isWed(b){ return /wedding/i.test(b.time || '') || /wedding/i.test(b.pkg || ''); }
   // Usual split (Oct 20 2026): a flat $50 to Miranda, except weddings at 25% (at least $50)
-  function usualSplit(b){ return isWed(b) ? { mode: 'pct', val: PH.split.pct, min: PH.split.min } : { mode: 'amt', val: 50 }; }
+  // Oct 30 2026: 20% to Miranda on every session (changeable per booking, % or $)
+  function usualSplit(b){ return { mode: 'pct', val: PH.split.pct, min: PH.split.min }; }
   function dotOf(b){ return b.pen ? 'pen' : b.inq ? 'q' : (b.deposit || b.paid) ? 'full' : 'ring'; }
   function calendar(){
     var by = {}, tests = MORE.tests;
@@ -846,6 +1015,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var tc = document.querySelector('.topcard'); window.scrollTo({ top: tc ? tc.offsetTop + tc.offsetHeight + 10 : 0 });
   });
   $('dayClr').addEventListener('click', function(){ DAY = ''; draw(); });
+  // One-tap Tomorrow (Oct 30 2026): shows tomorrow's sessions (and inquiries); tap again for everything
+  $('tmrBtn').addEventListener('click', function(){ DAY = DAY === TOMORROW ? '' : TOMORROW; Q = ''; $('q').value = ''; $('q').hidden = true; $('srchBtn').classList.remove('on'); OPEN = null; draw(); });
   document.addEventListener('click', function(e){
     if (!$('calPop').hidden && !e.target.closest('#calPop') && !e.target.closest('#calBtn')) $('calPop').hidden = true;
   });
@@ -965,6 +1136,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       var next = cyc[(idx + 1) % cyc.length];
       return act(b, 'edit', { fields: { time: next } });
     }
+    if (a === 'money') return moneySheet(b);
+    if (a === 'textmenu') return textMenu(b);
+    if (a === 'price') return priceSheet(b);
+    // (Oct 30 2026: the advertising form is built but switched off for now; the blank button does nothing)
     if (a === 'dep') return depositSheet(b);
     if (a === 'dep-undo') return ask('Undo the deposit?', 'This marks ' + esc(b.name) + "'s " + money(b.deposit.amount) + ' deposit as not received.', 'Undo deposit', 'Keep it', function(){ act(b, 'undo-deposit'); });
     if (a === 'undo-paid-ask') return ask('Undo paid in full?', esc(b.name) + ' goes back to owing ' + money((b.paid && b.paid.amount) || 0) + '.', 'Undo paid', 'Keep it', function(){ act(b, 'undo-paid'); });
@@ -981,6 +1156,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'undo-deduct') return ask('Undo the last deduction?', '', 'Undo', 'Keep it', function(){ act(b, 'undo-deduct'); });
     if (a === 'shooter-paid') return ask(esc(b.photographer) + ' paid Miranda ' + money(shooterOwes(b)) + '?', 'This marks Miranda\'s share of ' + esc(b.name) + '\'s session as fully paid.', 'Yes, paid', 'Not yet', function(){ act(b, 'shooter-paid', { amount: shooterOwes(b) }); });
     if (a === 'undo-shooter-paid') return ask('Undo that payment?', '', 'Undo', 'Keep it', function(){ act(b, 'undo-shooter-paid'); });
+    if (a === 'paid-shooter') { var mo = mirandaOwes(b); return ask('Paid ' + esc(b.photographer) + ' ' + money(mo) + '?', 'Miranda kept the ' + money((b.deposit && b.deposit.amount) || 0) + ' deposit, which is more than her ' + money(mineOf(b)) + ' share, so this is the difference.', 'Yes, paid', 'Not yet', function(){ act(b, 'paid-shooter', { amount: mo }); }); }
+    if (a === 'undo-paid-shooter') return ask('Undo that payment?', '', 'Undo', 'Keep it', function(){ act(b, 'undo-paid-shooter'); });
     if (a === 'cancel') return cancelSheet(b);
     if (a === 'undo-cancel') return ask('Bring this booking back?', esc(b.name) + "'s booking goes back on the list and the totals.", 'Undo cancel', 'Leave cancelled', function(){ act(b, 'undo-cancel'); });
   }
@@ -1222,7 +1399,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<div><label class="l">Price</label><div class="money"><b>$</b><input data-f="base" type="number" inputmode="decimal" value="' + (o.amount || PK[pi][1]) + '"></div></div></div>' +
       '<label class="l">Deposit</label><div class="money"><b>$</b><input data-f="dep" type="number" inputmode="decimal" value="50"></div><div class="muted" data-dn style="font-size:13px;margin-top:4px"></div>' +
       '<label class="l">Who\'s shooting</label><div class="chips" data-who><button class="chip on" type="button" data-n="">Miranda</button>' + PH.names.filter(function(n){ return low(n) !== 'miranda'; }).map(function(n){ return '<button class="chip" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>' +
-      '<p class="muted" style="margin:6px 0 0">A contracted session uses the usual split: $50 to Miranda, or ' + PH.split.pct + '% on a wedding (and the wedding deposit is her full share). Change it later with the Photographer button.</p>' +
+      '<p class="muted" style="margin:6px 0 0">A contracted session uses the usual split: ' + PH.split.pct + '% to Miranda (on a wedding the deposit is her full share). Change it later with the Photographer button.</p>' +
       '<p class="err" data-e hidden>Fill in the name and date first.</p>' +
       '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>' + (direct ? 'Book it' : 'Text Confirm link') + '</button></div>' +
       (direct ? '' : '<p style="text-align:center;margin:10px 0 0"><button class="lnk" data-alt>They already said yes? Book without texting</button></p>'),

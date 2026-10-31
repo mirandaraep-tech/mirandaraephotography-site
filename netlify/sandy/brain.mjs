@@ -88,6 +88,9 @@ const mineOf = (b) => Math.max(0, tot(b) - payOf(b));
 const handed = (b) => (b.shooterPaid || []).reduce((s, x) => s + (x.amount || 0), 0);
 const keepOf = (b) => b.cancelled ? (b.cancelled.kept || 0) : b.photographer ? Math.min(mineOf(b), ((b.deposit && b.deposit.amount) || 0) + handed(b)) : Math.min(tot(b), ((b.deposit && b.deposit.amount) || 0) + ((b.paid && b.paid.amount) || 0));
 const shooterOwes = (b) => (!b.photographer || b.cancelled || !b.paid) ? 0 : Math.max(0, r2(mineOf(b) - keepOf(b)));
+// Oct 30 2026: Miranda kept a deposit bigger than her share, so she owes the photographer the difference (after the session)
+const paidOut = (b) => (b.paidShooter || []).reduce((s, x) => s + (x.amount || 0), 0);
+const mirandaOwes = (b, today = todayCT()) => (!b.photographer || b.cancelled || !(b.paid || (b.date && b.date < today))) ? 0 : Math.max(0, r2(((b.deposit && b.deposit.amount) || 0) + handed(b) - paidOut(b) - mineOf(b)));
 const due = (b) => Math.max(0, r2(tot(b) - ((b.deposit && b.deposit.amount) || 0) - ((b.paid && b.paid.amount) || 0)));
 export const money = (n) => "$" + (Number(n) || 0).toLocaleString("en-US", { maximumFractionDigits: 2 });
 const low = (s) => String(s || "").trim().toLowerCase();
@@ -190,6 +193,7 @@ export function snapshot(data, today = todayCT()) {
     sect("CONFIRMED BUT NO DEPOSIT YET", noDeposit),
     sect("NEEDS A LOOK (session date passed but not marked paid in full — shot or moved?)", needs),
     sect("PHOTOGRAPHER OWES MIRANDA", owes, (b) => line(b) + " · owes Miranda " + money(shooterOwes(b))),
+    sect("MIRANDA OWES THE PHOTOGRAPHER (she kept a deposit bigger than her share)", B.filter((b) => mirandaOwes(b, today) > 0), (b) => line(b) + " · Miranda owes " + b.photographer + " " + money(mirandaOwes(b, today))),
     sect("OTHER UPCOMING BOOKINGS", upcoming),
     sect("RECENT (last 3 weeks: finished, cancelled or past entries)", recent),
     "OLD INQUIRIES that could be cleared (date passed or 30+ days old): " + old.length,
@@ -219,8 +223,9 @@ export const TOOLS = [
   { name: "deduct", description: "Take money off a booking (a discount, fewer people...).", input_schema: { type: "object", properties: { num, amount: { type: "number" }, why: { type: "string" } }, required: ["num", "amount"] } },
   { name: "move_date", description: "Move a session to a new date (same time of day). Fails if that slot is already taken.", input_schema: { type: "object", properties: { num, date: { type: "string", description: "YYYY-MM-DD" } }, required: ["num", "date"] } },
   { name: "edit_booking", description: "Change details on a booking. Only send the fields that change. time is a label like Sunrise, Sunset, Wedding, Midday or a clock time.", input_schema: { type: "object", properties: { num, name: { type: "string" }, phone: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD" }, time: { type: "string" }, beach: { type: "string" }, pkg: { type: "string", description: "Package name" }, total: { type: "number", description: "Session price before extras" }, notes: { type: "string" } }, required: ["num"] } },
-  { name: "set_photographer", description: "Hand a session to another photographer (e.g. Kallie), or back to Miranda (photographer: 'Miranda'). The usual split is applied automatically.", input_schema: { type: "object", properties: { num, photographer: { type: "string" } }, required: ["num", "photographer"] } },
+  { name: "set_photographer", description: "Hand a session to another photographer (e.g. Kallie), or back to Miranda (photographer: 'Miranda'). The usual split is applied automatically: 20% to Miranda. Only if Miranda names a different split, also send miranda_percent (e.g. 30) OR miranda_dollars (e.g. 75) for Miranda's share.", input_schema: { type: "object", properties: { num, photographer: { type: "string" }, miranda_percent: { type: "number" }, miranda_dollars: { type: "number" } }, required: ["num", "photographer"] } },
   { name: "photographer_paid_miranda", description: "Record that the contracted photographer handed Miranda her share.", input_schema: { type: "object", properties: { num, amount: { type: "number" } }, required: ["num", "amount"] } },
+  { name: "miranda_paid_photographer", description: "Record that Miranda paid the photographer what she owed them (when she kept a deposit bigger than her share). Use only for bookings under MIRANDA OWES THE PHOTOGRAPHER.", input_schema: { type: "object", properties: { num, amount: { type: "number" } }, required: ["num", "amount"] } },
   { name: "cancel_booking", description: "Cancel a booking. ONLY after the person has clearly said yes to cancelling AND said whether Miranda keeps or returns the deposit.", input_schema: { type: "object", properties: { num, deposit: { type: "string", enum: ["keep", "return", "none"], description: "none = no deposit was paid" } }, required: ["num", "deposit"] } },
   { name: "undo", description: "Undo the last change of one kind on a booking.", input_schema: { type: "object", properties: { num, what: { type: "string", enum: ["deposit", "paid", "cancel", "deduct", "photographer_paid"] } }, required: ["num", "what"] } },
   { name: "add_booking", description: "Add a client Miranda has already set up (nothing is texted to the client). A past date makes a past entry that doesn't count in totals.", input_schema: { type: "object", properties: { name: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD" }, time: { type: "string" }, beach: { type: "string" }, pkg: { type: "string" }, amount: { type: "number", description: "Session price" }, phone: { type: "string" }, photographer: { type: "string", description: "Leave empty if Miranda is shooting" }, pay: { type: "string", enum: ["none", "deposit", "full"] }, deposit: { type: "number" }, method }, required: ["name", "date", "amount", "pay"] } },
@@ -290,8 +295,9 @@ async function runTool2(base, name, x, by, data, actor) {
     case "deduct": return st("deduct", { amount: x.amount, why: x.why || "" });
     case "move_date": return st("move", { date: x.date });
     case "edit_booking": { const { num: _n, ...fields } = x; return st("edit", { fields }); }
-    case "set_photographer": return st("photographer", { photographer: x.photographer });
+    case "set_photographer": return st("photographer", { photographer: x.photographer, ...(x.miranda_dollars != null ? { split: { mode: "amt", val: x.miranda_dollars } } : x.miranda_percent != null ? { split: { mode: "pct", val: x.miranda_percent } } : {}) });
     case "photographer_paid_miranda": return st("shooter-paid", { amount: x.amount });
+    case "miranda_paid_photographer": return st("paid-shooter", { amount: x.amount });
     case "cancel_booking": return st("cancel", x.deposit === "none" ? {} : { deposit: x.deposit });
     case "undo": return st({ deposit: "undo-deposit", paid: "undo-paid", cancel: "undo-cancel", deduct: "undo-deduct", photographer_paid: "undo-shooter-paid" }[x.what]);
     case "add_booking": return post(base, { kind: "direct", ...x, dep: 50, by });
@@ -542,6 +548,7 @@ export function describeChange(c, data) {
     case "edit_booking": { const { num: _n, ...f } = x; return who + "changed " + Object.entries(f).map(([k, v]) => k + " to " + (k === "date" ? nice(v) : k === "total" ? money(v) : v)).join(", "); }
     case "set_photographer": return who + "photographer set to " + x.photographer;
     case "photographer_paid_miranda": return who + "photographer paid Miranda " + money(x.amount);
+    case "miranda_paid_photographer": return who + "Miranda paid the photographer " + money(x.amount);
     case "cancel_booking": return who + "cancelled" + (x.deposit === "keep" ? " (Miranda keeps the deposit)" : x.deposit === "return" ? " (deposit returned)" : "");
     case "undo": return who + "undid the last " + String(x.what).replace("_", " ");
     case "add_booking": return "New booking: " + [x.name, x.date ? nice(x.date) : "", x.time, x.beach, money(x.amount)].filter(Boolean).join(", ");
