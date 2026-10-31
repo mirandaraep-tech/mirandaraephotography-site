@@ -95,6 +95,7 @@ const travelLine = () => {
 
 // Oct 31 2026: each package's own page (home price list names + Prices page cards link here). Beach Mini and Beach Special have no single page.
 const PAGE_LINK = { senior: '/senior-portrait-photographer', family: '/family-beach-photographer', deluxe: '/family-beach-photographer', engagement: '/beach-proposal-photographer', proposal: '/beach-proposal-photographer', elopementMini: '/mini-elopement-photographer', elopement: '/beach-elopement-photographer', wedding6: '/beach-wedding-photographer', wedding10: '/beach-wedding-photographer' };
+const PAGE_LABEL = { '/senior-portrait-photographer': 'senior portraits page', '/family-beach-photographer': 'family photos page', '/beach-proposal-photographer': 'proposal & engagement page', '/mini-elopement-photographer': 'Mini Elopement page', '/beach-elopement-photographer': 'Beach Elopement page', '/beach-wedding-photographer': 'wedding page' };
 
 // ---------- generated blocks ----------
 const offer = id => { const p = pkg(id); return { '@type': 'Offer', name: p.name + (p.where ? ' — ' + p.where.replace(/ · /g, ', ') : ''), price: String(p.price), priceCurrency: 'USD', description: summary(p).replace(/ · /g, ', ') + '.' }; };
@@ -117,7 +118,7 @@ const BLOCKS = {
   'prices-cards': a => ids(a).map(id => {
     const p = pkg(id);
     return '\n      <article class="pkg" id="' + id + '"><div class="pkg-top"><h3>' + esc(p.name) + '</h3><strong>' + money(p.price) + '</strong></div>' +
-      (p.where ? '<p class="where">' + esc(p.where) + '</p>' : '') + '<p>' + esc(p.blurb) + '</p><ul>' + includes(p).map(i => '<li>' + esc(i) + '</li>').join('') + '</ul>' + (PAGE_LINK[id] ? '<a class="pkg-more" href="' + PAGE_LINK[id] + '">See the ' + esc(p.booking.replace(/^Wedding: /, '') ) + ' page →</a>' : '') + '</article>';
+      (p.where ? '<p class="where">' + esc(p.where) + '</p>' : '') + '<p>' + esc(p.blurb) + '</p><ul>' + includes(p).map(i => '<li>' + esc(i) + '</li>').join('') + '</ul>' + (PAGE_LINK[id] ? '<a class="pkg-more" href="' + PAGE_LINK[id] + '">See the ' + esc(PAGE_LABEL[PAGE_LINK[id]]) + ' →</a>' : '') + '</article>';
   }).join('') + '\n    ',
 
   // Prices page: extras + travel table
