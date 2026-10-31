@@ -192,28 +192,28 @@ async function getTags(live) {
 }
 
 // ---------- The /my-photos page's program ----------
+// Every page's photo list is worked out once when the site is published (tools/cf-build.mjs writes
+// photo-pages.json), so her page never has to open ~50 pages at once (Oct 31 2026: some were going missing)
+export function pageInfo(stem, html) {
+  if (!isSwappable(stem)) return null;
+  const photos = findPhotos(html).filter((p) => p.kind !== "preload");
+  if (!photos.length) return null;
+  const hidden = /<meta[^>]+noindex/i.test(html) || /-199$/.test(stem);
+  const name = NAMES[stem] || stem.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) + " page";
+  return { stem, name, group: hidden ? "ads" : "site", photos };
+}
+export function sortPages(pages) {
+  const order = Object.keys(NAMES), rank = (x) => (order.indexOf(x.stem) + 1) || 999;
+  return pages.sort((a, b) => (a.group === b.group ? 0 : a.group === "site" ? -1 : 1) || rank(a) - rank(b) || a.name.localeCompare(b.name));
+}
 let INV = null;
 async function inventory(env, origin) {
   if (INV) return INV;
-  let stems = [];
-  try { stems = await (await env.ASSETS.fetch(new Request(origin + "/photo-pages.json"))).json(); } catch (e) {}
-  const pages = [];
-  await Promise.all(stems.filter(isSwappable).map(async (stem) => {
-    try {
-      const r = await env.ASSETS.fetch(new Request(origin + "/" + (stem === "index" ? "" : stem)));
-      if (!r.ok) return;
-      const html = await r.text();
-      const photos = findPhotos(html).filter((p) => p.kind !== "preload");
-      if (!photos.length) return;
-      const hidden = /<meta[^>]+noindex/i.test(html) || /-199$/.test(stem);
-      const name = NAMES[stem] || stem.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) + " page";
-      pages.push({ stem, name, group: hidden ? "ads" : "site", photos });
-    } catch (e) {}
-  }));
-  const order = Object.keys(NAMES);
-  pages.sort((a, b) => (a.group === b.group ? 0 : a.group === "site" ? -1 : 1) || ((order.indexOf(a.stem) + 1 || 999) - (order.indexOf(b.stem) + 1 || 999)) || a.name.localeCompare(b.name));
-  INV = pages;
-  return pages;
+  const r = await env.ASSETS.fetch(new Request(origin + "/photo-pages.json"));
+  const list = await r.json();
+  if (!Array.isArray(list) || !list.length || typeof list[0] !== "object") throw new Error("page list missing");
+  INV = sortPages(list.filter((p) => p && isSwappable(p.stem)));
+  return INV;
 }
 
 async function roleOf(req, live) {
