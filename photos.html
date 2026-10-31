@@ -565,6 +565,17 @@ footer a{color:#fff}
     if (!from) a.addEventListener('click', function(e){ e.preventDefault(); if (history.length > 1) history.back(); });
   });
   if (from) [].forEach.call(document.querySelectorAll('a[href="#check-date"]'), function(a){ a.href = back + '#check-date'; });
+  // Oct 31 2026: a button that stays on screen the whole time, taking ad visitors back to the form on the page they came from
+  if (from && from !== 'book') {
+    var fb = document.createElement('a');
+    fb.className = 'btn btn-text back-float';
+    fb.href = back + '#check-date';
+    fb.innerHTML = '&larr; Back to Check My Date';
+    document.body.appendChild(fb);
+    var st = document.createElement('style');
+    st.textContent = '.back-float{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:40;white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.3)}body{padding-bottom:84px}#lb.open~.back-float,body:has(#lb.open) .back-float{display:none}';
+    document.head.appendChild(st);
+  }
   // Oct 20 2026: visitors coming from /book already texted Miranda, so hide the Text Miranda buttons for them
   if (from === 'book') [].forEach.call(document.querySelectorAll('a.sms'), function(a){ a.style.display = 'none'; });
   // Oct 29 2026: ad visitors text Sandy (Miranda's AI texting assistant), same as on the ad page they came from
