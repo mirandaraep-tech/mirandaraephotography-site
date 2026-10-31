@@ -160,6 +160,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .s-cx{background:#f7dede;color:var(--bad);border-color:#ebc0c0}
 .s-past{background:#eceff1;color:#455a64;border-color:#d5dce0}
 .tg{display:inline-block;font-size:12px;font-weight:bold;border-radius:999px;padding:3px 8px;margin-left:4px;vertical-align:1px}
+.tg.tm{background:#fff;color:var(--ink);border:2px solid var(--ink);margin-left:0;margin-right:4px}
 .tg.k{background:#eeedfe;color:#4b42b8}
 .tg.t{background:#eceff1;color:#455a64}
 .tg.w{background:#e1f0f3;color:var(--teal)}
@@ -307,7 +308,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         <div class="calpop" id="calPop" hidden></div>
         <button class="cbtn" id="calBtn" type="button"><span class="mini"><i id="calMon">OCT</i><u id="calDay">19</u></span>Calendar</button>
         <button class="sbtn" id="srchBtn" type="button">Search</button>
-        <input id="q" type="search" autocomplete="off" placeholder="Name (or Kallie)" hidden>
+        <input id="q" type="search" autocomplete="off" placeholder="Name or phone" hidden>
       </div>
       <div class="daychip" id="fChip" hidden><span id="fTxt"></span><button id="fClr" type="button">✕ Show all</button></div>
       <div class="daychip" id="dayChip" hidden><span id="dayTxt"></span><button id="dayClr" type="button">✕ Show all</button></div>
@@ -520,6 +521,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function ord(b){ var t = low(b.time); return ORDER[t] != null ? ORDER[t] : 5; }
   function sorter(back){ return function(a, b){ var c = (a.date || '9999').localeCompare(b.date || '9999'); if (back) c = -c; return c || ord(a) - ord(b) || (a.num || 0) - (b.num || 0); }; }
 
+  // Search by phone too (Oct 30 2026): 3 or more digits typed match anywhere in the number
+  function phoneHit(ph, q){ var d = String(q).replace(/\D/g, ''); return d.length >= 3 && digits10(ph).indexOf(d) >= 0; }
   function draw(){
     var all = (DATA.bookings || []).slice(), tests = MORE.tests, per = PERIODS[PI][0];
     var INQ = inquiries().filter(function(o){ return tests || !o.test; });
@@ -543,7 +546,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var log = DATA.log || [], last = log[log.length - 1];
     // Oct 20 2026: name the client after "Client confirmed" / "Website request"
     var whoMade = last ? (last.kind === 'confirm' ? 'Client confirmed' + (last.name ? ': ' + last.name : '') : last.kind === 'request' ? 'Website request' + (last.name ? ': ' + last.name : '') : last.by || '') : '';
-    $('asof').textContent = (DATA.test ? 'TEST COPY · ' : '') + 'Updated: ' + (last ? when(last.at) : '—') + (whoMade ? ' · ' + whoMade : '');
+    // Oct 30 2026: one short line, e.g. "Updated 6:23 PM" (or "Updated Oct 29, 6:23 PM" on another day)
+    var upd = '—'; if (last) { var ld = new Date(last.at), tm = ld.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); upd = ymd(ld) === TODAY ? tm : ld.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + tm; }
+    $('asof').textContent = (DATA.test ? 'TEST COPY · ' : '') + 'Updated ' + upd;
 
     // Tabs (Oct 30 2026): the one you're on is filled in with a ✓; each shows how many are in it
     CON = VIEW === 'inq' ? 'no' : VIEW === 'booked' ? 'yes' : ''; DEP = '';
@@ -570,7 +575,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var q = low(Q);
     var rows = all.filter(function(b){
       if (b.test && !tests) return false;
-      if (q) return low(b.name + ' ' + (b.photographer || '')).indexOf(q) >= 0;
+      if (q) return low(b.name + ' ' + (b.photographer || '')).indexOf(q) >= 0 || phoneHit(b.phone, q);
       if (DAY) return b.date === DAY && !b.cancelled;
       if (MORE.status === 'cancelled') return !!b.cancelled && fitsPeriodAny(b);
       if (MORE.status === 'pastentries') return !!b.past;
@@ -587,7 +592,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
     // Inquiries: their own folded strip at the top (or the whole list when "Not confirmed" is on)
     var inq = INQ.filter(function(o){
-      if (q) return low(o.name).indexOf(q) >= 0;
+      if (q) return low(o.name).indexOf(q) >= 0 || phoneHit(o.phone, q);
       if (DAY) return o.date === DAY || (o.pen && o.sreq.date === DAY);
       if (VIEW === 'todo') return todoI(o);
       if (CON === 'yes' || DEP || MORE.bal || (MORE.status && MORE.status !== 'upcoming') || MORE.shooter) return false;
@@ -785,7 +790,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function card(b){
     var s = statusOf(b), open = OPEN === 'b' + b.num, fl = flagged(b), total = tot(b), owed = due(b);
     var so = shooterOwes(b);
-    var tags = (b.photographer ? '<span class="tg k">📷 ' + esc(b.photographer) + '</span>' : '') + (b.test ? '<span class="tg t">TEST</span>' : '');
+    var tags = (b.date === TOMORROW && !b.cancelled ? '<span class="tg tm">Tomorrow</span>' : '') + (b.photographer ? '<span class="tg k">📷 ' + esc(b.photographer) + '</span>' : '') + (b.test ? '<span class="tg t">TEST</span>' : '');
     var h = '<div class="bk' + (open ? ' open' : '') + (fl ? ' fl' : '') + (b.cancelled ? ' cx' : '') + '" data-num="' + b.num + '">' +
       '<div class="sum" data-tog role="button" tabindex="0" aria-expanded="' + open + '"><div class="lt">' +
       // Oct 30 2026: no "Confirmed" tag (the Booked tab says it); a tag only when something's different
@@ -861,7 +866,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var open = OPEN === 'i' + o.key, sent = !!o.sent && !o.pen;
     var h = '<div class="bk inq' + (o.pen ? ' pen' : '') + (open ? ' open' : '') + '" data-inq="' + esc(o.key) + '">' +
       '<div class="sum" data-tog role="button" tabindex="0" aria-expanded="' + open + '"><div class="lt">' +
-      '<span class="pm">' + (open ? '−' : '+') + '</span><span class="st s-inq">Inquiry</span>' + (o.test ? '<span class="tg t">TEST</span>' : '') +
+      '<span class="pm">' + (open ? '−' : '+') + '</span>' + (o.test ? '<span class="tg t">TEST</span>' : '') +
       (o.pen ? '<span class="tg pen">✏️ Penciled in</span>' : '<span class="tg w">' + (sent ? '💬 Link texted' : '📩 New request') + '</span>') +
       '<div class="nm">' + esc(o.name) + '</div>' +
       '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.time ? (SESS_LBL[sessType(o)] === 'Other' ? o.time : SESS_LBL[sessType(o)].replace('♥ ', '')) : '', o.beach].filter(Boolean).join(' · ')) + '</div>' +
