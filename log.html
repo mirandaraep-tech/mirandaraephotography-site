@@ -66,6 +66,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .mini{display:flex;border:1px solid #c9d3d6;border-radius:7px;overflow:hidden;line-height:1}
 .mini i{font-style:normal;background:var(--teal);color:#fff;font-size:11px;font-weight:bold;letter-spacing:1px;padding:9px 6px}
 .mini u{text-decoration:none;font:bold 19px Georgia,serif;color:var(--ink);padding:5px 7px;background:#fff}
+#tmrBtn.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:bold}
 .sbtn{border:2px solid var(--line);background:#fff;border-radius:14px;padding:0 14px;color:var(--teal);font-size:15px;cursor:pointer;min-height:46px}
 .sbtn.on{border-color:var(--teal)}
 #q{flex:1;min-width:0;min-height:46px;border-radius:14px}
@@ -308,6 +309,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         <div class="calpop" id="calPop" hidden></div>
         <button class="cbtn" id="calBtn" type="button"><span class="mini"><i id="calMon">OCT</i><u id="calDay">19</u></span>Calendar</button>
         <button class="sbtn" id="srchBtn" type="button">Search</button>
+        <button class="sbtn" id="tmrBtn" type="button">Tomorrow</button>
         <input id="q" type="search" autocomplete="off" placeholder="Name or phone" hidden>
       </div>
       <div class="daychip" id="fChip" hidden><span id="fTxt"></span><button id="fClr" type="button">✕ Show all</button></div>
@@ -563,7 +565,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     });
     $('tUpTile').classList.toggle('on', MORE.status === 'upcoming');
     var cm = dt(DAY || TODAY); $('calMon').textContent = cm.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(); $('calDay').textContent = cm.getDate();
-    $('calBtn').classList.toggle('on', !!DAY);
+    $('calBtn').classList.toggle('on', !!DAY && DAY !== TOMORROW);
+    $('tmrBtn').classList.toggle('on', DAY === TOMORROW); $('tmrBtn').textContent = (DAY === TOMORROW ? '✓ ' : '') + 'Tomorrow';
     $('dayChip').hidden = !DAY;
     // Oct 20 2026: one tap back to everything when Confirmed / Deposit / Needs a look is on
     var fOn = [];
@@ -1012,6 +1015,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var tc = document.querySelector('.topcard'); window.scrollTo({ top: tc ? tc.offsetTop + tc.offsetHeight + 10 : 0 });
   });
   $('dayClr').addEventListener('click', function(){ DAY = ''; draw(); });
+  // One-tap Tomorrow (Oct 30 2026): shows tomorrow's sessions (and inquiries); tap again for everything
+  $('tmrBtn').addEventListener('click', function(){ DAY = DAY === TOMORROW ? '' : TOMORROW; Q = ''; $('q').value = ''; $('q').hidden = true; $('srchBtn').classList.remove('on'); OPEN = null; draw(); });
   document.addEventListener('click', function(e){
     if (!$('calPop').hidden && !e.target.closest('#calPop') && !e.target.closest('#calBtn')) $('calPop').hidden = true;
   });
