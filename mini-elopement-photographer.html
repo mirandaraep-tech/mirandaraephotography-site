@@ -395,6 +395,20 @@ footer a{color:#fff}
 .band-grid{grid-template-columns:1fr auto;grid-template-areas:"sub ctas" "checks checks"}
 .band-grid .hero-sub{grid-area:sub}.band-grid .hero-ctas{grid-area:ctas}.band-grid .checks{grid-area:checks;margin:0;color:var(--ink)}
 @media(max-width:860px){.band-grid{grid-template-columns:1fr;grid-template-areas:"sub" "ctas" "checks"}.hero-pill{display:block;border-radius:14px;padding:10px 14px 12px;width:max-content;max-width:100%}.hero-pill strong{display:inline-block;font-size:28px;padding:6px 14px;margin-bottom:8px}.hero-pill span{display:block;font-size:10px}}
+.g-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:20px}
+.g-item{padding:0;border:0;background:none;cursor:zoom-in;border-radius:10px;overflow:hidden;display:block}
+.g-item img{width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;transition:transform .3s}
+.g-item:hover img{transform:scale(1.03)}
+#lb{position:fixed;inset:0;z-index:60;background:rgba(8,16,20,.94);display:none;align-items:center;justify-content:center;touch-action:pan-y}
+#lb.open{display:flex}
+#lb img{max-width:94vw;max-height:84vh;width:auto;height:auto;border-radius:6px;box-shadow:0 10px 40px #000a}
+#lb button{position:absolute;border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:50%;width:48px;height:48px;font-size:26px;line-height:1;cursor:pointer}
+#lb .lb-x{top:14px;right:14px}
+#lb .lb-prev{left:10px;top:50%;transform:translateY(-50%)}
+#lb .lb-next{right:10px;top:50%;transform:translateY(-50%)}
+#lb .lb-count{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:#fff;font-size:14px;opacity:.85}
+#lb .lb-cta{position:absolute;bottom:46px;left:50%;transform:translateX(-50%);white-space:nowrap}
+@media(max-width:860px){.g-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#lb img{max-height:74vh}#lb .lb-prev,#lb .lb-next{top:auto;bottom:40px;transform:none}}
 </style>
 </head>
 <body>
@@ -456,13 +470,30 @@ footer a{color:#fff}
     <h2 class="center">A mini elopement on the beach</h2>
     <p>A mini elopement is the simplest way to get married on the beach. It's a short, sweet ceremony for just the two of you, or the two of you and a few of your favorite people. No big guest list and no long day of planning, just your vows, the sand and the Gulf.</p>
     <p>Miranda Rae is a mini elopement photographer on Florida's Gulf Coast. She helps you choose the spot and the timing, then spends <span data-p="elopementMini.timeWords">1 hour</span> with you: she photographs your ceremony from start to finish, takes a few family photos with everyone who came, and finishes with couple's portraits, just the two of you. You get <span data-p="elopementMini.photos">50+</span> edited photos in a private online gallery.</p>
-    <div class="hgal">
-      <img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F4wxx1bK%2FDSC08513-e681a8dc-2500.jpeg&amp;w=800&amp;fm=webp&amp;q=78" alt="Couple holding hands during their vows at a small beach elopement on the Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" width="400" height="500">
-      <img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FavRR040%2FDSC08569-c25f491c-2500.jpg&amp;w=800&amp;fm=webp&amp;q=78" alt="Ring exchange during a small beach elopement ceremony on the Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" width="400" height="500">
-      <img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FqrKKnW5%2FDSC08598-14362a2f-2500.jpeg&amp;w=800&amp;fm=webp&amp;q=78" alt="Groom dipping his bride for a kiss by the cross at their beach elopement in Florida, by Miranda Rae Photography" loading="lazy" width="400" height="500">
-      <img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2Flj77DyO%2FDSC08890-1ee72320-1000.jpeg&amp;w=800&amp;fm=webp&amp;q=78" alt="Newlyweds nose to nose during couple's portraits after their mini elopement on the Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" width="400" height="500">
+  </div>
+</section>
+
+<!-- Oct 31 2026: photo gallery right on the page (tap to see big, swipe through) so ad visitors never leave the page -->
+<section class="fits" id="photos">
+  <div class="shell" style="max-width:960px">
+    <p class="eyebrow center">Miranda's work</p>
+    <h2 class="center">Wedding &amp; elopement photos</h2>
+    <p class="center" style="margin:0 0 6px;color:var(--muted)">Tap any photo to see it bigger. <a href="/gallery" style="color:var(--teal);font-weight:bold">See the full gallery →</a></p>
+    <div class="g-grid">
+      <button type="button" class="g-item" data-i="0" data-full="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F4wxx1bK%2FDSC08513-e681a8dc-2500.jpeg&amp;w=1400&amp;fm=webp&amp;q=80" aria-label="See photo 1 bigger"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F4wxx1bK%2FDSC08513-e681a8dc-2500.jpeg&amp;w=600&amp;fm=webp&amp;q=75" alt="Couple holding hands during their vows at a small beach elopement, Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" decoding="async" width="400" height="500"></button>
+      <button type="button" class="g-item" data-i="1" data-full="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FavRR040%2FDSC08569-c25f491c-2500.jpg&amp;w=1400&amp;fm=webp&amp;q=80" aria-label="See photo 2 bigger"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FavRR040%2FDSC08569-c25f491c-2500.jpg&amp;w=600&amp;fm=webp&amp;q=75" alt="Ring exchange during a small beach elopement ceremony, Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" decoding="async" width="400" height="500"></button>
+      <button type="button" class="g-item" data-i="2" data-full="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FqrKKnW5%2FDSC08598-14362a2f-2500.jpeg&amp;w=1400&amp;fm=webp&amp;q=80" aria-label="See photo 3 bigger"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FqrKKnW5%2FDSC08598-14362a2f-2500.jpeg&amp;w=600&amp;fm=webp&amp;q=75" alt="Groom dipping his bride for a kiss by the cross at their beach elopement, Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" decoding="async" width="400" height="500"></button>
+      <button type="button" class="g-item" data-i="3" data-full="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2Flj77DyO%2FDSC08890-1ee72320-1000.jpeg&amp;w=1400&amp;fm=webp&amp;q=80" aria-label="See photo 4 bigger"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2Flj77DyO%2FDSC08890-1ee72320-1000.jpeg&amp;w=600&amp;fm=webp&amp;q=75" alt="Newlyweds nose to nose during couple's portraits, Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" decoding="async" width="400" height="500"></button>
+      <button type="button" class="g-item" data-i="4" data-full="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FMRMMaq1%2FDSC08886-a24a0ac9-2500.jpeg&amp;w=1400&amp;fm=webp&amp;q=80" aria-label="See photo 5 bigger"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FMRMMaq1%2FDSC08886-a24a0ac9-2500.jpeg&amp;w=600&amp;fm=webp&amp;q=75" alt="Groom kissing his bride beneath her veil on the beach, Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" decoding="async" width="400" height="500"></button>
+      <button type="button" class="g-item" data-i="5" data-full="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FQ499noO%2FDSC08876-639a0f0c-2500.jpg&amp;w=1400&amp;fm=webp&amp;q=80" aria-label="See photo 6 bigger"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FQ499noO%2FDSC08876-639a0f0c-2500.jpg&amp;w=600&amp;fm=webp&amp;q=75" alt="Newlyweds embracing by the wooden cross after their beach ceremony, Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" decoding="async" width="400" height="500"></button>
+      <button type="button" class="g-item" data-i="6" data-full="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2Fedee6ny%2FDSC08912-51f034ab-2500.jpeg&amp;w=1400&amp;fm=webp&amp;q=80" aria-label="See photo 7 bigger"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2Fedee6ny%2FDSC08912-51f034ab-2500.jpeg&amp;w=600&amp;fm=webp&amp;q=75" alt="Newlyweds wrapped in her veil on the sand, Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" decoding="async" width="400" height="500"></button>
+      <button type="button" class="g-item" data-i="7" data-full="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FxPnnjVW%2FDSC08532-0282f048-2500.jpeg&amp;w=1400&amp;fm=webp&amp;q=80" aria-label="See photo 8 bigger"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FxPnnjVW%2FDSC08532-0282f048-2500.jpeg&amp;w=600&amp;fm=webp&amp;q=75" alt="Small beach wedding ceremony by the Gulf, Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" decoding="async" width="400" height="500"></button>
+      <button type="button" class="g-item" data-i="8" data-full="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F7x33zoa%2FDSC08958-038f4cd9-2500.jpg&amp;w=1400&amp;fm=webp&amp;q=80" aria-label="See photo 9 bigger"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F7x33zoa%2FDSC08958-038f4cd9-2500.jpg&amp;w=600&amp;fm=webp&amp;q=75" alt="Bride in her gown by the water, Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" decoding="async" width="400" height="500"></button>
+      <button type="button" class="g-item" data-i="9" data-full="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FVqGGO4p%2FDSC089811-80d4c43c-2500.jpg&amp;w=1400&amp;fm=webp&amp;q=80" aria-label="See photo 10 bigger"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2FVqGGO4p%2FDSC089811-80d4c43c-2500.jpg&amp;w=600&amp;fm=webp&amp;q=75" alt="Bride holding her bouquet by the Gulf, Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" decoding="async" width="400" height="500"></button>
+      <button type="button" class="g-item" data-i="10" data-full="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2Fq6RQzJ%2FDSC01057-b5089c3a-1000.jpeg&amp;w=1400&amp;fm=webp&amp;q=80" aria-label="See photo 11 bigger"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2Fq6RQzJ%2FDSC01057-b5089c3a-1000.jpeg&amp;w=600&amp;fm=webp&amp;q=75" alt="Couple kissing at the water's edge at sunset in Panama City Beach, Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" decoding="async" width="400" height="500"></button>
+      <button type="button" class="g-item" data-i="11" data-full="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F9M8AEx%2F73125A39-413C-4C37-BAAC-706E18ED19AC-769c5f67-1000.png&amp;w=1400&amp;fm=webp&amp;q=80" aria-label="See photo 12 bigger"><img src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F9M8AEx%2F73125A39-413C-4C37-BAAC-706E18ED19AC-769c5f67-1000.png&amp;w=600&amp;fm=webp&amp;q=75" alt="Couple embracing in the dunes at sunset in Mexico Beach, Florida Gulf Coast, by Miranda Rae Photography" loading="lazy" decoding="async" width="400" height="500"></button>
     </div>
-    <p class="center" style="margin-top:18px"><a href="/gallery" style="font-weight:bold">See more of Miranda's photos →</a></p>
+    <p class="center" style="margin-top:22px"><a class="btn btn-text" href="#check-date">Check My Date →</a></p>
   </div>
 </section>
 
@@ -670,6 +701,31 @@ footer a{color:#fff}
       try{ localStorage.removeItem(KEY); sessionStorage.removeItem('mrp-left'); }catch(e){}
     });
   })();
+</script>
+<div id="lb" role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <button type="button" class="lb-x" aria-label="Close">×</button>
+  <button type="button" class="lb-prev" aria-label="Previous photo">‹</button>
+  <img alt="">
+  <button type="button" class="lb-next" aria-label="Next photo">›</button>
+  <a class="btn btn-text btn-sm lb-cta" href="#check-date">Check My Date →</a>
+  <div class="lb-count"></div>
+</div>
+<script>
+(function(){
+  var items=[].slice.call(document.querySelectorAll('.g-item')), lb=document.getElementById('lb'), img=lb.querySelector('img'), cnt=lb.querySelector('.lb-count'), i=0, sx=null, seen=false;
+  function show(n){ i=(n+items.length)%items.length; img.src=items[i].getAttribute('data-full'); img.alt=items[i].querySelector('img').alt; cnt.textContent=(i+1)+' of '+items.length; }
+  function open(n){ show(n); lb.classList.add('open'); document.body.style.overflow='hidden'; if(!seen){ seen=true; try{ gtag('event','gallery_open',{page:PAGE}); }catch(e){} } }
+  function close(){ lb.classList.remove('open'); document.body.style.overflow=''; }
+  items.forEach(function(b,n){ b.addEventListener('click',function(){ open(n); }); });
+  lb.querySelector('.lb-x').onclick=close;
+  lb.querySelector('.lb-prev').onclick=function(e){ e.stopPropagation(); show(i-1); };
+  lb.querySelector('.lb-next').onclick=function(e){ e.stopPropagation(); show(i+1); };
+  lb.querySelector('.lb-cta').onclick=close;
+  lb.addEventListener('click',function(e){ if(e.target===lb) close(); });
+  document.addEventListener('keydown',function(e){ if(!lb.classList.contains('open')) return; if(e.key==='Escape') close(); if(e.key==='ArrowLeft') show(i-1); if(e.key==='ArrowRight') show(i+1); });
+  lb.addEventListener('touchstart',function(e){ sx=e.touches[0].clientX; },{passive:true});
+  lb.addEventListener('touchend',function(e){ if(sx===null) return; var dx=e.changedTouches[0].clientX-sx; sx=null; if(Math.abs(dx)>40) show(i+(dx<0?1:-1)); });
+})();
 </script>
 </body>
 </html>
