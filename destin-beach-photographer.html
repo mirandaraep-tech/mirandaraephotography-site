@@ -350,7 +350,8 @@ footer a{color:#fff}
 .mini-nav{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;font-size:14px;padding:4px 12px 8px}.mini-nav a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:860px){.pk,.tips{grid-template-columns:1fr}.dgal{grid-template-columns:1fr 1fr}}
 @media(min-width:861px){.hero{background:#fbeedd}.hero::before{left:34%;background-position:50% 60%}.hero::after{background:linear-gradient(90deg,#fbeedd 34%,rgba(251,238,221,.55) 44%,rgba(251,238,221,0) 56%)}}
-@media(max-width:860px){.hero::before{background-position:50% 100%;background-size:auto 46%;background-repeat:no-repeat;background-color:#fbeedd}.hero{background:#fbeedd}.hero::after{background:none}}
+.hero-photo{display:none}
+@media(max-width:860px){.hero{background:#fbeedd}.hero::before,.hero::after{display:none}.hero-grid{padding:22px 0 0}.hero-photo{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;object-position:50% 60%;border-radius:12px;margin:22px 0 4px}}
 </style>
 </head>
 <body>
@@ -374,7 +375,7 @@ footer a{color:#fff}
     <div class="hero-copy">
       <p class="eyebrow">Miranda Rae Photography</p>
       <h1 class="kicker">Destin Beach Photographer · Destin, Florida</h1>
-      <p class="hero-big">Destin Beach Photos<br><em>Your Family Will Love</em></p>
+      <p class="hero-big">Destin Beach Photos<br><em>Made Easy</em></p>
       <p style="font-size:18px;max-width:440px;margin:0 0 6px"><b>Emerald water, white sand, everyone together.</b> Relaxed family and couples sessions on your Destin vacation.</p>
       <div class="price2"><div class="pp"><em class="ptag">Beach Special</em><strong data-p="special.price">$199</strong><span><data data-p="special.time">45–60 min</data> · <data data-p="special.photos">30–35</data> edited photos · up to <data data-p="special.people">11</data> people</span></div></div>
       <div class="hero-ctas">
@@ -382,6 +383,7 @@ footer a{color:#fff}
         <a class="btn btn-ghost" href="#prices">See What's Included</a>
       </div>
       <div class="checks"><span>✓ Free to ask</span><span>✓ Miranda replies personally</span></div>
+      <img class="hero-photo" src="/.netlify/images?url=https%3A%2F%2Fimages-pw.pixieset.com%2Fsite%2FB8woOD%2F3baD8q%2FDSC00606-1adb851b-1000.jpeg&amp;w=1000&amp;fm=webp&amp;q=80" alt="Big extended family together on the beach in Destin, Florida, by Miranda Rae Photography" width="1000" height="669">
     </div>
   </div>
 </header>
