@@ -24,6 +24,7 @@ import sandyPencil from "../netlify/functions/sandy-pencil.mjs";
 import { EmailMessage } from "cloudflare:email";
 import { getHistory, saveHistory, deliver, sandyKey } from "../netlify/sandy/brain.mjs";
 import { handleRequest, handleNotify, handleSisterCopy } from "./requests.mjs";
+import { photoSwapsApi, swapPage, stemOf, isSwappable, refreshPixieset } from "./photo-swaps.mjs";
 
 // The site's own request emails + Sandy's alert texts (Oct 29 2026, replaces FormSubmit; see src/requests.mjs)
 const SISTERS = { "affordablebeachphotographer.com": "AffordableBeachPhotographer.com", "mirandaraephotos.com": "MirandaRaePhotos.com" };
@@ -141,6 +142,16 @@ function withCache(r) {
   return out;
 }
 
+// ---------- Pages, with Miranda's photo swaps (Oct 31 2026, see src/photo-swaps.mjs) ----------
+async function page(req, env) {
+  const stem = stemOf(new URL(req.url).pathname);
+  if (req.method !== "GET" || !isSwappable(stem)) return env.ASSETS.fetch(req);
+  // always get the whole page (not "unchanged since last time"), since her photo picks can change it
+  const h = new Headers(req.headers);
+  h.delete("If-None-Match"); h.delete("If-Modified-Since");
+  return swapPage(await env.ASSETS.fetch(new Request(req.url, { method: "GET", headers: h, redirect: "manual" })), stem, req.url);
+}
+
 // ---------- Old tap/click pings ----------
 // Pages now email tap/click alerts straight to FormSubmit from the visitor's browser (FormSubmit doesn't
 // answer Cloudflare's servers). A page still open from before the move may post here; just say ok.
@@ -221,6 +232,7 @@ export default {
         return API[path](new Request(req.url, { method: "POST", headers: req.headers, body }), {});
       }
     }
+    if (path === "/api/photo-swaps") return photoSwapsApi(req, env); // Miranda's /my-photos page (Oct 31 2026)
     if (API[path]) return API[path](req, {});
     if (path === "/api/move-import") return moveImport(req);
     if (path === BACKGROUND) return new Response("Not found", { status: 404 }); // only Sandy calls this, internally
@@ -236,13 +248,13 @@ export default {
         }
         const t = new URL(r.to.replace(/\.html$/, ""), url.origin);
         t.search = url.search;
-        return env.ASSETS.fetch(new Request(t, req));
+        return page(new Request(t, req), env);
       }
       const t = new URL(r.to, url.origin);
       if (!t.search && url.search) t.search = url.search; // keep ?gclid etc. like Netlify
       return Response.redirect(t.toString(), r.status === 302 ? 302 : 301);
     }
-    return env.ASSETS.fetch(req);
+    return page(req, env);
   },
 
   // Sandy's morning check-in (9 AM Central), and every minute the pencil-in check (Oct 30 2026).
@@ -251,6 +263,8 @@ export default {
     setEnv(env); CTX_ENV = env;
     if (env.LIVE !== "yes") return;
     if (event.cron === PENCIL_CRON) {
+      // Miranda's photo picks: hourly check that each one is still in her Pixieset (Oct 31 2026)
+      ctx.waitUntil(refreshPixieset(true, async () => (await pixiesetPhotos(new Request("https://" + LIVE_HOST + "/api/pixieset-photos"))).json()).catch(() => {}));
       const base = env.URL || "https://" + LIVE_HOST;
       ctx.waitUntil((async () => globalThis.fetch(base + BACKGROUND, {
         method: "POST", headers: { "Content-Type": "application/json", "x-sandy-key": await sandyKey() },

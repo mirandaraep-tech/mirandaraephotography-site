@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My Website Photos | Miranda Rae Photography</title>
+<!-- Private page (added Oct 31 2026) for Miranda: sign in with a passcode and change the photos on the
+     website's pages to any photo from her Pixieset. That's the only thing this page can change — no wording,
+     prices or layout. Changes go live right away and "Put back original" undoes them.
+     Not linked anywhere, not for search. Saved by src/photo-swaps.mjs (/api/photo-swaps). -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-title" content="My Photos">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="/favicon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+:root{--ink:#112b39;--teal:#16677a;--cream:#fff9f1;--line:#e6ddd2;--muted:#556770;--sand:#f3e7d6;--gold:#c9871a;--ok:#1e7a46}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.45;background:var(--cream)}
+.top{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line)}
+.top .in{width:min(760px,94%);margin:auto;display:flex;align-items:center;gap:10px;padding:9px 0;min-height:58px}
+.top img{width:38px;height:38px;border-radius:50%;object-fit:cover;object-position:50% 22%;border:2px solid var(--teal)}
+.top b{font-size:16px}.top small{display:block;color:var(--muted);font-size:12.5px}
+.back{border:none;background:none;color:var(--teal);font-weight:700;font-size:16px;padding:8px 6px 8px 0;min-height:0}
+main{width:min(760px,94%);margin:auto;padding:14px 0 60px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 6px 20px #11283912;margin-bottom:14px}
+h1{font-size:22px;margin:4px 0 8px}h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 4px 8px}
+p{margin:6px 0}.muted{color:var(--muted);font-size:14px}
+button,a.btn{font:inherit;cursor:pointer;border-radius:12px;border:2px solid var(--teal);background:#fff;color:var(--teal);font-weight:700;padding:11px 12px;min-height:48px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+button:active{transform:scale(.98)}button:disabled{opacity:.4;cursor:default}
+.solid{background:var(--teal);color:#fff}
+.wide{width:100%}
+input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);border-radius:12px;width:100%;text-align:center;letter-spacing:.15em}
+.err{color:#b3261e;font-weight:700}
+.how{background:var(--sand);border-radius:12px;padding:12px 14px;margin-bottom:6px;font-size:15px}
+.how b{display:block;font-size:17px;margin-bottom:4px}
+.how ol{margin:6px 0 0;padding-left:22px}.how li{margin:3px 0}
+/* page list */
+.pg{display:flex;align-items:center;gap:12px;width:100%;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px;color:var(--ink);font-weight:400;text-align:left;justify-content:flex-start}
+.pg .th{display:flex;flex:none}
+.pg .th img{width:40px;height:52px;object-fit:cover;border-radius:7px;margin-right:-14px;border:2px solid #fff;box-shadow:0 1px 3px #0003;background:#eee6da}
+.pg .nm{flex:1;margin-left:18px}.pg .nm b{display:block;font-size:16.5px}.pg .nm small{color:var(--muted);font-size:13px}
+.pg .ch{font-size:22px;color:var(--teal)}
+.badge{display:inline-block;background:#e4f3ea;color:var(--ok);font-size:12px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:4px;vertical-align:1px}
+/* photos on one page */
+.ph{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:14px;box-shadow:0 6px 20px #11283912}
+.ph .pic{position:relative;background:#eee6da}
+.ph .pic img{width:100%;display:block;object-fit:cover;aspect-ratio:4/3}
+.ph.tall .pic img{aspect-ratio:4/5;max-height:62vh}
+.ph .lbl{position:absolute;left:10px;top:10px;background:#112b39c7;color:#fff;font-size:13px;font-weight:700;padding:4px 10px;border-radius:12px}
+.ph .new{position:absolute;right:10px;top:10px;background:var(--ok);color:#fff;font-size:13px;font-weight:700;padding:4px 10px;border-radius:12px}
+.ph .act{padding:12px;display:flex;flex-wrap:wrap;gap:8px}
+.ph .act > button{flex:1 1 140px}
+.pos{width:100%;display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted)}
+.pos button{flex:1;min-height:40px;padding:6px;font-size:14px;border-width:1.5px}
+.pos button.on{background:var(--teal);color:#fff}
+.also{width:100%;font-size:13px;color:var(--muted)}
+/* picker */
+.sheet{position:fixed;inset:0;background:var(--cream);z-index:20;display:flex;flex-direction:column}
+.sheet[hidden]{display:none}
+.sheet .hd{background:#fff;border-bottom:1px solid var(--line);padding:10px 4%;display:flex;align-items:center;gap:10px}
+.sheet .hd b{flex:1;font-size:17px}
+.sheet .hd button{min-height:40px;padding:6px 14px}
+.sheet .body{flex:1;overflow:auto;padding:12px 4% 120px}
+.chips{display:flex;gap:8px;margin-bottom:12px}
+.chips button{min-height:38px;padding:6px 14px;border-radius:20px;font-size:14px}
+.chips button.on{background:var(--teal);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+@media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}}
+.tile{position:relative;aspect-ratio:4/5;border-radius:10px;overflow:hidden;background:#eee6da;border:4px solid transparent;padding:0;min-height:0}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile.sel{border-color:var(--gold)}
+.tile.sel::after{content:'✓';position:absolute;right:6px;top:6px;width:32px;height:32px;border-radius:50%;background:var(--gold);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:19px;border:2px solid #fff}
+.tile .star{position:absolute;left:5px;bottom:5px;background:#112b39b3;color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:9px}
+.filters{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.filters select{font:inherit;font-size:15px;padding:8px 10px;border:2px solid var(--line);border-radius:12px;background:#fff;flex:1;min-height:42px;color:var(--ink)}
+.kchips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;-webkit-overflow-scrolling:touch}
+.kchips button{min-height:36px;padding:5px 12px;border-radius:18px;font-size:14px;white-space:nowrap;flex:none;border-width:1.5px}
+.kchips button.on{background:var(--teal);color:#fff}
+.tile .fit{position:absolute;right:5px;bottom:5px;font-size:11px;font-weight:700;padding:2px 6px;border-radius:9px;background:#fffffff0;color:var(--ink)}
+.tile .fit.bad{background:#fff3dc;color:#8a5a00}
+.empty{padding:20px 0;text-align:center}
+/* photo close-up before using it */
+.detail{position:fixed;inset:0;background:var(--cream);z-index:25;overflow:auto;padding:0 0 130px}
+.detail[hidden]{display:none}
+.detail .in{width:min(760px,92%);margin:auto;padding-top:12px}
+.views{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin:6px 0 4px}
+.view{flex:1 1 140px;text-align:center;font-size:13px;color:var(--muted)}
+.view .box{margin:0 auto 4px;border-radius:10px;background:#eee6da center/cover no-repeat;box-shadow:0 2px 10px #0002;border:2px solid #fff}
+.fitmsg{border-radius:12px;padding:10px 12px;margin:10px 0;font-size:15px;background:#e4f3ea;color:#14532d}
+.fitmsg.bad{background:#fff3dc;color:#6b4500}
+.lbl2{font-weight:700;margin:16px 0 6px;display:block}
+.kpick{display:flex;flex-wrap:wrap;gap:8px}
+.kpick button{min-height:42px;padding:6px 14px;font-size:15px;border-width:1.5px;border-radius:20px}
+.kpick button.on{background:var(--teal);color:#fff}
+.kpick button.on::before{content:'✓ '}
+.saved{font-size:13px;color:var(--ok);font-weight:700;min-height:18px;margin-top:6px}
+.foot{position:fixed;left:0;right:0;bottom:0;z-index:26;background:#fff;border-top:1px solid var(--line);box-shadow:0 -4px 16px #11283914;padding:10px 4% calc(10px + env(safe-area-inset-bottom))}
+.foot .in{width:min(760px,100%);margin:auto;display:flex;gap:10px;align-items:center}
+.foot img{width:54px;height:66px;object-fit:cover;border-radius:8px;flex:none}
+.foot button{flex:1}
+/* question box */
+.ask{position:fixed;inset:0;background:#112b3999;z-index:30;display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.ask[hidden]{display:none}
+.ask .box{background:#fff;border-radius:18px;padding:18px;width:min(520px,100%);margin-bottom:env(safe-area-inset-bottom)}
+.ask .box b{font-size:18px;display:block;margin-bottom:6px}
+.ask .box button{width:100%;margin-top:10px}
+.hist{font-size:14px}.hist div{padding:8px 0;border-bottom:1px solid var(--line)}.hist div:last-child{border:none}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:12px;padding:12px 18px;font-size:15px;z-index:40;box-shadow:0 8px 24px #0004;max-width:92%;text-align:center}
+.testbar{background:#fff3dc;border-bottom:1px solid #f0d49b;text-align:center;font-size:13px;padding:5px}
+</style>
+</head>
+<body>
+<div class="testbar" id="testbar" hidden>Test copy — changes here don't touch the real website</div>
+<div class="top"><div class="in" id="topin">
+  <img src="/images/destin-199/destin199-miranda.webp" alt="">
+  <div><b>My Website Photos</b><small>mirandaraephotography.com</small></div>
+</div></div>
+
+<main>
+  <!-- sign in -->
+  <section id="lock" class="card" hidden>
+    <h1>Sign in</h1>
+    <p class="muted">Enter your passcode. This phone will remember it.</p>
+    <input id="pass" type="password" inputmode="numeric" autocomplete="current-password" aria-label="Passcode">
+    <p class="err" id="perr" hidden></p>
+    <button class="solid wide" id="go" style="margin-top:12px">Sign in</button>
+  </section>
+
+  <!-- list of pages -->
+  <section id="home" hidden>
+    <div class="how">
+      <b>Change any photo on your website</b>
+      <ol>
+        <li>Tap a page.</li>
+        <li>Tap <b style="display:inline;font-size:inherit">Change photo</b> under the one you want to swap.</li>
+        <li>Pick a photo from your Pixieset. It's on the website right away.</li>
+      </ol>
+      <p class="muted" style="margin-top:8px">Changed your mind? <b style="display:inline;font-size:inherit;color:inherit">Put back original</b> undoes it anytime.</p>
+    </div>
+    <div class="how" id="goneNote" hidden style="background:#fff3dc;border:1px solid #f0d49b;margin-top:10px"></div>
+    <h2>Website pages</h2>
+    <div id="siteList"></div>
+    <h2>Ad pages <span style="text-transform:none;letter-spacing:0">(hidden, only people who tap an ad see them)</span></h2>
+    <div id="adList"></div>
+    <h2>Recent changes</h2>
+    <div class="card hist" id="hist"></div>
+    <div class="card" id="passCard" hidden>
+      <b>Miranda's own passcode</b>
+      <p class="muted" id="passNote">Give Miranda her own passcode for this page. It only opens this photo page, not the Bookings app.</p>
+      <input id="newPass" type="text" inputmode="numeric" placeholder="New passcode" aria-label="New passcode for Miranda">
+      <button class="wide" id="savePass" style="margin-top:10px">Save Miranda's passcode</button>
+    </div>
+    <p style="text-align:center"><button id="signout" style="border:none;color:var(--muted);font-weight:400;font-size:14px">Sign out on this phone</button></p>
+  </section>
+
+  <!-- one page's photos -->
+  <section id="one" hidden>
+    <h1 id="oneName"></h1>
+    <p class="muted" id="oneNote"></p>
+    <p><a class="btn wide" id="oneLink" target="_blank" rel="noopener">See this page on the website ↗</a></p>
+    <div id="photos"></div>
+  </section>
+</main>
+
+<!-- photo picker -->
+<div class="sheet" id="sheet" hidden>
+  <div class="hd"><b>Pick a photo</b><button id="closeSheet">Cancel</button></div>
+  <div class="body">
+    <div class="chips"><button id="tabFav" class="on">Your favorites</button><button id="tabAll">All Pixieset photos</button></div>
+    <div class="filters"><select id="fBeach" aria-label="Beach"></select></div>
+    <div class="kchips" id="fKind"></div>
+    <p class="muted" id="gridNote" style="margin-top:0"></p>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+
+<!-- close-up of one photo: how it will look in that spot, and its beach / kind tags -->
+<div class="detail" id="detail" hidden><div class="in">
+  <p style="margin:0 0 6px"><button class="back" id="dBack">‹ Back to photos</button></p>
+  <b style="font-size:18px">How it will look in this spot</b>
+  <div class="views" id="views"></div>
+  <div class="pos" id="dPos" style="margin-top:6px"></div>
+  <div class="fitmsg" id="fitMsg" hidden></div>
+  <span class="lbl2">Which beach is this?</span>
+  <div class="filters"><select id="dBeach" aria-label="Which beach is this photo from"></select></div>
+  <span class="lbl2">What kind of photo? <span class="muted" style="font-weight:400">(tap all that fit)</span></span>
+  <div class="kpick" id="dKind"></div>
+  <div class="saved" id="dSaved"></div>
+</div></div>
+<div class="foot" id="foot" hidden><div class="in"><img id="footImg" alt=""><button class="solid" id="useIt">Use this photo</button></div></div>
+
+<!-- "this photo is on other pages too" -->
+<div class="ask" id="ask" hidden><div class="box">
+  <b id="askTitle"></b>
+  <p class="muted" id="askNote"></p>
+  <button class="solid" id="askAll"></button>
+  <button id="askOne"></button>
+  <button id="askCancel" style="border:none;color:var(--muted)">Cancel</button>
+</div></div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var BASE = "https://images-pw.pixieset.com/site/B8woOD/";
+  var PASS = "", DATA = null, PIX = [], CUR = null, SLOT = null, PICK = null, TAB = "fav";
+  try { PASS = localStorage.getItem("mrp-photos-pass") || ""; } catch (e) {}
+  var img = function(src, w){ return "/.netlify/images?url=" + encodeURIComponent(src) + "&w=" + w + "&fm=webp&q=72"; };
+  var esc = function(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); };
+  var dec = function(r){ try { return decodeURIComponent(r); } catch (e) { return r; } };
+  function toast(t){ var d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 3200); }
+  function show(id){ ["lock","home","one"].forEach(function(x){ $(x).hidden = x !== id; }); window.scrollTo(0,0); }
+
+  function api(method, body){
+    return fetch("/api/photo-swaps", { method: method, headers: { "x-pass": PASS, "Content-Type": "application/json" }, cache: "no-store", body: body ? JSON.stringify(body) : undefined })
+      .then(function(r){ return r.json().then(function(j){ j._status = r.status; return j; }); });
+  }
+  function load(){
+    return api("GET").then(function(j){
+      if (j.error) { show("lock"); if (PASS) { $("perr").textContent = j.error === "wait" ? "Too many tries. Wait 15 minutes and try again." : "That passcode didn't work."; $("perr").hidden = false; } return false; }
+      try { localStorage.setItem("mrp-photos-pass", PASS); } catch (e) {}
+      DATA = j; $("testbar").hidden = !j.test;
+      return true;
+    }).catch(function(){ show("lock"); $("perr").textContent = "Couldn't reach the website. Check your signal and try again."; $("perr").hidden = false; return false; });
+  }
+
+  // ---------- pages ----------
+  var gone = function(stem, raw){ return (DATA.gone || []).some(function(g){ return g.stem === stem && g.orig === raw; }); };
+  var current = function(stem, raw){ var s = (DATA.swaps[stem] || {})[raw]; return s && s.src && !gone(stem, raw) ? s.src : dec(raw); };
+  var changed = function(stem, raw){ var s = (DATA.swaps[stem] || {})[raw]; return !!(s && s.src) && !gone(stem, raw); };
+  var pageOf = function(stem){ return DATA.pages.filter(function(p){ return p.stem === stem; })[0]; };
+  var nameOf = function(stem){ var p = pageOf(stem); return p ? p.name : stem; };
+  var urlOf = function(stem){ return "/" + (stem === "index" ? "" : stem); };
+
+  function renderHome(){
+    ["site","ads"].forEach(function(g){
+      $(g === "site" ? "siteList" : "adList").innerHTML = DATA.pages.filter(function(p){ return p.group === g; }).map(function(p){
+        var n = p.photos.filter(function(ph){ return changed(p.stem, ph.raw); }).length;
+        return '<button class="pg" data-stem="' + esc(p.stem) + '"><span class="th">' + p.photos.slice(0, 3).map(function(ph){ return '<img loading="lazy" alt="" src="' + img(current(p.stem, ph.raw), 120) + '">'; }).join("") +
+          '</span><span class="nm"><b>' + esc(p.name) + '</b><small>' + p.photos.length + ' photo' + (p.photos.length === 1 ? "" : "s") + (n ? ' <span class="badge">' + n + ' changed</span>' : "") + (p.photos.some(function(ph){ return gone(p.stem, ph.raw); }) ? ' <span class="badge" style="background:#fff3dc;color:#8a5a00">needs a new pick</span>' : "") + '</small></span><span class="ch">›</span></button>';
+      }).join("");
+    });
+    var g = DATA.gone || [];
+    $("goneNote").hidden = !g.length;
+    if (g.length) {
+      var gp = []; g.forEach(function(x){ if (gp.indexOf(x.stem) < 0) gp.push(x.stem); });
+      $("goneNote").innerHTML = "<b>Heads up:</b> " + (g.length === 1 ? "A photo you picked was" : g.length + " photos you picked were") + " removed from your Pixieset, so the original is showing again on the " + gp.map(function(x){ return esc(nameOf(x)); }).join(", ") + ". Tap the page to pick a new one.";
+    }
+    var h = DATA.history || [];
+    $("hist").innerHTML = h.length ? h.slice(0, 10).map(function(x){
+      var d = new Date(x.at), when = d.toLocaleDateString([], { month: "short", day: "numeric" }) + " " + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      var what = x.reset ? "Put back the original" : x.src ? "Changed a photo" : "Moved a photo";
+      var where = x.pages.length > 2 ? nameOf(x.pages[0]) + " + " + (x.pages.length - 1) + " more pages" : x.pages.map(nameOf).join(" and ");
+      return '<div><b>' + what + '</b> on ' + esc(where) + '<br><span class="muted">' + esc(when) + ' · ' + esc(x.by) + '</span></div>';
+    }).join("") : '<span class="muted">No changes yet.</span>';
+    $("passCard").hidden = DATA.role !== "bookings";
+    if (DATA.hasOwnPass) $("passNote").textContent = "Miranda has her own passcode for this page. Type a new one here to change it.";
+    show("home");
+  }
+
+  function openPage(stem){
+    CUR = pageOf(stem); if (!CUR) return renderHome();
+    $("oneName").textContent = CUR.name;
+    $("oneNote").textContent = "These are the " + CUR.photos.length + " photos on this page, top to bottom.";
+    $("oneLink").href = urlOf(stem);
+    renderPhotos();
+    $("topin").innerHTML = '<button class="back" id="toHome">‹ All pages</button>';
+    $("toHome").onclick = function(){ history.back(); };
+    show("one");
+  }
+  function labelOf(ph, i){
+    if (ph.kind === "background") return i === 0 ? "Big photo at the top" : "Background photo";
+    if (ph.kind === "phone") return "Top photo (on phones)";
+    var n = 0; for (var k = 0; k <= i; k++) if (CUR.photos[k].kind === "photo") n++;
+    return n === 1 && i === 0 ? "Big photo at the top" : "Photo " + n;
+  }
+  function renderPhotos(){
+    var stem = CUR.stem;
+    $("photos").innerHTML = CUR.photos.map(function(ph, i){
+      var sw = (DATA.swaps[stem] || {})[ph.raw], ch = changed(stem, ph.raw), pos = sw && sw.pos != null ? sw.pos : null;
+      var others = DATA.pages.filter(function(p){ return p.stem !== stem && p.photos.some(function(x){ return x.raw === ph.raw; }); }).length;
+      return '<div class="ph' + (ph.kind === "photo" ? " tall" : "") + '"><div class="pic"><img loading="lazy" alt="" src="' + img(current(stem, ph.raw), 900) + '"' + (pos != null ? ' style="object-position:50% ' + pos + '%"' : "") + '>' +
+        '<span class="lbl">' + labelOf(ph, i) + '</span>' + (ch ? '<span class="new">✓ Your pick</span>' : "") + '</div><div class="act">' +
+        (gone(stem, ph.raw) ? '<div class="also" style="color:#8a5a00;font-size:14px">The photo you picked here was removed from your Pixieset, so the original is back. Tap Change photo to pick a new one.</div>' : "") +
+        '<button class="solid" data-change="' + i + '">Change photo</button>' +
+        (ch ? '<button data-reset="' + i + '">Put back original</button>' : "") +
+        (ch && ph.kind !== "phone" ? '<div class="pos">Show more of the: ' + [["Top",15],["Middle",50],["Bottom",85]].map(function(o){ return '<button data-pos="' + i + '" data-v="' + o[1] + '" class="' + (pos === o[1] ? "on" : "") + '">' + o[0] + '</button>'; }).join("") + '</div>' : "") +
+        (others ? '<div class="also">Also on ' + others + ' other page' + (others === 1 ? "" : "s") + '.</div>' : "") +
+        '</div></div>';
+    }).join("");
+  }
+
+  // ---------- saving ----------
+  function save(body, msg){
+    body.who = (function(){ try { return localStorage.getItem("mrp-who") || ""; } catch (e) { return ""; } })();
+    return api("POST", body).then(function(j){
+      if (j.error) { toast(j.error === "passcode" ? "Please sign in again." : j.error); return; }
+      DATA.swaps = j.swaps;
+      api("GET").then(function(g){ if (!g.error) { DATA = g; if (!$("home").hidden) renderHome(); } });
+      if (CUR) renderPhotos();
+      toast(msg);
+    }).catch(function(){ toast("Couldn't save — check your signal and try again."); });
+  }
+  function pagesWith(raw){ return DATA.pages.filter(function(p){ return p.photos.some(function(x){ return x.raw === raw; }); }).map(function(p){ return p.stem; }); }
+  // "Change it on just this page, or every page that has it?"
+  function where(raw, title, done){
+    var all = pagesWith(raw);
+    if (all.length < 2) return done([CUR.stem]);
+    $("askTitle").textContent = title;
+    $("askNote").textContent = "This same photo is on " + all.length + " pages: " + all.map(nameOf).join(", ") + ".";
+    $("askAll").textContent = "On all " + all.length + " pages";
+    $("askOne").textContent = "Just on the " + CUR.name;
+    $("askAll").onclick = function(){ $("ask").hidden = true; done(all); };
+    $("askOne").onclick = function(){ $("ask").hidden = true; done([CUR.stem]); };
+    $("askCancel").onclick = function(){ $("ask").hidden = true; };
+    $("ask").hidden = false;
+  }
+
+  $("photos").onclick = function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    var ph;
+    if (b.dataset.change != null) { SLOT = CUR.photos[+b.dataset.change]; openSheet(); }
+    else if (b.dataset.reset != null) {
+      ph = CUR.photos[+b.dataset.reset];
+      var on = DATA.pages.filter(function(p){ return changed(p.stem, ph.raw) && (DATA.swaps[p.stem][ph.raw].src === current(CUR.stem, ph.raw)); }).map(function(p){ return p.stem; });
+      var go = function(pages){ save({ pages: pages, orig: ph.raw, reset: true }, "Original photo is back."); };
+      if (on.length > 1) {
+        $("askTitle").textContent = "Put back the original?";
+        $("askNote").textContent = "You used this pick on " + on.length + " pages: " + on.map(nameOf).join(", ") + ".";
+        $("askAll").textContent = "On all " + on.length + " pages"; $("askOne").textContent = "Just on the " + CUR.name;
+        $("askAll").onclick = function(){ $("ask").hidden = true; go(on); };
+        $("askOne").onclick = function(){ $("ask").hidden = true; go([CUR.stem]); };
+        $("askCancel").onclick = function(){ $("ask").hidden = true; };
+        $("ask").hidden = false;
+      } else go([CUR.stem]);
+    }
+    else if (b.dataset.pos != null) { ph = CUR.photos[+b.dataset.pos]; save({ pages: [CUR.stem], orig: ph.raw, pos: +b.dataset.v }, "Moved."); }
+  };
+
+  // ---------- picker ----------
+  var BEACHES = ["Mexico Beach","Port St. Joe","Cape San Blas","Panama City Beach","St. George Island","Destin","30A"];
+  var KINDS = ["Family","Couples","Wedding","Maternity","Proposal","Senior"];
+  var FB = "", FK = "", ASPECT = {}, SHAPES = {}, DPOS = null;
+  var idOf = function(p){ return String(p).split("/")[0]; };
+  // The page's own beach / kind, so the picker starts with matching photos
+  function pageDefaults(stem){
+    var b = "", k = "";
+    [["panama-city","Panama City Beach"],["mexico-beach","Mexico Beach"],["port-st-joe","Port St. Joe"],["cape-san-blas","Cape San Blas"],["st-george","St. George Island"],["destin","Destin"],["30a","30A"]].forEach(function(x){ if (stem.indexOf(x[0]) === 0) b = x[1]; });
+    [["wedding","Wedding"],["elopement","Wedding"],["proposal","Proposal"],["maternity","Maternity"],["senior","Senior"],["family","Family"],["holiday","Family"]].forEach(function(x){ if (stem.indexOf(x[0]) >= 0) k = x[1]; });
+    return { b: b, k: k };
+  }
+
+  // Measure each photo spot on the real page, at phone and computer size (hidden, scripts off)
+  function measure(stem){
+    if (SHAPES[stem]) return Promise.resolve(SHAPES[stem]);
+    var out = {};
+    var one = function(w, h, key){ return new Promise(function(res){
+      var f = document.createElement("iframe");
+      f.setAttribute("sandbox", "allow-same-origin"); f.setAttribute("aria-hidden", "true"); f.tabIndex = -1;
+      f.style.cssText = "position:absolute;left:-20000px;top:0;width:" + w + "px;height:" + h + "px;border:0;visibility:hidden";
+      var done = false, fin = function(){ if (done) return; done = true; try { scan(f.contentDocument, key); } catch (e) {} f.remove(); res(); };
+      f.onload = function(){ setTimeout(fin, 400); }; setTimeout(fin, 9000);
+      f.src = urlOf(stem) + "?orig-photos=1"; document.body.appendChild(f);
+    }); };
+    function scan(doc, key){
+      var win = doc.defaultView;
+      [].forEach.call(doc.querySelectorAll("*"), function(el){
+        var found = [];
+        if (el.tagName === "IMG") found.push([el.getAttribute("src") || "", el]);
+        if (el.tagName === "SOURCE" && el.parentNode && el.parentNode.querySelector("img")) found.push([el.getAttribute("srcset") || "", el.parentNode.querySelector("img")]);
+        var b1 = win.getComputedStyle(el).backgroundImage, b2 = win.getComputedStyle(el, "::before").backgroundImage;
+        if (b1 && b1 !== "none") found.push([b1, el]);
+        if (b2 && b2 !== "none") found.push([b2, el]);
+        found.forEach(function(f){
+          (CUR.photos || []).forEach(function(ph){
+            if (f[0].indexOf("url=" + ph.raw) < 0) return;
+            var r = f[1].getBoundingClientRect();
+            if (r.width < 20 || r.height < 20) return;
+            var o = out[ph.raw] = out[ph.raw] || {};
+            if (!o[key]) o[key] = [Math.round(r.width), Math.round(r.height)];
+          });
+        });
+      });
+    }
+    return one(390, 844, "phone").then(function(){ return one(1280, 800, "computer"); }).then(function(){ SHAPES[stem] = out; return out; });
+  }
+  function shapesOf(slot){
+    var m = (SHAPES[CUR.stem] || {})[slot.raw] || {};
+    var d = slot.kind === "background" ? { phone: [390, 700], computer: [1280, 640] } : slot.kind === "phone" ? { phone: [390, 700] } : { phone: [300, 375], computer: [300, 375] };
+    var out = {};
+    ["phone","computer"].forEach(function(k){ if (m[k]) out[k] = m[k]; });
+    if (!Object.keys(out).length) out = d;
+    return out;
+  }
+  // How a photo fits a spot. Trimming the top and bottom is what cuts off heads, so that counts the most;
+  // trimming the sides (normal for the big top photo on phones) only matters when it's a lot.
+  function fitOf(p){
+    var r = ASPECT[p]; if (!r || !SLOT) return null;
+    var sh = shapesOf(SLOT), vert = 0, side = 0;
+    Object.keys(sh).forEach(function(k){ var a = sh[k][0] / sh[k][1];
+      if (r < a) vert = Math.max(vert, 1 - r / a); else side = Math.max(side, 1 - a / r); });
+    return vert > 0.4 || side > 0.75 ? "bad" : vert <= 0.25 && side <= 0.65 ? "good" : "ok";
+  }
+
+  function openSheet(){
+    $("foot").hidden = true; $("detail").hidden = true; $("sheet").hidden = false; document.body.style.overflow = "hidden";
+    var d = pageDefaults(CUR.stem); FB = d.b; FK = d.k;
+    var favs = (DATA.picks.favs || []).length + (DATA.picks.top || []).length;
+    TAB = FB || FK || !favs ? "all" : "fav";
+    $("fBeach").innerHTML = '<option value="">Any beach</option>' + BEACHES.map(function(b){ return '<option>' + b + '</option>'; }).join("") + '<option value="?">Beach not tagged yet</option>';
+    measure(CUR.stem).then(function(){ if (!$("sheet").hidden) renderGrid(); });
+    if (PIX.length) return renderGrid();
+    $("grid").innerHTML = '<p class="muted">Loading your Pixieset photos…</p>';
+    fetch("/api/pixieset-photos").then(function(r){ return r.json(); }).then(function(j){ PIX = j.photos || []; renderGrid(); })
+      .catch(function(){ $("grid").innerHTML = '<p class="err">Couldn\'t load your Pixieset photos. Try again in a minute.</p>'; });
+  }
+  function renderGrid(){
+    $("tabFav").className = TAB === "fav" ? "on" : ""; $("tabAll").className = TAB === "all" ? "on" : "";
+    $("fBeach").value = FB;
+    $("fKind").innerHTML = ['','…'].concat(KINDS).concat(["?"]).filter(function(x){ return x !== "…"; }).map(function(k){
+      return '<button data-k="' + k + '" class="' + (FK === k ? "on" : "") + '">' + (k === "" ? "All kinds" : k === "?" ? "Not grouped yet" : k) + '</button>';
+    }).join("");
+    var top = DATA.picks.top || [], favs = DATA.picks.favs || [];
+    var byId = {}; PIX.forEach(function(p){ byId[idOf(p)] = p; });
+    var list = TAB === "fav" ? top.concat(favs.filter(function(id){ return top.indexOf(id) < 0; })).map(function(id){ return byId[id]; }).filter(Boolean) : PIX.slice();
+    var tags = DATA.tags || {}, kinds = DATA.kinds || {};
+    list = list.filter(function(p){
+      var id = idOf(p), b = tags[id], k = kinds[id] || [];
+      if (FB === "?" && b && b !== "Not sure") return false;
+      if (FB && FB !== "?" && b !== FB) return false;
+      if (FK === "?" && k.length) return false;
+      if (FK && FK !== "?" && k.indexOf(FK) < 0) return false;
+      return true;
+    });
+    var what = [FB === "?" ? "no beach tag yet" : FB, FK === "?" ? "not grouped yet" : FK].filter(Boolean).join(" · ");
+    $("gridNote").textContent = (TAB === "fav" ? "Your favorites" : "All your Pixieset photos") + (what ? " — " + what : "") + " (" + list.length + "). ✓ = good fit for this spot.";
+    $("grid").innerHTML = list.length ? list.map(function(p){
+      var r = top.indexOf(idOf(p)), f = fitOf(p);
+      return '<button class="tile" data-p="' + esc(p) + '"><img loading="lazy" alt="" src="' + img(BASE + p, 300) + '">' + (r >= 0 && TAB === "fav" ? '<span class="star">#' + (r + 1) + '</span>' : "") +
+        (f === "good" ? '<span class="fit">✓ Good fit</span>' : f === "bad" ? '<span class="fit bad">May get cut off</span>' : "") + '</button>';
+    }).join("") : '<div class="empty muted">No photos match that yet.<br><br><button id="clearF">Show all photos</button></div>';
+    if ($("clearF")) $("clearF").onclick = function(){ FB = ""; FK = ""; TAB = "all"; renderGrid(); };
+    // learn each photo's shape as its picture loads, then mark the fit
+    [].forEach.call($("grid").querySelectorAll(".tile img"), function(im){
+      var p = im.parentNode.dataset.p;
+      var mark = function(){ if (!im.naturalWidth || ASPECT[p]) return; ASPECT[p] = im.naturalWidth / im.naturalHeight;
+        var f = fitOf(p), b = im.parentNode;
+        if (f && !b.querySelector(".fit")) b.insertAdjacentHTML("beforeend", f === "good" ? '<span class="fit">✓ Good fit</span>' : f === "bad" ? '<span class="fit bad">May get cut off</span>' : ""); };
+      if (im.complete) mark(); else im.addEventListener("load", mark);
+    });
+  }
+  $("tabFav").onclick = function(){ TAB = "fav"; renderGrid(); };
+  $("tabAll").onclick = function(){ TAB = "all"; renderGrid(); };
+  $("fBeach").onchange = function(){ FB = this.value; renderGrid(); };
+  $("fKind").onclick = function(e){ var b = e.target.closest("button"); if (!b) return; FK = b.dataset.k; renderGrid(); };
+  $("grid").onclick = function(e){ var t = e.target.closest(".tile"); if (t) openDetail(t.dataset.p); };
+
+  // ---------- close-up: preview in the spot + tags ----------
+  function openDetail(p){
+    PICK = BASE + p; var id = idOf(p);
+    DPOS = SLOT.kind === "phone" ? null : 50;
+    var show = function(){
+      var sh = shapesOf(SLOT), keys = Object.keys(sh), max = keys.length > 1 ? 150 : 260;
+      $("views").innerHTML = keys.map(function(k){
+        var w = sh[k][0], h = sh[k][1], sc = Math.min((k === "computer" ? 300 : max) / w, 220 / h);
+        return '<div class="view"><div class="box" style="width:' + Math.round(w * sc) + 'px;height:' + Math.round(h * sc) + 'px;background-image:url(\'' + img(PICK, 900) + '\');background-position:50% ' + (DPOS == null ? 50 : DPOS) + '%"></div>' + (k === "phone" ? "On phones" : "On computers") + '</div>';
+      }).join("");
+      $("dPos").innerHTML = DPOS == null ? "" : 'Show more of the: ' + [["Top",15],["Middle",50],["Bottom",85]].map(function(o){ return '<button data-v="' + o[1] + '" class="' + (DPOS === o[1] ? "on" : "") + '">' + o[0] + '</button>'; }).join("");
+      var f = fitOf(p);
+      $("fitMsg").hidden = !f;
+      $("fitMsg").className = "fitmsg" + (f === "bad" ? " bad" : "");
+      $("fitMsg").textContent = f === "good" ? "✓ Good fit — this photo's shape matches this spot." : f === "bad" ? "Heads up: this photo is a different shape than this spot, so the top or bottom gets trimmed and heads or feet could get cut off. Check the preview above, or try Top / Middle / Bottom." : "Some of the edges get trimmed. Check the preview above.";
+    };
+    var probe = new Image(); probe.onload = function(){ ASPECT[p] = probe.naturalWidth / probe.naturalHeight; show(); }; probe.src = img(PICK, 300);
+    show();
+    $("dBeach").innerHTML = '<option value="">Pick a beach…</option>' + BEACHES.concat(["Not at a beach"]).map(function(b){ return '<option>' + b + '</option>'; }).join("");
+    var cb = (DATA.tags || {})[id]; $("dBeach").value = cb && cb !== "Not sure" ? cb : "";
+    var renderKinds = function(){ var k = (DATA.kinds || {})[id] || []; $("dKind").innerHTML = KINDS.map(function(x){ return '<button data-k="' + x + '" class="' + (k.indexOf(x) >= 0 ? "on" : "") + '">' + x + '</button>'; }).join(""); };
+    renderKinds();
+    $("dSaved").textContent = "";
+    $("dBeach").onchange = function(){ var v = this.value; DATA.tags = DATA.tags || {}; if (v) DATA.tags[id] = v; else delete DATA.tags[id]; saveTag({ tag: id, beach: v }); };
+    $("dKind").onclick = function(e){ var b = e.target.closest("button"); if (!b) return;
+      DATA.kinds = DATA.kinds || {}; var k = (DATA.kinds[id] || []).slice(), i = k.indexOf(b.dataset.k);
+      if (i >= 0) k.splice(i, 1); else k.push(b.dataset.k);
+      if (k.length) DATA.kinds[id] = k; else delete DATA.kinds[id];
+      renderKinds(); saveTag({ tag: id, kinds: k }); };
+    $("dPos").onclick = function(e){ var b = e.target.closest("button"); if (!b) return; DPOS = +b.dataset.v; show(); };
+    $("footImg").src = img(PICK, 200); $("foot").hidden = false; $("detail").hidden = false; $("detail").scrollTop = 0;
+  }
+  function saveTag(body){
+    $("dSaved").textContent = "Saving…";
+    api("POST", body).then(function(j){ $("dSaved").textContent = j.error ? "Couldn't save — try again." : "✓ Saved"; })
+      .catch(function(){ $("dSaved").textContent = "Couldn't save — check your signal."; });
+  }
+  $("dBack").onclick = function(){ $("detail").hidden = true; $("foot").hidden = true; renderGrid(); };
+  function closeSheet(){ $("sheet").hidden = true; $("detail").hidden = true; $("foot").hidden = true; document.body.style.overflow = ""; }
+  $("closeSheet").onclick = closeSheet;
+  $("useIt").onclick = function(){
+    if (!PICK || !SLOT) return;
+    var src = PICK, slot = SLOT, pos = DPOS;
+    closeSheet();
+    where(slot.raw, "Change this photo where?", function(pages){
+      var body = { pages: pages, orig: slot.raw, src: src };
+      if (pos != null && pos !== 50) body.pos = pos;
+      save(body, pages.length > 1 ? "Done! It's on all " + pages.length + " pages now." : "Done! It's on the website now.");
+    });
+  };
+
+  // ---------- sign in / passcode ----------
+  $("go").onclick = function(){ PASS = $("pass").value.trim(); $("perr").hidden = true; load().then(function(ok){ if (ok) renderHome(); }); };
+  $("pass").onkeydown = function(e){ if (e.key === "Enter") $("go").click(); };
+  $("signout").onclick = function(){ try { localStorage.removeItem("mrp-photos-pass"); } catch (e) {} PASS = ""; $("pass").value = ""; show("lock"); };
+  $("savePass").onclick = function(){
+    var p = $("newPass").value.trim();
+    api("POST", { setPass: p }).then(function(j){
+      if (j.error) return toast(j.error);
+      $("newPass").value = ""; DATA.hasOwnPass = true;
+      $("passNote").textContent = "Saved. Miranda's passcode for this page is: " + p;
+      toast("Miranda's passcode is saved.");
+    });
+  };
+
+  // back button / swipe back goes from a page to the list
+  window.onpopstate = function(){
+    var stem = (location.hash || "").slice(1);
+    if (stem && DATA) openPage(stem);
+    else if (DATA) { CUR = null; closeSheet(); $("topin").innerHTML = '<img src="/images/destin-199/destin199-miranda.webp" alt=""><div><b>My Website Photos</b><small>mirandaraephotography.com</small></div>'; renderHome(); }
+  };
+  document.addEventListener("click", function(e){
+    var b = e.target.closest(".pg"); if (!b) return;
+    history.pushState(null, "", "#" + b.dataset.stem); openPage(b.dataset.stem);
+  });
+
+  if (PASS) load().then(function(ok){ if (!ok) return; var s = (location.hash || "").slice(1); if (s && pageOf(s)) openPage(s); else renderHome(); });
+  else show("lock");
+})();
+</script>
+</body>
+</html>

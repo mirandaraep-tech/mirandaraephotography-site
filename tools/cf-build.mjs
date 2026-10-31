@@ -16,3 +16,9 @@ for (const name of readdirSync(".")) {
   n++;
 }
 console.log("Copied " + n + " site items into " + OUT);
+
+// List of the site's pages for Miranda's /my-photos page (Oct 31 2026, see src/photo-swaps.mjs)
+import { writeFileSync } from "node:fs";
+const stems = readdirSync(OUT).filter((f) => f.endsWith(".html")).map((f) => f.replace(/\.html$/, ""));
+writeFileSync(OUT + "/photo-pages.json", JSON.stringify(stems));
+console.log("Listed " + stems.length + " pages for /my-photos");
