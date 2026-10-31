@@ -728,7 +728,6 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var s = sheet('<div class="sq" aria-label="Advertising"></div><p class="muted">' + esc(b.name) + ' · ' + money(tot(b)) + '</p><label class="l">&nbsp;</label>' +
       '<div class="chips"><button class="chip' + (a.mode !== 'amt' ? ' on' : '') + '" type="button" data-mode="pct">%</button><button class="chip' + (a.mode === 'amt' ? ' on' : '') + '" type="button" data-mode="amt">$</button></div>' +
       '<div class="money" style="margin-top:8px"><b data-sym>' + (a.mode === 'amt' ? '$' : '%') + '</b><input data-v type="number" inputmode="decimal" value="' + (a.val || 0) + '"></div>' +
-      '<p style="margin:4px 0 0;font-size:13px" class="muted">Usual: ' + PH.adPct + '% · <button class="lnk" type="button" data-usual>Make this the usual</button></p>' +
       '<div data-lines style="margin-top:12px">' + items.map(line).join('') + '</div>' +
       '<p style="margin:6px 0 0"><button class="lnk" type="button" data-more>+ Add another line</button></p>' +
       '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>',
