@@ -409,6 +409,13 @@ footer a{color:#fff}
 #lb .lb-count{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:#fff;font-size:14px;opacity:.85}
 #lb .lb-cta{position:absolute;bottom:46px;left:50%;transform:translateX(-50%);white-space:nowrap}
 @media(max-width:860px){.g-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.g-item{border-radius:8px}#lb img{max-height:74vh}#lb .lb-prev,#lb .lb-next{top:auto;bottom:40px;transform:none}}
+.rv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.rv-grid blockquote{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;font-size:17px}
+.nosurprise{max-width:640px;margin:18px auto 0;text-align:left;background:#fff;border:2px solid var(--teal);border-radius:14px;padding:16px 18px}
+.nosurprise b{font:20px Georgia,serif;display:block;margin-bottom:6px}
+.nosurprise ul{margin:0;padding-left:20px;font-size:15px;color:#2b4150}
+.nosurprise li{margin:4px 0}
+@media(max-width:860px){.rv-grid{grid-template-columns:1fr;gap:12px}.rv-grid blockquote{font-size:16px}}
 </style>
 </head>
 <body>
@@ -432,7 +439,7 @@ footer a{color:#fff}
   <div class="hero-grid">
     <div class="hero-copy">
       <p class="eyebrow">Miranda Rae Photography</p>
-      <h1 class="kicker">Mini Elopement Photographer · Florida Gulf Coast</h1>
+      <h1 class="kicker">Affordable Mini Elopement Photographer · Florida Gulf Coast</h1>
       <p class="hero-big">Small Ceremony.<br><em>Big Moment.</em></p>
       <p class="hero-pill"><strong data-p="elopementMini.price">$349</strong><span><b>Mini Elopement</b><br><data data-p="elopementMini.timeWords">1 hour</data> · <data data-p="elopementMini.photos">50+</data> edited photos</span></p>
     </div>
@@ -440,7 +447,7 @@ footer a{color:#fff}
 </header>
 <div class="hero-band">
   <div class="shell band-grid">
-    <p class="hero-sub"><b>A small beach elopement in one easy hour:</b> your ceremony, a few family photos and couple's portraits.</p>
+    <p class="hero-sub"><b>Get married on the beach for <span data-p="elopementMini.price">$349</span>.</b> Your ceremony, a few family photos and couple's portraits, all in one easy hour.</p>
     <div class="hero-ctas">
       <a class="btn btn-text" href="#check-date">Check My Date →</a>
       <a class="btn btn-ghost" href="#prices">What's Included</a>
@@ -451,15 +458,19 @@ footer a{color:#fff}
 
 
 <div class="proof" id="reviews">
-  <div class="shell proof-grid">
-    <div class="fbcard">
+  <div class="shell">
+    <div class="fbcard" style="max-width:340px;margin:0 auto 20px">
       <div class="fblogo">f</div>
       <div>
         <div class="fbnum">96% Recommend</div>
-        <div class="fbtxt">18 reviews on <b>Facebook</b></div>
+        <div class="fbtxt">Miranda's clients on <b>Facebook</b></div>
       </div>
     </div>
-    <blockquote>“Miranda is the best photographer in The Forgotten Coast. She has captured our family so beautifully every time she takes our photos. She has such a quick turn around time, great prices, and truly makes you feel comfortable in your own skin. 10/10 recommend!” <cite>— Hayley H., Facebook review</cite></blockquote>
+    <div class="rv-grid">
+      <blockquote>“Miranda is the best photographer in The Forgotten Coast. She has captured our family so beautifully every time she takes our photos. She has such a quick turn around time, great prices, and truly makes you feel comfortable in your own skin. 10/10 recommend!” <cite>— Hayley H., Facebook review</cite></blockquote>
+      <blockquote>“We decided to do pictures on the beach last minute, she was so quick and responsive!! Highly recommend and quick turnaround time too! Thank you so much!” <cite>— Lindsay F.</cite></blockquote>
+      <blockquote>“I'm obsessed 😍 Highly recommend Miranda Rae Photography 📷” <cite>— Serena N., on Facebook</cite></blockquote>
+    </div>
   </div>
 </div>
 
@@ -487,6 +498,18 @@ footer a{color:#fff}
   </div>
 </section>
 
+<section class="about" id="about">
+  <div class="shell about-grid" style="max-width:860px">
+    <img src="/images/destin-199/destin199-miranda.webp" alt="Miranda Rae, Florida Gulf Coast beach elopement photographer" loading="lazy">
+    <div>
+      <p class="eyebrow">Meet your photographer</p>
+      <h2>Hi, I'm Miranda!</h2>
+      <p>I'm a local Florida beach photographer living near Panama City, and I photograph couples, families and weddings along the Forgotten and Emerald coasts. I'll help you pick the spot and the timing, and every photo is shot and edited by me personally. No big studio, no assembly line.</p>
+      <p class="hand">Miranda Rae ♡</p>
+    </div>
+  </div>
+</section>
+
 <section class="areas" id="prices">
   <div class="shell center">
     <p class="eyebrow">Mini elopement price</p>
@@ -497,7 +520,15 @@ footer a{color:#fff}
       <div><span class="tag">Want more time?</span><b>The Beach Elopement</b><span class="cost" data-p="elopement.price">$549</span><small><span data-p="elopement.timeWords" data-f="cap">2 hours</span> of coverage · <span data-p="elopement.photos">100+</span> edited photos</small><ul><li>Family photos with everyone who came</li><li>Sunset portraits, just the two of you</li><li>Help finding an officiant</li></ul><p style="margin:10px 0 0;font-size:14px">Just ask Miranda when you check your date.</p></div>
     </div>
     <p style="margin:18px auto 0;max-width:640px;font-size:15px"><b>Beaches:</b> Panama City Beach · Mexico Beach · Port St. Joe · Cape San Blas · Indian Pass · St. George Island · Destin · 30A</p>
-    <p style="margin:6px auto 0;max-width:640px;font-size:14px;color:var(--muted)">No travel fee at Panama City Beach, Mexico Beach, Port St. Joe &amp; Cape San Blas. A <data data-p="travel.Destin">$30</data> travel fee applies in Destin, 30A &amp; St. George Island.</p>
+    <div class="nosurprise">
+      <b>No surprises</b>
+      <ul>
+        <li><span data-p="elopementMini.price">$349</span> covers <span data-p="elopementMini.timeWords">1 hour</span> and <span data-p="elopementMini.photos">50+</span> edited photos in a private online gallery.</li>
+        <li>Asking is free. Once Miranda confirms, a <span data-p="deposit">$50</span> deposit holds your date, and it comes off your price.</li>
+        <li>No travel fee at Panama City Beach, Mexico Beach, Port St. Joe &amp; Cape San Blas. A <data data-p="travel.Destin">$30</data> travel fee applies in Destin, 30A &amp; St. George Island.</li>
+        <li>Your officiant is booked and paid separately.</li>
+      </ul>
+    </div>
   </div>
 </section>
 
@@ -725,7 +756,7 @@ footer a{color:#fff}
 <script>
 mrpBeachSwap({ variants: {
   '': function (b) { return !b ? {} : {
-    set: { 'h1.kicker': 'Mini Elopement Photographer · ' + b.name + ', FL' },
+    set: { 'h1.kicker': 'Affordable Mini Elopement Photographer · ' + b.name + ', FL' },
     title: b.wb + ' Mini Elopement Photographer | ' + b.name + ', FL' }; }
 }});
 </script>
