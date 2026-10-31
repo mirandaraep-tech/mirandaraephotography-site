@@ -37,7 +37,7 @@ const NAMES = {
   "holiday-family-beach-photos": "Holiday page", "beach-mini-session": "Beach Mini page",
   "panama-city-beach-photographer": "Panama City Beach page", "mexico-beach-photographer": "Mexico Beach page",
   "port-st-joe-photographer": "Port St. Joe page", "cape-san-blas-photographer": "Cape San Blas page",
-  "st-george-island-photographer": "St. George Island page",
+  "st-george-island-photographer": "St. George Island page", "destin-beach-photographer": "Destin page",
   // hidden ad pages
   elopement: "Elopement ad page", "mini-elopement": "Mini Elopement ad page", proposal: "Proposal ad page", maternity: "Maternity ad page", senior: "Senior ad page",
   "last-minute": "Last-Minute ad page", "holiday-family": "Holiday family ad page", "holiday-family-photos": "Thanksgiving ad page",
