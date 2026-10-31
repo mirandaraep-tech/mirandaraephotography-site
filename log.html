@@ -1025,7 +1025,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   $('tBookedTile').addEventListener('click', function(){ if (DAY) { DAY = ''; PI = 0; } else PI = (PI + 1) % PERIODS.length; OPEN = null; draw(); });
   $('tUpTile').addEventListener('click', function(){ VIEW = 'booked'; DAY = ''; PI = 0; CON = ''; DEP = ''; MORE.status = MORE.status === 'upcoming' ? '' : 'upcoming'; Q = ''; $('q').value = ''; draw(); });
   $('fClr').addEventListener('click', function(){ CON = ''; DEP = ''; MORE.status = ''; OPEN = null; draw(); });
-  ['vBk', 'vInq', 'vTodo'].forEach(function(id){ $(id).addEventListener('click', function(){ VIEW = $(id).getAttribute('data-v'); DAY = ''; Q = ''; $('q').value = ''; $('q').hidden = true; $('srchBtn').classList.remove('on'); MORE.status = ''; OPEN = null; draw(); window.scrollTo({ top: 0 }); }); });
+  ['vBk', 'vInq', 'vTodo'].forEach(function(id){ $(id).addEventListener('click', function(){ VIEW = $(id).getAttribute('data-v'); DAY = ''; PI = 0; /* Oct 30 2026: a tab also puts the money boxes back on Current */ Q = ''; $('q').value = ''; $('q').hidden = true; $('srchBtn').classList.remove('on'); MORE.status = ''; OPEN = null; draw(); window.scrollTo({ top: 0 }); }); });
   // Tap once to see only sessions that need a look; tap again to go back to all bookings
   // (Needs a look and Deposit buttons replaced by the To do tab, Oct 30 2026)
   $('srchBtn').addEventListener('click', function(){
