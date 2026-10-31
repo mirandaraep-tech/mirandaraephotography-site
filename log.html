@@ -834,7 +834,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<button class="btn red cxb" data-a="cancel">Cancel booking</button>';
     var R = '';
     if (b.cancelled) R = '<button class="btn ghost" data-a="undo-cancel">Undo cancel</button>';
-    else R = '<button class="btn b-con" data-a="textmenu">💬 Text</button><button class="btn ghost" data-a="edit">Edit</button><button class="btn ghost" data-a="shooter">Photographer</button><button class="btn ghost" data-a="ad" aria-label="Advertising">&nbsp;</button>';
+    else R = '<button class="btn b-con" data-a="textmenu">💬 Text</button><button class="btn ghost" data-a="edit">Edit</button><button class="btn ghost" data-a="shooter">Photographer</button><button class="btn ghost" type="button" tabindex="-1" aria-hidden="true" style="cursor:default">&nbsp;</button>';
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
   }
   // What the customer filled in on the form (Oct 30 2026): only the lines they filled in
@@ -1119,7 +1119,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'money') return moneySheet(b);
     if (a === 'textmenu') return textMenu(b);
     if (a === 'price') return priceSheet(b);
-    if (a === 'ad') return adSheet(b);
+    // (Oct 30 2026: the advertising form is built but switched off for now; the blank button does nothing)
     if (a === 'dep') return depositSheet(b);
     if (a === 'dep-undo') return ask('Undo the deposit?', 'This marks ' + esc(b.name) + "'s " + money(b.deposit.amount) + ' deposit as not received.', 'Undo deposit', 'Keep it', function(){ act(b, 'undo-deposit'); });
     if (a === 'undo-paid-ask') return ask('Undo paid in full?', esc(b.name) + ' goes back to owing ' + money((b.paid && b.paid.amount) || 0) + '.', 'Undo paid', 'Keep it', function(){ act(b, 'undo-paid'); });
