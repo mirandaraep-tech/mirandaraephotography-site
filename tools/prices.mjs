@@ -94,8 +94,8 @@ const travelLine = () => {
 };
 
 // Oct 31 2026: each package's own page (home price list names + Prices page cards link here). Beach Mini and Beach Special have no single page.
-const PAGE_LINK = { senior: '/senior-portrait-photographer', family: '/family-beach-photographer', deluxe: '/family-beach-photographer', engagement: '/beach-proposal-photographer', proposal: '/beach-proposal-photographer', elopementMini: '/mini-elopement-photographer', elopement: '/beach-elopement-photographer', wedding6: '/beach-wedding-photographer', wedding10: '/beach-wedding-photographer' };
-const PAGE_LABEL = { '/senior-portrait-photographer': 'senior portraits page', '/family-beach-photographer': 'family photos page', '/beach-proposal-photographer': 'proposal & engagement page', '/mini-elopement-photographer': 'Mini Elopement page', '/beach-elopement-photographer': 'Beach Elopement page', '/beach-wedding-photographer': 'wedding page' };
+const PAGE_LINK = { special: '/affordable-beach-photographer', senior: '/senior-portrait-photographer', family: '/family-beach-photographer', deluxe: '/family-beach-photographer', engagement: '/beach-proposal-photographer', proposal: '/beach-proposal-photographer', elopementMini: '/mini-elopement-photographer', elopement: '/beach-elopement-photographer', wedding6: '/beach-wedding-photographer', wedding10: '/beach-wedding-photographer' };
+const PAGE_LABEL = { '/affordable-beach-photographer': 'affordable beach photos page', '/senior-portrait-photographer': 'senior portraits page', '/family-beach-photographer': 'family photos page', '/beach-proposal-photographer': 'proposal & engagement page', '/mini-elopement-photographer': 'Mini Elopement page', '/beach-elopement-photographer': 'Beach Elopement page', '/beach-wedding-photographer': 'wedding page' };
 
 // ---------- generated blocks ----------
 const offer = id => { const p = pkg(id); return { '@type': 'Offer', name: p.name + (p.where ? ' — ' + p.where.replace(/ · /g, ', ') : ''), price: String(p.price), priceCurrency: 'USD', description: summary(p).replace(/ · /g, ', ') + '.' }; };
