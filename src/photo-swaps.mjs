@@ -22,6 +22,8 @@ const LIVE_HOST = "mirandaraephotography.com";
 const BOOKINGS_PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694fb141dc74e5fe79"; // same as /log
 const PIX = "https://images-pw.pixieset.com/site/B8woOD/";
 const headers = { "Cache-Control": "no-store" };
+const BEACHES = ["Mexico Beach", "Port St. Joe", "Cape San Blas", "Panama City Beach", "St. George Island", "Destin", "30A", "Not at a beach"];
+const KINDS = ["Family", "Couples", "Wedding", "Maternity", "Proposal", "Senior"];
 
 // Pages that are private, retired, or are the full portfolio (those already show every photo)
 const SKIP = new Set(["gallery", "photos", "favorites", "tag-photos", "book", "confirm", "new", "add-on", "deposit", "log",
@@ -165,6 +167,8 @@ export async function refreshPixieset(live, getList) {
 export async function swapPage(res, stem, reqUrl) {
   if (!isSwappable(stem) || !res.ok || !/text\/html/.test(res.headers.get("content-type") || "")) return res;
   const live = isLive(reqUrl);
+  // the /my-photos page measures each photo spot on the untouched page
+  if (new URL(reqUrl).searchParams.has("orig-photos")) { const o = new Response(res.body, res); o.headers.delete("ETag"); o.headers.set("Cache-Control", "no-store"); return o; }
   const state = await loadState(live);
   const swaps = liveSwaps(state.pages[stem], state.pix);
   if (!Object.keys(swaps).length) {
@@ -244,7 +248,10 @@ export async function photoSwapsApi(req, env) {
     const s = await loadState(live, true);
     let picks = { favs: [], top: [] };
     try { picks = (await getStore({ name: live ? "photo-favorites" : "photo-favorites-test" }).get("state", { type: "json" })) || picks; } catch (e) {}
-    return j({ role, pages, swaps: s.pages, history: s.history.slice(-30).reverse(), picks: { favs: picks.favs || [], top: picks.top || [] }, hasOwnPass: !!s.pass, test: !live,
+    let tags = {}, kinds = {};
+    try { tags = ((await getStore({ name: live ? "photo-tags" : "photo-tags-test" }).get("state", { type: "json" })) || {}).tags || {}; } catch (e) {}
+    try { kinds = (await store(live).get("kinds", { type: "json" })) || {}; } catch (e) {}
+    return j({ role, pages, swaps: s.pages, tags, kinds, history: s.history.slice(-30).reverse(), picks: { favs: picks.favs || [], top: picks.top || [] }, hasOwnPass: !!s.pass, test: !live,
       gone: Object.entries(s.pages).flatMap(([stem, pg]) => Object.entries(pg).filter(([, sw]) => isGone(sw, s.pix)).map(([orig]) => ({ stem, orig }))) });
   }
   if (req.method !== "POST") return j({ error: "not found" }, 404);
@@ -260,6 +267,30 @@ export async function photoSwapsApi(req, env) {
     const salt = crypto.randomUUID();
     s.pass = { salt, hash: await sha(salt + p), at: new Date().toISOString() };
     await saveState(live, s);
+    return j({ ok: true });
+  }
+
+  // Tagging a photo from the picker: which beach (same list as /tag-photos) and what kind of photo
+  if (d.tag != null) {
+    const id = String(d.tag);
+    if (!/^[A-Za-z0-9]{4,12}$/.test(id)) return j({ error: "bad photo" }, 400);
+    if (d.beach !== undefined) {
+      const beach = String(d.beach || "").trim();
+      if (beach && !BEACHES.includes(beach)) return j({ error: "unknown beach" }, 400);
+      const ts = getStore({ name: live ? "photo-tags" : "photo-tags-test" });
+      const t = (await ts.get("state", { type: "json" })) || { tags: {}, updated: null };
+      t.tags = t.tags || {};
+      if (beach) t.tags[id] = beach; else delete t.tags[id];
+      t.updated = new Date().toISOString();
+      await ts.setJSON("state", t);
+      TAGS_AT = 0;
+    }
+    if (Array.isArray(d.kinds)) {
+      const st = store(live), k = (await st.get("kinds", { type: "json" })) || {};
+      const list = [...new Set(d.kinds.map(String).filter((x) => KINDS.includes(x)))];
+      if (list.length) k[id] = list; else delete k[id];
+      await st.setJSON("kinds", k);
+    }
     return j({ ok: true });
   }
 

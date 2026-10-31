@@ -73,7 +73,30 @@ input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);bord
 .tile.sel{border-color:var(--gold)}
 .tile.sel::after{content:'✓';position:absolute;right:6px;top:6px;width:32px;height:32px;border-radius:50%;background:var(--gold);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:19px;border:2px solid #fff}
 .tile .star{position:absolute;left:5px;bottom:5px;background:#112b39b3;color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:9px}
-.foot{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);box-shadow:0 -4px 16px #11283914;z-index:21;padding:10px 4% calc(10px + env(safe-area-inset-bottom))}
+.filters{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.filters select{font:inherit;font-size:15px;padding:8px 10px;border:2px solid var(--line);border-radius:12px;background:#fff;flex:1;min-height:42px;color:var(--ink)}
+.kchips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;-webkit-overflow-scrolling:touch}
+.kchips button{min-height:36px;padding:5px 12px;border-radius:18px;font-size:14px;white-space:nowrap;flex:none;border-width:1.5px}
+.kchips button.on{background:var(--teal);color:#fff}
+.tile .fit{position:absolute;right:5px;bottom:5px;font-size:11px;font-weight:700;padding:2px 6px;border-radius:9px;background:#fffffff0;color:var(--ink)}
+.tile .fit.bad{background:#fff3dc;color:#8a5a00}
+.empty{padding:20px 0;text-align:center}
+/* photo close-up before using it */
+.detail{position:fixed;inset:0;background:var(--cream);z-index:25;overflow:auto;padding:0 0 130px}
+.detail[hidden]{display:none}
+.detail .in{width:min(760px,92%);margin:auto;padding-top:12px}
+.views{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin:6px 0 4px}
+.view{flex:1 1 140px;text-align:center;font-size:13px;color:var(--muted)}
+.view .box{margin:0 auto 4px;border-radius:10px;background:#eee6da center/cover no-repeat;box-shadow:0 2px 10px #0002;border:2px solid #fff}
+.fitmsg{border-radius:12px;padding:10px 12px;margin:10px 0;font-size:15px;background:#e4f3ea;color:#14532d}
+.fitmsg.bad{background:#fff3dc;color:#6b4500}
+.lbl2{font-weight:700;margin:16px 0 6px;display:block}
+.kpick{display:flex;flex-wrap:wrap;gap:8px}
+.kpick button{min-height:42px;padding:6px 14px;font-size:15px;border-width:1.5px;border-radius:20px}
+.kpick button.on{background:var(--teal);color:#fff}
+.kpick button.on::before{content:'✓ '}
+.saved{font-size:13px;color:var(--ok);font-weight:700;min-height:18px;margin-top:6px}
+.foot{position:fixed;left:0;right:0;bottom:0;z-index:26;background:#fff;border-top:1px solid var(--line);box-shadow:0 -4px 16px #11283914;padding:10px 4% calc(10px + env(safe-area-inset-bottom))}
 .foot .in{width:min(760px,100%);margin:auto;display:flex;gap:10px;align-items:center}
 .foot img{width:54px;height:66px;object-fit:cover;border-radius:8px;flex:none}
 .foot button{flex:1}
@@ -146,11 +169,27 @@ input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);bord
   <div class="hd"><b>Pick a photo</b><button id="closeSheet">Cancel</button></div>
   <div class="body">
     <div class="chips"><button id="tabFav" class="on">Your favorites</button><button id="tabAll">All Pixieset photos</button></div>
+    <div class="filters"><select id="fBeach" aria-label="Beach"></select></div>
+    <div class="kchips" id="fKind"></div>
     <p class="muted" id="gridNote" style="margin-top:0"></p>
     <div class="grid" id="grid"></div>
   </div>
-  <div class="foot" id="foot" hidden><div class="in"><img id="footImg" alt=""><button class="solid" id="useIt">Use this photo</button></div></div>
 </div>
+
+<!-- close-up of one photo: how it will look in that spot, and its beach / kind tags -->
+<div class="detail" id="detail" hidden><div class="in">
+  <p style="margin:0 0 6px"><button class="back" id="dBack">‹ Back to photos</button></p>
+  <b style="font-size:18px">How it will look in this spot</b>
+  <div class="views" id="views"></div>
+  <div class="pos" id="dPos" style="margin-top:6px"></div>
+  <div class="fitmsg" id="fitMsg" hidden></div>
+  <span class="lbl2">Which beach is this?</span>
+  <div class="filters"><select id="dBeach" aria-label="Which beach is this photo from"></select></div>
+  <span class="lbl2">What kind of photo? <span class="muted" style="font-weight:400">(tap all that fit)</span></span>
+  <div class="kpick" id="dKind"></div>
+  <div class="saved" id="dSaved"></div>
+</div></div>
+<div class="foot" id="foot" hidden><div class="in"><img id="footImg" alt=""><button class="solid" id="useIt">Use this photo</button></div></div>
 
 <!-- "this photo is on other pages too" -->
 <div class="ask" id="ask" hidden><div class="box">
@@ -300,10 +339,77 @@ input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);bord
   };
 
   // ---------- picker ----------
+  var BEACHES = ["Mexico Beach","Port St. Joe","Cape San Blas","Panama City Beach","St. George Island","Destin","30A"];
+  var KINDS = ["Family","Couples","Wedding","Maternity","Proposal","Senior"];
+  var FB = "", FK = "", ASPECT = {}, SHAPES = {}, DPOS = null;
+  var idOf = function(p){ return String(p).split("/")[0]; };
+  // The page's own beach / kind, so the picker starts with matching photos
+  function pageDefaults(stem){
+    var b = "", k = "";
+    [["panama-city","Panama City Beach"],["mexico-beach","Mexico Beach"],["port-st-joe","Port St. Joe"],["cape-san-blas","Cape San Blas"],["st-george","St. George Island"],["destin","Destin"],["30a","30A"]].forEach(function(x){ if (stem.indexOf(x[0]) === 0) b = x[1]; });
+    [["wedding","Wedding"],["elopement","Wedding"],["proposal","Proposal"],["maternity","Maternity"],["senior","Senior"],["family","Family"],["holiday","Family"]].forEach(function(x){ if (stem.indexOf(x[0]) >= 0) k = x[1]; });
+    return { b: b, k: k };
+  }
+
+  // Measure each photo spot on the real page, at phone and computer size (hidden, scripts off)
+  function measure(stem){
+    if (SHAPES[stem]) return Promise.resolve(SHAPES[stem]);
+    var out = {};
+    var one = function(w, h, key){ return new Promise(function(res){
+      var f = document.createElement("iframe");
+      f.setAttribute("sandbox", "allow-same-origin"); f.setAttribute("aria-hidden", "true"); f.tabIndex = -1;
+      f.style.cssText = "position:absolute;left:-20000px;top:0;width:" + w + "px;height:" + h + "px;border:0;visibility:hidden";
+      var done = false, fin = function(){ if (done) return; done = true; try { scan(f.contentDocument, key); } catch (e) {} f.remove(); res(); };
+      f.onload = function(){ setTimeout(fin, 400); }; setTimeout(fin, 9000);
+      f.src = urlOf(stem) + "?orig-photos=1"; document.body.appendChild(f);
+    }); };
+    function scan(doc, key){
+      var win = doc.defaultView;
+      [].forEach.call(doc.querySelectorAll("*"), function(el){
+        var found = [];
+        if (el.tagName === "IMG") found.push([el.getAttribute("src") || "", el]);
+        if (el.tagName === "SOURCE" && el.parentNode && el.parentNode.querySelector("img")) found.push([el.getAttribute("srcset") || "", el.parentNode.querySelector("img")]);
+        var b1 = win.getComputedStyle(el).backgroundImage, b2 = win.getComputedStyle(el, "::before").backgroundImage;
+        if (b1 && b1 !== "none") found.push([b1, el]);
+        if (b2 && b2 !== "none") found.push([b2, el]);
+        found.forEach(function(f){
+          (CUR.photos || []).forEach(function(ph){
+            if (f[0].indexOf("url=" + ph.raw) < 0) return;
+            var r = f[1].getBoundingClientRect();
+            if (r.width < 20 || r.height < 20) return;
+            var o = out[ph.raw] = out[ph.raw] || {};
+            if (!o[key]) o[key] = [Math.round(r.width), Math.round(r.height)];
+          });
+        });
+      });
+    }
+    return one(390, 844, "phone").then(function(){ return one(1280, 800, "computer"); }).then(function(){ SHAPES[stem] = out; return out; });
+  }
+  function shapesOf(slot){
+    var m = (SHAPES[CUR.stem] || {})[slot.raw] || {};
+    var d = slot.kind === "background" ? { phone: [390, 700], computer: [1280, 640] } : slot.kind === "phone" ? { phone: [390, 700] } : { phone: [300, 375], computer: [300, 375] };
+    var out = {};
+    ["phone","computer"].forEach(function(k){ if (m[k]) out[k] = m[k]; });
+    if (!Object.keys(out).length) out = d;
+    return out;
+  }
+  // How a photo fits a spot. Trimming the top and bottom is what cuts off heads, so that counts the most;
+  // trimming the sides (normal for the big top photo on phones) only matters when it's a lot.
+  function fitOf(p){
+    var r = ASPECT[p]; if (!r || !SLOT) return null;
+    var sh = shapesOf(SLOT), vert = 0, side = 0;
+    Object.keys(sh).forEach(function(k){ var a = sh[k][0] / sh[k][1];
+      if (r < a) vert = Math.max(vert, 1 - r / a); else side = Math.max(side, 1 - a / r); });
+    return vert > 0.4 || side > 0.75 ? "bad" : vert <= 0.25 && side <= 0.65 ? "good" : "ok";
+  }
+
   function openSheet(){
-    PICK = null; $("foot").hidden = true; $("sheet").hidden = false; document.body.style.overflow = "hidden";
-    var favs = (DATA.picks.top || []).concat((DATA.picks.favs || []).filter(function(id){ return (DATA.picks.top || []).indexOf(id) < 0; }));
-    TAB = favs.length ? "fav" : "all";
+    $("foot").hidden = true; $("detail").hidden = true; $("sheet").hidden = false; document.body.style.overflow = "hidden";
+    var d = pageDefaults(CUR.stem); FB = d.b; FK = d.k;
+    var favs = (DATA.picks.favs || []).length + (DATA.picks.top || []).length;
+    TAB = FB || FK || !favs ? "all" : "fav";
+    $("fBeach").innerHTML = '<option value="">Any beach</option>' + BEACHES.map(function(b){ return '<option>' + b + '</option>'; }).join("") + '<option value="?">Beach not tagged yet</option>';
+    measure(CUR.stem).then(function(){ if (!$("sheet").hidden) renderGrid(); });
     if (PIX.length) return renderGrid();
     $("grid").innerHTML = '<p class="muted">Loading your Pixieset photos…</p>';
     fetch("/api/pixieset-photos").then(function(r){ return r.json(); }).then(function(j){ PIX = j.photos || []; renderGrid(); })
@@ -311,31 +417,93 @@ input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);bord
   }
   function renderGrid(){
     $("tabFav").className = TAB === "fav" ? "on" : ""; $("tabAll").className = TAB === "all" ? "on" : "";
-    var top = DATA.picks.top || [], favs = DATA.picks.favs || [];
-    var byId = {}; PIX.forEach(function(p){ byId[p.split("/")[0]] = p; });
-    var list = TAB === "fav" ? top.concat(favs.filter(function(id){ return top.indexOf(id) < 0; })).map(function(id){ return byId[id]; }).filter(Boolean) : PIX;
-    $("gridNote").textContent = TAB === "fav" ? (list.length ? "The ones you picked as favorites, your top picks first." : "No favorites picked yet — tap All Pixieset photos.") : "Every photo in your Pixieset portfolio (new ones show up here on their own).";
-    $("grid").innerHTML = list.map(function(p){
-      var id = p.split("/")[0], r = top.indexOf(id);
-      return '<button class="tile" data-p="' + esc(p) + '"><img loading="lazy" alt="" src="' + img(BASE + p, 300) + '">' + (r >= 0 && TAB === "fav" ? '<span class="star">#' + (r + 1) + '</span>' : "") + '</button>';
+    $("fBeach").value = FB;
+    $("fKind").innerHTML = ['','…'].concat(KINDS).concat(["?"]).filter(function(x){ return x !== "…"; }).map(function(k){
+      return '<button data-k="' + k + '" class="' + (FK === k ? "on" : "") + '">' + (k === "" ? "All kinds" : k === "?" ? "Not grouped yet" : k) + '</button>';
     }).join("");
+    var top = DATA.picks.top || [], favs = DATA.picks.favs || [];
+    var byId = {}; PIX.forEach(function(p){ byId[idOf(p)] = p; });
+    var list = TAB === "fav" ? top.concat(favs.filter(function(id){ return top.indexOf(id) < 0; })).map(function(id){ return byId[id]; }).filter(Boolean) : PIX.slice();
+    var tags = DATA.tags || {}, kinds = DATA.kinds || {};
+    list = list.filter(function(p){
+      var id = idOf(p), b = tags[id], k = kinds[id] || [];
+      if (FB === "?" && b && b !== "Not sure") return false;
+      if (FB && FB !== "?" && b !== FB) return false;
+      if (FK === "?" && k.length) return false;
+      if (FK && FK !== "?" && k.indexOf(FK) < 0) return false;
+      return true;
+    });
+    var what = [FB === "?" ? "no beach tag yet" : FB, FK === "?" ? "not grouped yet" : FK].filter(Boolean).join(" · ");
+    $("gridNote").textContent = (TAB === "fav" ? "Your favorites" : "All your Pixieset photos") + (what ? " — " + what : "") + " (" + list.length + "). ✓ = good fit for this spot.";
+    $("grid").innerHTML = list.length ? list.map(function(p){
+      var r = top.indexOf(idOf(p)), f = fitOf(p);
+      return '<button class="tile" data-p="' + esc(p) + '"><img loading="lazy" alt="" src="' + img(BASE + p, 300) + '">' + (r >= 0 && TAB === "fav" ? '<span class="star">#' + (r + 1) + '</span>' : "") +
+        (f === "good" ? '<span class="fit">✓ Good fit</span>' : f === "bad" ? '<span class="fit bad">May get cut off</span>' : "") + '</button>';
+    }).join("") : '<div class="empty muted">No photos match that yet.<br><br><button id="clearF">Show all photos</button></div>';
+    if ($("clearF")) $("clearF").onclick = function(){ FB = ""; FK = ""; TAB = "all"; renderGrid(); };
+    // learn each photo's shape as its picture loads, then mark the fit
+    [].forEach.call($("grid").querySelectorAll(".tile img"), function(im){
+      var p = im.parentNode.dataset.p;
+      var mark = function(){ if (!im.naturalWidth || ASPECT[p]) return; ASPECT[p] = im.naturalWidth / im.naturalHeight;
+        var f = fitOf(p), b = im.parentNode;
+        if (f && !b.querySelector(".fit")) b.insertAdjacentHTML("beforeend", f === "good" ? '<span class="fit">✓ Good fit</span>' : f === "bad" ? '<span class="fit bad">May get cut off</span>' : ""); };
+      if (im.complete) mark(); else im.addEventListener("load", mark);
+    });
   }
   $("tabFav").onclick = function(){ TAB = "fav"; renderGrid(); };
   $("tabAll").onclick = function(){ TAB = "all"; renderGrid(); };
-  $("grid").onclick = function(e){
-    var t = e.target.closest(".tile"); if (!t) return;
-    [].forEach.call(document.querySelectorAll(".tile.sel"), function(x){ x.classList.remove("sel"); });
-    t.classList.add("sel"); PICK = BASE + t.dataset.p;
-    $("footImg").src = img(PICK, 200); $("foot").hidden = false;
-  };
-  function closeSheet(){ $("sheet").hidden = true; $("foot").hidden = true; document.body.style.overflow = ""; }
+  $("fBeach").onchange = function(){ FB = this.value; renderGrid(); };
+  $("fKind").onclick = function(e){ var b = e.target.closest("button"); if (!b) return; FK = b.dataset.k; renderGrid(); };
+  $("grid").onclick = function(e){ var t = e.target.closest(".tile"); if (t) openDetail(t.dataset.p); };
+
+  // ---------- close-up: preview in the spot + tags ----------
+  function openDetail(p){
+    PICK = BASE + p; var id = idOf(p);
+    DPOS = SLOT.kind === "phone" ? null : 50;
+    var show = function(){
+      var sh = shapesOf(SLOT), keys = Object.keys(sh), max = keys.length > 1 ? 150 : 260;
+      $("views").innerHTML = keys.map(function(k){
+        var w = sh[k][0], h = sh[k][1], sc = Math.min((k === "computer" ? 300 : max) / w, 220 / h);
+        return '<div class="view"><div class="box" style="width:' + Math.round(w * sc) + 'px;height:' + Math.round(h * sc) + 'px;background-image:url(\'' + img(PICK, 900) + '\');background-position:50% ' + (DPOS == null ? 50 : DPOS) + '%"></div>' + (k === "phone" ? "On phones" : "On computers") + '</div>';
+      }).join("");
+      $("dPos").innerHTML = DPOS == null ? "" : 'Show more of the: ' + [["Top",15],["Middle",50],["Bottom",85]].map(function(o){ return '<button data-v="' + o[1] + '" class="' + (DPOS === o[1] ? "on" : "") + '">' + o[0] + '</button>'; }).join("");
+      var f = fitOf(p);
+      $("fitMsg").hidden = !f;
+      $("fitMsg").className = "fitmsg" + (f === "bad" ? " bad" : "");
+      $("fitMsg").textContent = f === "good" ? "✓ Good fit — this photo's shape matches this spot." : f === "bad" ? "Heads up: this photo is a different shape than this spot, so the top or bottom gets trimmed and heads or feet could get cut off. Check the preview above, or try Top / Middle / Bottom." : "Some of the edges get trimmed. Check the preview above.";
+    };
+    var probe = new Image(); probe.onload = function(){ ASPECT[p] = probe.naturalWidth / probe.naturalHeight; show(); }; probe.src = img(PICK, 300);
+    show();
+    $("dBeach").innerHTML = '<option value="">Pick a beach…</option>' + BEACHES.concat(["Not at a beach"]).map(function(b){ return '<option>' + b + '</option>'; }).join("");
+    var cb = (DATA.tags || {})[id]; $("dBeach").value = cb && cb !== "Not sure" ? cb : "";
+    var renderKinds = function(){ var k = (DATA.kinds || {})[id] || []; $("dKind").innerHTML = KINDS.map(function(x){ return '<button data-k="' + x + '" class="' + (k.indexOf(x) >= 0 ? "on" : "") + '">' + x + '</button>'; }).join(""); };
+    renderKinds();
+    $("dSaved").textContent = "";
+    $("dBeach").onchange = function(){ var v = this.value; DATA.tags = DATA.tags || {}; if (v) DATA.tags[id] = v; else delete DATA.tags[id]; saveTag({ tag: id, beach: v }); };
+    $("dKind").onclick = function(e){ var b = e.target.closest("button"); if (!b) return;
+      DATA.kinds = DATA.kinds || {}; var k = (DATA.kinds[id] || []).slice(), i = k.indexOf(b.dataset.k);
+      if (i >= 0) k.splice(i, 1); else k.push(b.dataset.k);
+      if (k.length) DATA.kinds[id] = k; else delete DATA.kinds[id];
+      renderKinds(); saveTag({ tag: id, kinds: k }); };
+    $("dPos").onclick = function(e){ var b = e.target.closest("button"); if (!b) return; DPOS = +b.dataset.v; show(); };
+    $("footImg").src = img(PICK, 200); $("foot").hidden = false; $("detail").hidden = false; $("detail").scrollTop = 0;
+  }
+  function saveTag(body){
+    $("dSaved").textContent = "Saving…";
+    api("POST", body).then(function(j){ $("dSaved").textContent = j.error ? "Couldn't save — try again." : "✓ Saved"; })
+      .catch(function(){ $("dSaved").textContent = "Couldn't save — check your signal."; });
+  }
+  $("dBack").onclick = function(){ $("detail").hidden = true; $("foot").hidden = true; renderGrid(); };
+  function closeSheet(){ $("sheet").hidden = true; $("detail").hidden = true; $("foot").hidden = true; document.body.style.overflow = ""; }
   $("closeSheet").onclick = closeSheet;
   $("useIt").onclick = function(){
     if (!PICK || !SLOT) return;
-    var src = PICK, slot = SLOT;
+    var src = PICK, slot = SLOT, pos = DPOS;
     closeSheet();
     where(slot.raw, "Change this photo where?", function(pages){
-      save({ pages: pages, orig: slot.raw, src: src }, pages.length > 1 ? "Done! It's on all " + pages.length + " pages now." : "Done! It's on the website now.");
+      var body = { pages: pages, orig: slot.raw, src: src };
+      if (pos != null && pos !== 50) body.pos = pos;
+      save(body, pages.length > 1 ? "Done! It's on all " + pages.length + " pages now." : "Done! It's on the website now.");
     });
   };
 
