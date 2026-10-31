@@ -233,6 +233,7 @@ export const TOOLS = [
   { name: "clear_old_inquiries", description: "Clear every old inquiry (date passed, or 30+ days old with no date). They stay in the record, just off the list.", input_schema: { type: "object", properties: {} } },
   // Customers (Oct 28 2026)
   { name: "send_confirm_link", description: "Text a customer their Confirm link (they check the details, tap Confirm and pay the deposit). ONLY after Miranda (or Randy) has clearly said yes to sending it in this conversation. Use request_id for a request listed under CUSTOMER DATE REQUESTS; any field you also send replaces what's in the request (e.g. a different price or time Miranda asked for).", input_schema: { type: "object", properties: { request_id: { type: "string" }, name: { type: "string" }, phone: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD" }, time: { type: "string", description: "Sunrise, Sunset, Midday, Wedding, Engagement or Other" }, beach: { type: "string" }, pkg: { type: "string", description: "Package name as in the price list's booking names, e.g. Beach Mini" }, price: { type: "number", description: "Total price for the link (package + travel fee + extras Miranda agreed to)" }, deposit: { type: "number", description: "Only if not the usual $50" } } } },
+  { name: "text_miranda", description: "Pass a message along to Miranda by text, when Randy or Bradyn asks you to (e.g. 'tell Miranda to look at the price preview'). Write it in your friendly style and say who it's from. Never use it when Miranda is the one texting you.", input_schema: { type: "object", properties: { message: { type: "string" } }, required: ["message"] } },
   { name: "text_customer", description: "Text a customer from your number (Sandy's). Use it to pass along Miranda's answer, offer another date, or say a date isn't open. Write the text yourself in your friendly style; say it's from Miranda when it's her answer. Only to customers listed under CUSTOMER TEXTS or in the bookings/inquiries.", input_schema: { type: "object", properties: { phone: { type: "string" }, message: { type: "string" } }, required: ["phone", "message"] } },
   { name: "set_day_off", description: "Mark days or times Miranda is off, so they show on the Bookings calendar and you won't offer them to customers. For a range, give date and to. part: all (whole day), sunrise, sunset or midday.", input_schema: { type: "object", properties: { date: { type: "string", description: "YYYY-MM-DD" }, to: { type: "string", description: "YYYY-MM-DD, last day of a range (optional)" }, part: { type: "string", enum: ["all", "sunrise", "sunset", "midday"] }, note: { type: "string", description: "Optional reason, e.g. vacation" } }, required: ["date"] } },
   { name: "remove_day_off", description: "Undo a day off (she's available again). Leave part out to clear the whole day.", input_schema: { type: "object", properties: { date: { type: "string" }, to: { type: "string" }, part: { type: "string", enum: ["all", "sunrise", "sunset", "midday"] } }, required: ["date"] } },
@@ -316,6 +317,13 @@ async function runTool2(base, name, x, by, data, actor) {
     case "send_confirm_link": return sendConfirmLink(base, x, by, whoName(actor));
     case "remove_pencil": { const { removePencil } = await import("./customers.mjs"); return removePencil(base, x.request_id, { textTimes: !!x.text_other_times, by, who: whoName(actor) }); }
     case "text_customer": return textCustomer(base, x.phone, x.message, data);
+    case "text_miranda": {
+      const who = whoName(actor), body = String(x.message || "").trim().slice(0, 1200);
+      if (!body) return { error: "empty message" };
+      if (digits(actor) === MIRANDA) return { error: "Miranda is the one texting you; just tell her here" };
+      const r = await deliver(base, MIRANDA, (/^sandy here/i.test(body) ? "" : "Sandy here, passing this along from " + (who || "Randy") + ": ") + body, "to-miranda");
+      return r.error ? { error: "Twilio: " + r.error } : { ok: true, sent: r.sent };
+    }
     case "offer_other_time": {
       const list = await getRequests(base), r = list.find((q) => q.id === x.request_id);
       if (!r) return { error: "no request with that id" };
@@ -356,6 +364,8 @@ How you text:
 - If it's not clear which booking they mean (two with the same name, etc.), ask before changing anything.
 - Before cancelling: ask them to confirm, and ask whether Miranda keeps or returns the deposit. Miranda's policy is that deposits aren't refundable, but it's her call case by case.
 - If a tool returns a conflict (slot already taken) or an error, tell them plainly and suggest what to do.
+- Texting Miranda for Randy or Bradyn (Oct 31 2026): when Randy or Bradyn asks you to tell Miranda something or send her a link, use text_miranda, then confirm in one line.
+- Customer texting is OFF right now (Oct 31 2026, Miranda's choice): you can't text customers. If a tool would text a customer (text_customer, send_confirm_link, offer_other_time and the like), the text goes to Miranda instead so she can send it herself. Say that plainly (e.g. "I sent Miranda the text to forward, since I'm not texting customers right now"); never say a customer got a text.
 - Customers text your number too (Oct 28 2026). Another copy of you answers them: prices, open dates, and taking down date requests. When a customer wants a date, you text Miranda AND Bradyn the details at the same time and ask "Want me to text them the Confirm link? Reply YES or NO".
 - First answer decides (Oct 30 2026): if Miranda, Bradyn (or Randy) says yes to a request under CUSTOMER DATE REQUESTS (waiting or PENCILED IN), send it with send_confirm_link, then confirm in one line. If they want something changed first (price, package), send the link with that change. The other person is told automatically that it's handled, so don't text them yourself. If a tool says the request was already answered by someone else, tell them who answered and what happened, and do nothing more.
 - Miranda's word wins (Oct 30 2026): if Bradyn okayed a request (listed under LINKS SENT, NO DEPOSIT YET as "okayed by Bradyn") and Miranda says NO to it, handle it exactly like a NO below, using that request_id (it cancels the Confirm link Bradyn's yes sent, and Bradyn is told automatically). Say "after all" in the text to the customer. Bradyn can't overrule Miranda.
@@ -556,6 +566,7 @@ export function describeChange(c, data) {
     case "clear_old_inquiries": return "Cleared " + ((c.result && c.result.cleared) || "the") + " old inquiries";
     case "send_confirm_link": return "Confirm link texted to " + ((c.result && c.result.name) || x.name || "the customer");
     case "text_customer": return "Texted " + fmtPhone(x.phone);
+    case "text_miranda": return "Texted Miranda";
     case "close_request": return "Request closed";
     case "offer_other_time": return "Offered " + nice(x.date) + " " + x.time + " to the customer";
     case "remove_pencil": return "Pencil-in removed" + (x.text_other_times ? ", other times texted" : "");
@@ -609,8 +620,16 @@ export async function record(base, entry) {
   await s.setJSON("outbox", list.slice(-200));
 }
 // Deliver a text: really sends only when SANDY_TEXTING is "on" and this is the live site
+// Oct 31 2026 (Randy): Miranda doesn't want Sandy texting customers for now. While SANDY_TEXT_CUSTOMERS isn't "on",
+// anything meant for a customer goes to Miranda instead, so she can send it herself if she wants.
+export const customerTextsOn = () => env("SANDY_TEXT_CUSTOMERS").toLowerCase() === "on";
 export async function deliver(base, to, body, kind) {
   let sent = false, error = "";
+  if (!PEOPLE[digits(to)] && digits(to) !== TEST_CUSTOMER && !customerTextsOn()) {
+    await record(base, { kind, to: digits(to), body, sent: false, held: "customer texting is off" });
+    await deliver(base, MIRANDA, "Sandy here: I'm not texting customers right now, so I didn't send this to " + fmtPhone(to) + ". If you want them to get it, text it to them yourself:\n\"" + String(body).slice(0, 900) + "\"", "held-for-miranda");
+    return { sent: false, error: "", held: true };
+  }
   if (textingOn() && isLive(base) && digits(to) !== TEST_CUSTOMER) { try { await sendText(to, body); sent = true; } catch (e) { error = String(e.message || e); } }
   await record(base, { kind, to: digits(to), body, sent, ...(error ? { error } : {}) });
   return { sent, error };
