@@ -1200,7 +1200,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   var BEACHES = ['Mexico Beach', 'Port St. Joe', 'Cape San Blas', 'Panama City Beach', 'St. George Island', 'Destin', '30A', 'Other'];
   var PK = [
     /*prices:booking-pk ids=mini,special,senior,family,deluxe,engagement,proposal,elopement,wedding6,wedding10*/
-    ['Beach Mini', 130, '30 minutes', 'Up to 6', '15'],
+    ['Beach Mini', 130, '20–30 minutes · 1 location', 'Up to 6', '15'],
     ['Beach Special (Classic)', 199, '45–60 minutes · 1 location · 1 outfit change', 'Up to 11', '30–35'],
     ['Senior Portrait', 199, '45–60 minutes · 2 outfit changes', '1 + a parent or friend', '30–35'],
     ['Family Session', 250, '45–60 minutes · 1 location', 'Up to 15', '35+'],
@@ -1208,8 +1208,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     ['Engagement Session', 199, 'Up to 1 hour', '2', '35+'],
     ['Surprise Proposal', 199, '', '', '30'],
     ['Beach Elopement', 549, '2 hours', '', '100+'],
-    ['Wedding (6 hours)', 999, '6 hours', '', 'Full gallery'],
-    ['Wedding (10 hours)', 1999, '10 hours', '', 'Full gallery'],
+    ['Wedding (6 hours)', 799, '6 hours', '', 'Full gallery'],
+    ['Wedding (10 hours)', 1500, '10 hours', '', 'Full gallery'],
     /*/prices:booking-pk*/
     ['Custom session', '', '', '', '']];
   var opts = function(list, sel){ var has = false, h = list.map(function(x){ var s = x === sel; if (s) has = true; return '<option value="' + esc(x) + '"' + (s ? ' selected' : '') + '>' + esc(x || 'No time') + '</option>'; }).join(''); return (!has && sel ? '<option selected>' + esc(sel) + '</option>' : '') + h; };

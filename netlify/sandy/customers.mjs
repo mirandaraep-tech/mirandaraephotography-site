@@ -48,7 +48,7 @@ function priceText() {
   const pk = Object.values(PRICES.packages).map((p) => "- " + p.name + " (booking name: " + p.booking + ") — " + money(p.price) + ": " +
     [p.timeWords, p.photos ? p.photos + " edited photos" : "", p.people ? "up to " + p.people + " people" : p.bookingPeople ? p.bookingPeople + " people" : "", ...(p.details || []), ...(p.more || [])].filter(Boolean).join(", ") +
     (p.where ? ". For " + p.where.replace(/ · /g, ", ") : "") + ". " + (p.blurb || ""));
-  const ex = Object.values(PRICES.extras).map((x) => x.name.toLowerCase() + " " + money(x.price) + (x.unit ? " " + x.unit : ""));
+  const ex = Object.values(PRICES.extras).filter((x) => !x.hidden).map((x) => x.name.toLowerCase() + " " + money(x.price) + (x.unit ? " " + x.unit : ""));
   const tr = Object.entries(PRICES.travel || {}).map(([b, f]) => b + " " + money(f));
   return pk.join("\n") + "\n- Extras: " + ex.join("; ") + "\n- Travel fee: " + tr.join(", ") + " (added to the session price)\n- A " + money(PRICES.deposit) + " deposit holds the date and comes off the session price.";
 }
