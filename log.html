@@ -1035,7 +1035,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function sinceTxt(t){
     if (!t) return '';
     var d = new Date(t), tm = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }), dy = ymd(d);
-    return ' (' + (dy === TODAY ? 'today ' : dy === ymd(new Date(Date.now() - 86400000)) ? 'yesterday ' : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ', ') + tm + ')';
+    return ' ' + (dy === TODAY ? 'today at ' : dy === ymd(new Date(Date.now() - 86400000)) ? 'yesterday at ' : 'on ' + d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' at ') + tm;
   }
   function caughtUp(){
     var d = document.createElement('div'); d.className = 'okpop'; d.textContent = '✓ All caught up'; document.body.appendChild(d);
@@ -1046,7 +1046,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (!all.length) { LOOKON = false; caughtUp(); return; }
     LOOKON = true;
     var top = all.slice(0, 3);
-    var h = '<p class="opn">✓ Nothing new since you last checked' + sinceTxt(PREV) + '</p><h3 style="margin:12px 0 4px">A few to look at</h3>' +
+    var h = '<p class="opn" style="margin:0">✓ No new requests</p>' + (PREV ? '<p class="muted" style="margin:2px 0 0;font-size:14px">Since you last opened the app' + sinceTxt(PREV) + '</p>' : '') + '<h3 style="margin:12px 0 4px">A few to look at</h3>' +
       top.map(function(x, i){ var it = x.b || x.o;
         return '<div class="lk"><div class="tx">' + x.ic + ' <b>' + esc(it.name) + '</b> · ' + esc(it.date ? nice(it.date).replace(/^\w+, /, '') : 'no date') + '<br><span class="muted">' + esc(x.why) + '</span></div><button class="btn ghost" data-li="' + i + '">' + x.btn + '</button></div>'; }).join('') +
       (all.length > 3 ? '<p style="margin:8px 0 0"><button class="lnk" data-all>🧹 See all ' + all.length + '</button></p>' : '') +
