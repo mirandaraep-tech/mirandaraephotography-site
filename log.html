@@ -1730,7 +1730,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // the other three take it off the list (hidden, not erased; the request stays in "Everything that came in").
   // Nov 1 2026 (later): "Booked" split in two (deposit paid / no deposit yet); a date that's passed gets
   // "It happened, paid in full" instead. The weather choices live on booked cards (an inquiry never paid a deposit).
-  var WHY = [['dep', '✅ Booked, deposit paid', 'They paid the deposit'], ['nodep', '📅 Booked, no deposit yet', 'They said yes, deposit still coming'],
+  var WHY = [['dep', '✅ Booked, deposit paid', 'They paid the deposit'], ['nodep', '⏳ Booked, no deposit yet', 'They said yes, deposit still coming'],
     ['full', '✅ It happened, paid in full', 'Adds it as a past session, marked paid'],
     ['waiting', '💬 Still talking', 'Keep it on the list'], ['No answer', '🤐 No answer', 'They never wrote back'],
     ['Went elsewhere', '🚫 Went elsewhere', 'Not interested, or booked someone else'], ['Duplicate or test', '🔁 Duplicate or test', 'Already on here, or just a test']];
@@ -1800,7 +1800,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var past = isPastDay(d.date);
     sheet('<h3>' + (past ? 'Did ' + esc(first(d.name)) + '\'s session happen?' : 'Book ' + esc(first(d.name)) + '?') + '</h3>' + dealBox(d, !fromForm) +
       '<div class="choice">' + (past ? '<button class="btn whyb" data-why="full"><b>✅ It happened, paid in full</b><small>Adds it as a past session, marked paid</small></button>'
-        : '<button class="btn whyb" data-why="dep"><b>✅ Booked, deposit paid</b><small>They paid the deposit</small></button><button class="btn ghost whyb" data-why="nodep"><b>📅 Booked, no deposit yet</b><small>They said yes, deposit still coming</small></button>') +
+        : '<button class="btn whyb" data-why="dep"><b>✅ Booked, deposit paid</b><small>They paid the deposit</small></button><button class="btn ghost whyb" data-why="nodep"><b>⏳ Booked, no deposit yet</b><small>They said yes, deposit still coming</small></button>') +
       '</div><div class="acts"><button class="btn ghost" data-x>Never mind</button></div>',
       function(e, v, close){
         if (e.target.closest('[data-dt]')) { close(); datePick(d, function(nd, nt){ bookedSheet(o, Object.assign({}, d, { date: nd, time: nt }), done, fromForm); }); return; }
