@@ -142,6 +142,8 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .isum b{font-size:17px}
 button.flag{border:0;cursor:pointer;font-family:inherit;text-align:left}
 .whyh{margin:14px 0 0;font-weight:bold}
+.dtb{border:0;background:none;padding:0;font:inherit;color:var(--teal);text-decoration:underline;cursor:pointer;text-align:left}
+.dtb b{font-size:17px}
 .tg.q{background:#fff3cd;color:#7a4f00}
 .inqwrap{border-left:3px solid #f0d58f;padding-left:8px;margin-bottom:14px}
 
@@ -1491,6 +1493,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     function after(j){
       if (j.duplicate) { alert(o.name + ' is already booked for that date.'); return load(); }
       if (!j.ok) { alert("That didn't save. Please try again."); return; }
+      if (o && o.date && d.date !== o.date) post({ kind: 'dismiss', why: 'Booked on another date', name: o.name, date: o.date, beach: o.beach, by: WHO, test: o.test }).catch(function(){});
       OPEN = done ? null : j.booking && j.booking.num ? 'b' + j.booking.num : null;
       toast(first(d.name) + (j.past ? ' added as a past session, paid in full' : ' booked' + (d.pay === 'deposit' ? ', deposit in' : ', no deposit yet')));
       return load().then(function(){
@@ -1656,7 +1659,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     ['Went elsewhere', '🚫 Went elsewhere', 'Not interested, or booked someone else'], ['Duplicate or test', '🔁 Duplicate or test', 'Already on here, or just a test']];
   var isPastDay = function(d){ return !!d && d < TODAY; };
   function whyBtns(o){
-    var past = isPastDay(o.date);
+    var past = isPastDay(inqDeal(o).date);
     return '<div class="choice">' + WHY.filter(function(w){ return past ? w[0] !== 'dep' && w[0] !== 'nodep' && w[0] !== 'waiting' : w[0] !== 'full'; }).map(function(w){
       return '<button class="btn ' + (w[0] === 'dep' || w[0] === 'full' ? '' : 'ghost ') + 'whyb" data-why="' + w[0] + '"><b>' + w[1] + '</b><small>' + w[2] + '</small></button>'; }).join('') + '</div>';
   }
@@ -1665,10 +1668,28 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var pk = PK[pkIndex(o)];
     var t = o.time || (/sunrise/i.test(o.detail || '') ? 'Sunrise' : /wedding/i.test(o.detail || '') ? 'Wedding' : 'Sunset');
     var amt = o.amount || ((pk[1] || 0) + travFee(o));
-    return { name: o.name, date: o.date, time: t, beach: o.beach || '', pkg: o.pkg || pk[0], amount: amt, dep: o.dep || 50, phone: o.phone, photographer: o.photographer || '' };
+    var d = { name: o.name, date: o.date, time: t, beach: o.beach || '', pkg: o.pkg || pk[0], amount: amt, dep: o.dep || 50, phone: o.phone, photographer: o.photographer || '' };
+    if (o._nd) { d.date = o._nd.date; d.time = o._nd.time; }   // picked with the tappable date
+    return d;
+  }
+  // Nov 1 2026: tap the date in the gray box → calendar + Sunset / Sunrise / Other
+  function datePick(d, cb){
+    var T = ['Sunset', 'Sunrise', 'Other'];
+    sheet('<h3>Change the date</h3><p class="muted">' + esc(d.name) + '</p><label class="l">New date</label><input data-d type="date" value="' + esc(d.date || '') + '">' +
+      '<label class="l">Time</label><div class="chips" data-tm>' + T.map(function(t){ return '<button class="chip' + (low(d.time) === low(t) ? ' on' : '') + '" type="button" data-t="' + t + '">' + t + '</button>'; }).join('') + '</div>' +
+      '<p class="err" data-e hidden>Pick a date.</p><div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Use this date</button></div>',
+      function(e, v, close){
+        var c = e.target.closest('[data-t]');
+        if (c) { Array.prototype.forEach.call(v.querySelectorAll('[data-t]'), function(x){ x.classList.toggle('on', x === c); }); return; }
+        if (!e.target.closest('[data-save]')) return;
+        var nd = v.querySelector('[data-d]').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(nd)) { v.querySelector('[data-e]').hidden = false; return; }
+        var on = v.querySelector('[data-t].on');
+        close(); cb(nd, on ? on.getAttribute('data-t') : d.time);
+      });
   }
   function dealBox(d, change){
-    return '<div class="isum"><b>' + esc(d.date ? nice(d.date) : 'No date yet') + '</b>' + (d.time ? ' · ' + esc(d.time) : '') + (d.beach ? '<br>' + esc(d.beach) : '') +
+    var dt = '<b>' + esc(d.date ? nice(d.date) : 'No date yet') + '</b>' + (d.time ? ' · ' + esc(d.time) : '');
+    return '<div class="isum">' + (change ? '<button class="dtb" type="button" data-dt>' + dt + ' ✎</button>' : dt) + (d.beach ? '<br>' + esc(d.beach) : '') +
       '<br>' + esc(d.pkg || 'Session') + ' · <b>' + money(d.amount || 0) + '</b>' + (d.photographer ? '<br>📷 ' + esc(d.photographer) + ' shooting' : '') + '</div>' +
       (change ? '<p style="margin:2px 0 0"><button class="lnk" type="button" data-chg>Change something first</button></p>' : '');
   }
@@ -1676,7 +1697,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     return '<div class="nm" style="font-size:19px">' + esc(o.name) + '</div>' +
       '<div class="sub">' + (o.waiting ? '💬 Still talking (since ' + esc(shortDay(o.waiting)) + ')' : o.sent ? '💬 Link texted ' + esc(ago(o.sent.at)) : '📩 Came in ' + esc(ago(o.asked))) + '</div>' +
       (o.detail ? '<div class="sub" style="margin-top:4px">"' + esc(o.detail) + '"</div>' : '') +
-      dealBox(inqDeal(o), true) + (isPastDay(o.date) ? '<div class="sub" style="font-weight:600;margin-top:6px">📆 This date has passed</div>' : '');
+      dealBox(inqDeal(o), true) + (isPastDay(inqDeal(o).date) ? '<div class="sub" style="font-weight:600;margin-top:6px">📆 This date has passed</div>' : '');
   }
   // How was it paid: amount + Venmo / Cash App / PayPal / Pixieset / Cash / Other (same as Deposit received)
   function paySheet(title, sub, amt, btn, cb){
@@ -1705,13 +1726,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         : '<button class="btn whyb" data-why="dep"><b>✅ Booked, deposit paid</b><small>They paid the deposit</small></button><button class="btn ghost whyb" data-why="nodep"><b>📅 Booked, no deposit yet</b><small>They said yes, deposit still coming</small></button>') +
       '</div><div class="acts"><button class="btn ghost" data-x>Never mind</button></div>',
       function(e, v, close){
+        if (e.target.closest('[data-dt]')) { close(); datePick(d, function(nd, nt){ bookedSheet(o, Object.assign({}, d, { date: nd, time: nt }), done, fromForm); }); return; }
         if (e.target.closest('[data-chg]')) { close(); buildSheet(o, true, done); return; }
         var b = e.target.closest('[data-why]'); if (!b) return; close(); bookAs(o, d, b.getAttribute('data-why'), done);
       });
   }
   // Does what the picked answer says. done() runs after it saves (Clean up uses it to show the next one).
   function applyWhy(o, w, done){
-    if (w === 'dep' || w === 'nodep' || w === 'full') { if (!o.date) return buildSheet(o, true, done); return bookAs(o, inqDeal(o), w, done); }
+    if (w === 'dep' || w === 'nodep' || w === 'full') { if (!inqDeal(o).date) return buildSheet(o, true, done); return bookAs(o, inqDeal(o), w, done); }
     var body = w === 'waiting' ? { kind: 'waiting', name: o.name, date: o.date, beach: o.beach, by: WHO, test: o.test }
       : { kind: 'dismiss', why: w, name: o.name, date: o.date, beach: o.beach, by: WHO, test: o.test };
     post(body).then(function(j){
@@ -1724,6 +1746,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function whatSheet(o){
     sheet('<h3>What happened with ' + esc(first(o.name)) + '?</h3>' + inqLine(o) + whyBtns(o) + '<div class="acts"><button class="btn ghost" data-x>Never mind</button></div>',
       function(e, v, close){
+        if (e.target.closest('[data-dt]')) { close(); datePick(inqDeal(o), function(nd, nt){ o._nd = { date: nd, time: nt }; whatSheet(o); }); return; }
         if (e.target.closest('[data-chg]')) { close(); buildSheet(o, true); return; }
         var b = e.target.closest('[data-why]'); if (!b) return; close(); applyWhy(o, b.getAttribute('data-why'));
       });
@@ -1743,22 +1766,22 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     list.sort(function(a, b){ return pd(a) - pd(b) || (b.stale ? 1 : 0) - (a.stale ? 1 : 0) || (a.asked || '').localeCompare(b.asked || ''); });
     var keys = list.map(function(o){ return o.key; }), i = 0, total = keys.length;
     if (!total) { toast('No inquiries to clean up.'); return; }
-    (function next(){
-      var o = null;
-      while (i < keys.length && !(o = findI(keys[i]))) i++;
-      if (!o) { toast('All caught up!'); return; }
+    next();
+    function next(){ var o = null; while (i < keys.length && !(o = findI(keys[i]))) i++; if (!o) { toast('All caught up!'); return; } show(o); }
+    function show(o){
       sheet('<div class="muted" style="font-size:14px;margin-bottom:6px">🧹 ' + (i + 1) + ' of ' + total + '</div>' + inqLine(o) +
-        (o.stale && !isPastDay(o.date) ? '<div class="sub" style="font-weight:600;margin-top:4px">❓ Nothing has happened in over a week</div>' : '') +
+        (o.stale && !isPastDay(inqDeal(o).date) ? '<div class="sub" style="font-weight:600;margin-top:4px">❓ Nothing has happened in over a week</div>' : '') +
         '<p class="whyh">What happened?</p>' + whyBtns(o) +
         '<div class="acts"><button class="btn ghost" data-x>Stop for now</button><button class="btn ghost" data-skip>Skip ›</button></div>',
         function(e, v, close){
           if (e.target.closest('[data-skip]')) { close(); i++; next(); return; }
+          if (e.target.closest('[data-dt]')) { close(); datePick(inqDeal(o), function(nd, nt){ o._nd = { date: nd, time: nt }; show(o); }); return; }
           if (e.target.closest('[data-chg]')) { close(); i++; buildSheet(o, true, next); return; }
           var b = e.target.closest('[data-why]'); if (!b) return;
           var w = b.getAttribute('data-why'); close();
           i++; applyWhy(o, w, next);
         });
-    })();
+    }
   }
   // ---------- Nov 1 2026: booked card, date passed → "What happened with [name]'s session?" ----------
   function passedSheet(b){
