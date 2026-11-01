@@ -1,7 +1,7 @@
 // Sandy's helper that does the thinking (added Oct 21 2026). Runs in the background (up to 15 min),
 // started by sandy-sms (a text came in) or sandy-daily (morning check-in).
 import { chat, dailyCheckin, deliver, getHistory, saveHistory, record, env, MIRANDA, sandyKey, sandyStore, loadData, describeChange, changeWorked } from "../sandy/brain.mjs";
-import { customerChat, webRequest, pencilCheck } from "../sandy/customers.mjs";
+import { customerChat, webRequest, pencilCheck, nudgeCheck } from "../sandy/customers.mjs";
 import { getCustHistory, saveCustHistory } from "../sandy/brain.mjs";
 
 export default async (req) => {
@@ -25,6 +25,8 @@ export default async (req) => {
       // Every minute (Oct 30 2026): pencil in customers nobody okayed within 5 minutes, bump ones whose time got
       // booked, and remind Miranda and Bradyn at 5:00 and 8:30 PM
       await pencilCheck(base);
+      // Nov 1 2026: text Miranda once about any website request still unanswered after an hour
+      try { await nudgeCheck(base); } catch (e) { await record(base, { kind: "error", body: "nudge: " + String(e.message || e) }); }
     } else if (d.kind === "web") {
       // Someone sent a website request and checked OK to text (Oct 28 2026)
       await webRequest({ base, form: d.form || {} });

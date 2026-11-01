@@ -465,3 +465,41 @@ export function pageOffer(page) {
   if (/^\/beach-wedding-photographer$/.test(p)) return "the wedding page (they want a wedding package)";
   return "";
 }
+
+// ---------- One-hour nudge for unanswered website requests (Nov 1 2026) ----------
+// Randy's rule: Sandy's only text to Miranda on her own. If a website request has gone an hour and Miranda
+// hasn't sent a Confirm link, booked them, or marked them Not booking in the Bookings app, Sandy texts her
+// once. Never overnight: one that comes due between 9 PM and 7 AM Central waits until 7 AM.
+// Requests from Randy's, Miranda's or Bradyn's own numbers (tests) are skipped. Runs from the every-minute check.
+export async function nudgeCheck(base, now = new Date()) {
+  const h = hourCT(now);
+  if (h < 7 || h >= 21) return { quiet: true };
+  if (now.getUTCMinutes() % 5) return { skip: true }; // every 5 minutes is plenty
+  const s = sandyStore(base), t = now.getTime();
+  // Only requests that came in after this was turned on (no flood of old ones on day one)
+  let since = await s.get("nudge-since", { type: "json" });
+  if (!since) { since = now.toISOString(); await s.setJSON("nudge-since", since); }
+  const data = await loadData(base), log = data.log || [], bookings = data.bookings || [];
+  const same = (a, b) => (digits(a.phone).length === 10 && digits(a.phone) === digits(b.phone)) || (low(a.name) && low(a.name) === low(b.name));
+  const ours = (r) => r.test || isOurs(digits(r.phone));
+  const due = log.filter((e) => e.kind === "request" && !ours(e) && e.at >= since && t - Date.parse(e.at) >= 60 * 60000 && t - Date.parse(e.at) < 24 * 3600000);
+  const sent = (await s.get("nudged", { type: "json" })) || {};
+  let n = 0;
+  for (const r of due) {
+    const key = low(r.name) + "|" + (r.date || "") + "|" + r.at;
+    if (sent[key]) continue;
+    const answered = log.some((e) => ["sent", "confirm", "added", "dismiss"].includes(e.kind) && e.at >= r.at && same(r, e)) ||
+      bookings.some((b) => !b.cancelled && same(r, b) && (b.created || "") >= r.at);
+    if (answered) { sent[key] = "answered"; continue; }
+    const at = new Date(r.at).toLocaleTimeString("en-US", { timeZone: "America/Chicago", hour: "numeric", minute: "2-digit" });
+    const body = "Hi Miranda! " + (String(r.name || "").trim() || "Someone") + " sent a request at " + at +
+      (r.date ? " for " + nice(r.date) : "") + (r.beach && r.beach !== "Other" ? " at " + r.beach : "") +
+      ", and it's still waiting on a reply. Open your Bookings app when you get a chance 😊";
+    await deliver(base, MIRANDA, body, "inquiry-nudge");
+    sent[key] = now.toISOString(); n++;
+  }
+  // keep the list small: forget entries older than 3 days
+  for (const k of Object.keys(sent)) { const at = k.split("|").pop(); if (t - Date.parse(at) > 3 * 86400000) delete sent[k]; }
+  await s.setJSON("nudged", sent);
+  return { nudged: n };
+}

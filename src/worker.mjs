@@ -272,6 +272,7 @@ export default {
       }))());
       return;
     }
-    ctx.waitUntil(sandyDaily());
+    // Nov 1 2026: Sandy's 9 AM check-in to Miranda is turned off (Randy's request); the daily wake-up now does nothing
+    void sandyDaily;
   },
 };
