@@ -640,6 +640,36 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     }
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
   }
+  // Nov 1 2026: is the date they asked for open? Same rule as the Confirm page's slot check
+  // (same date + same time label, only Miranda's own sessions, contracted-out ones don't block her).
+  function guessTime(o){ return o.time || (/sunrise/i.test(o.detail || '') ? 'Sunrise' : /wedding/i.test(o.detail || '') ? 'Wedding' : /sunset/i.test(o.detail || '') ? 'Sunset' : 'Sunset'); }
+  function heldBy(d, t, test){ return (DATA.bookings || []).filter(function(b){ return !b.cancelled && !b.past && !b.photographer && !!b.test === !!test && b.date === d && low(b.time) === low(t); })[0]; }
+  function addDays(d, n){ var x = dt(d); x.setDate(x.getDate() + n); return ymd(x); }
+  function avail(o){
+    if (!o.date || o.date < TODAY) return null;
+    var t = guessTime(o); if (!/^(sunset|sunrise|wedding)$/i.test(t)) return null;
+    var who = heldBy(o.date, t, o.test);
+    if (!who) return { open: true, t: t };
+    var other = low(t) === 'sunset' ? 'Sunrise' : low(t) === 'sunrise' ? 'Sunset' : '', alts = [];
+    if (other && !heldBy(o.date, other, o.test)) alts.push({ d: o.date, t: other });
+    [-1, 1, 2, -2].forEach(function(n){ var d = addDays(o.date, n); if (alts.length < 2 && d >= TODAY && !heldBy(d, t, o.test)) alts.push({ d: d, t: t }); });
+    return { open: false, t: t, who: who, alts: alts };
+  }
+  function slotWords(a, sameDay){ var t = low(a.t); return sameDay ? (t === 'sunrise' ? 'sunrise that same morning' : t + ' that same evening') : t + ' on ' + longDay(a.d); }
+  function availText(o){
+    var a = avail(o), hi = 'Hi ' + first(o.name) + '! This is Miranda with Miranda Rae Photography 😊 ';
+    var place = o.beach && o.beach !== 'Other' ? ' at ' + o.beach : '';
+    if (!o.date) return hi + 'Thanks for reaching out! What date were you thinking for your session?';
+    if (!a) return hi + 'Thanks for reaching out about ' + longDay(o.date) + place + '! ';
+    if (a.open) return hi + 'Good news, ' + longDay(o.date) + (low(a.t) === 'wedding' ? '' : ' at ' + low(a.t)) + place + ' is open! Want me to hold it for you? I can send you a quick link to lock it in.';
+    var opts = a.alts.map(function(x){ return slotWords(x, x.d === o.date); });
+    return hi + 'Thanks for reaching out! ' + (low(a.t) === 'wedding' ? 'I already have a wedding on ' + longDay(o.date) : a.t.charAt(0).toUpperCase() + low(a.t).slice(1) + ' on ' + longDay(o.date) + ' is already booked') + ', ' +
+      (opts.length ? 'but I have ' + opts.join(', or ') + ' open. Would either of those work for you?' : 'but I would love to find you another date. What other days work for you?');
+  }
+  function availTag(o){
+    var a = avail(o); if (!a) return '';
+    return '<div class="sub" style="color:var(--ink,inherit);font-weight:600">' + (a.open ? '✅ ' + esc(a.t) + ' is open' : '⛔ ' + esc(a.t) + ' is taken (' + esc(first(a.who.name)) + ')') + '</div>';
+  }
   function inqCard(o){
     var open = OPEN === 'i' + o.key, sent = !!o.sent;
     var h = '<div class="bk inq' + (open ? ' open' : '') + '" data-inq="' + esc(o.key) + '">' +
@@ -648,6 +678,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<span class="tg w">' + (sent ? '💬 Link texted' : '📩 New request') + '</span>' +
       '<div class="nm">' + esc(o.name) + '</div>' +
       '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' +
+      (sent ? '' : availTag(o)) +
       '</div><div class="rt">' + (o.time ? sessBtn(o, true) : '') + (o.amount ? '<span class="amt a-inq">' + money(o.amount) + '</span>' : '') +
       '<button class="dep na" type="button" tabindex="-1">' + (sent ? 'Waiting on customer to confirm' : 'Needs reply from Miranda, chop&nbsp;chop!') + '</button>' +
       (o.asked ? '<span class="came">' + (o.request ? 'Came in ' : 'Added ') + esc(shortDay(o.asked)) + '<br>' + ago(o.asked) + '</span>' : '') + '</div></div>';
@@ -815,9 +846,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     return { el: v, close: close };
   }
   function toast(t){ var d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 2600); }
-  function ask(title, text, yes, no, cb){
-    sheet('<h3>' + title + '</h3>' + (text ? '<p class="muted">' + text + '</p>' : '') + '<div class="acts"><button class="btn ghost" data-x>' + (no || 'No') + '</button><button class="btn" data-yes>' + (yes || 'Yes') + '</button></div>',
-      function(e, v, close){ if (e.target.closest('[data-yes]')) { close(); cb(); } });
+  function ask(title, text, yes, no, cb, cbNo){
+    sheet('<h3>' + title + '</h3>' + (text ? '<p class="muted">' + text + '</p>' : '') + '<div class="acts"><button class="btn ghost" ' + (cbNo ? 'data-no' : 'data-x') + '>' + (no || 'No') + '</button><button class="btn" data-yes>' + (yes || 'Yes') + '</button></div>',
+      function(e, v, close){ if (e.target.closest('[data-yes]')) { close(); cb(); } else if (cbNo && e.target.closest('[data-no]')) { close(); cbNo(); } });
   }
   // Text composer: nothing sends by itself; it opens Messages with the text filled in
   function compose(b, title, msg){
@@ -1059,9 +1090,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'dismiss') return ask('Not booking?', esc(o.name) + ' comes off the Inquiry list. Their request stays in "Everything that came in."', 'Yes, remove', 'No', function(){
       post({ kind: 'dismiss', name: o.name, date: o.date, beach: o.beach, by: WHO, test: o.test }).then(function(){ OPEN = null; load(); });
     });
-    if (a === 'itext') return compose(o, 'Text ' + first(o.name), 'Hi ' + first(o.name) + '! This is Miranda with Miranda Rae Photography. ');
+    if (a === 'itext') return compose(o, 'Text ' + first(o.name), availText(o));
     if (a === 'resend') return compose(o, 'Confirm link', 'Hi ' + first(o.name) + '! Here\'s your confirmation link again. Check your session details, then tap Confirm and pay your deposit to hold your date: ' + o.link);
-    if (a === 'build') return buildSheet(o, false);
+    if (a === 'build') {
+      var av = o.sent ? null : avail(o);
+      if (av && !av.open) return ask(av.t + ' on ' + nice(o.date) + ' is taken', esc(av.who.name) + ' already has it. Text ' + esc(first(o.name)) + ' other open times instead?', 'Text other times', 'Send link anyway', function(){ compose(o, 'Text ' + first(o.name), availText(o)); }, function(){ buildSheet(o, false); });
+      return buildSheet(o, false);
+    }
     if (a === 'iconfirm') {
       if (o.sent && o.date && o.amount) return ask('Did ' + esc(first(o.name)) + ' say yes?', 'This books ' + esc(o.name) + ' for ' + esc(nice(o.date)) + (o.time ? ' (' + esc(o.time) + ')' : '') + ' at ' + money(o.amount) + ' without them tapping the link.', 'Yes, book it', 'Not yet', function(){
         bookInquiry(o, { name: o.name, date: o.date, time: o.time, beach: o.beach, pkg: o.pkg, amount: o.amount, dep: o.dep, phone: o.phone, photographer: o.photographer || '' });
