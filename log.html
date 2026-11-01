@@ -897,6 +897,24 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     return '<div class="sub" style="font-weight:600" data-msg>💬 They wrote: <span style="font-weight:400" data-short>"' + esc(m.slice(0, 90)) + '…" <button class="lnk" type="button" data-more style="padding:6px 0">Read all</button></span>' +
       '<span style="font-weight:400" data-full hidden>"' + esc(m) + '"</span></div>';
   }
+  // "Mark [name]'s deposit received" next to a taken time (pop-up or card) opens the usual Deposit received form
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-depnum]'); if (!b) return;
+    e.stopPropagation(); var bk = findB(Number(b.getAttribute('data-depnum'))); if (bk) depositSheet(bk);
+  }, true);
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-give]'); if (!b) return;
+    e.stopPropagation();
+    var bk = findB(Number(b.getAttribute('data-give'))), k = b.getAttribute('data-ikey');
+    var o = inquiries().filter(function(x){ return x.key === k; })[0];
+    if (!bk || !o) return;
+    ask('Give ' + esc(first(bk.name)) + '\'s spot to ' + esc(first(o.name)) + '?',
+      'This cancels ' + esc(bk.name) + '\'s booking for ' + esc(nice(bk.date)) + (bk.time ? ' (' + esc(low(bk.time)) + ')' : '') + ', since no deposit was paid, and frees the time. Then you can send ' + esc(first(o.name)) + ' the Confirm link. Don\'t forget to let ' + esc(first(bk.name)) + ' know.',
+      'Yes, give it to ' + esc(first(o.name)), 'No', function(){
+        var pop = b.closest('.veil'); if (pop && pop.parentNode) pop.parentNode.removeChild(pop);
+        act(bk, 'cancel', {}).then(function(done){ if (done !== null) buildSheet(o, false); });
+      });
+  }, true);
   // "Read all" on a long message (pop-up or card) shows the whole thing in place
   document.addEventListener('click', function(e){
     var b = e.target.closest('[data-more]'); if (!b) return;
@@ -907,7 +925,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function noDep(b){ return !!(b && b.num && !b.deposit && !b.paid); }
   function availTag(o){
     var a = avail(o); if (!a) return '';
-    return '<div class="sub" style="font-weight:600">' + (a.open ? '✅ ' + esc(a.t) + ' is open' : '⛔ ' + esc(a.t) + ' is taken (' + esc(first(a.who.name)) + ')' + (noDep(a.who) ? ' · ⚠️ no deposit yet' : '')) + '</div>';
+    return '<div class="sub" style="font-weight:600">' + (a.open ? '✅ ' + esc(a.t) + ' is open' : '⛔ ' + esc(a.t) + ' is taken (' + esc(first(a.who.name)) + ')' + (noDep(a.who) ? ' · ⚠️ no deposit yet' : '')) + '</div>' +
+      // Nov 1 2026: in case their deposit came in and just wasn't marked, fix it right here
+      (!a.open && noDep(a.who) ? '<div class="sub"><button class="lnk" type="button" data-depnum="' + a.who.num + '" style="padding:6px 0">Mark ' + esc(first(a.who.name)) + '\'s deposit received</button></div>' +
+        // Nov 1 2026: or let the new customer have it (cancels the unpaid booking, then opens the Confirm-link form)
+        '<div class="sub"><button class="lnk" type="button" data-give="' + a.who.num + '" data-ikey="' + esc(o.key) + '" style="padding:6px 0">Give this spot to ' + esc(first(o.name)) + '</button></div>' : '');
   }
   // Nov 1 2026: Randy wants an email whenever Miranda or Bradyn opens the Bookings app.
   // Goes to mirandaraep@gmail.com only. At most once every 30 minutes per phone, so switching
