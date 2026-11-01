@@ -357,7 +357,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       try { localStorage.setItem('mrp-log-pass', PASS); } catch (e) {}
       DATA = j; $('lock').hidden = true;
       if (!WHO) { $('whoCard').hidden = false; $('app').hidden = true; return; }
-      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw();
+      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw(); freshPop();
     }).catch(function(){ $('asof').textContent = "Couldn't load. Pull down to refresh."; });
   }
   var PH = { names: ['Kallie'], split: { pct: 25, min: 50 } };
@@ -639,6 +639,30 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       R += '<button class="btn ghost" data-a="shooter">Photographer</button>';
     }
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
+  }
+  // Nov 1 2026: when the app opens, new requests from the last 24 hours that nobody has answered pop up first.
+  // "Later" just closes it; a lead pops up once each time the app is opened (and again for any newer lead).
+  var SEEN = {};
+  function freshPop(){
+    if (document.querySelector('.veil')) return;
+    var cut = new Date(Date.now() - 86400000).toISOString();
+    var list = inquiries().filter(function(o){ return o.request && !o.sent && !o.old && (o.asked || '') >= cut && (MORE.tests || !o.test) && !SEEN[o.key]; });
+    if (!list.length) return;
+    list.forEach(function(o){ SEEN[o.key] = 1; });
+    list.sort(function(a, b){ return (b.asked || '') < (a.asked || '') ? -1 : 1; });
+    var h = '<h3>🔔 ' + (list.length === 1 ? 'New request' : list.length + ' new requests') + ' in the last 24 hours</h3>';
+    list.forEach(function(o){
+      h += '<div class="card" style="padding:12px;margin:10px 0" data-k="' + esc(o.key) + '"><div class="nm" style="font-size:18px">' + esc(o.name) + '</div>' +
+        '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' + availTag(o) +
+        '<div class="sub">Came in ' + esc(ago(o.asked)) + '</div>' +
+        '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="itext">Text</button><button class="btn" data-p="build">Send Confirm link</button></div></div>';
+    });
+    h += '<div class="acts"><button class="btn ghost" data-x>Later</button></div>';
+    sheet(h, function(e, v, close){
+      var b = e.target.closest('[data-p]'); if (!b) return;
+      var k = b.closest('[data-k]').getAttribute('data-k'), o = list.filter(function(x){ return x.key === k; })[0];
+      close(); inqAction(o, b.getAttribute('data-p'));
+    });
   }
   // Nov 1 2026: is the date they asked for open? Same rule as the Confirm page's slot check
   // (same date + same time label, only Miranda's own sessions, contracted-out ones don't block her).
