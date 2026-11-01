@@ -578,10 +578,7 @@ footer a{color:#fff}
   }
   // Oct 20 2026: visitors coming from /book already texted Miranda, so hide the Text Miranda buttons for them
   if (from === 'book') [].forEach.call(document.querySelectorAll('a.sms'), function(a){ a.style.display = 'none'; });
-  // Oct 29 2026: ad visitors text Sandy (Miranda's AI texting assistant), same as on the ad page they came from
-  // Oct 30 2026: only the two holiday ad pages text Sandy for now; the others went back to Miranda's own number
-  if (/^(holiday-family|holiday-family-photos)$/.test(from))
-    [].forEach.call(document.querySelectorAll('a.sms'), function(a){ a.href = a.href.replace('14482196539', '14482173502').replace('body=Hi%20Miranda!%20', 'body=Hi!%20'); });
+  // Nov 1 2026: every Text button goes to Miranda's own number (none go to Sandy anymore)
   // Privacy notice: keep the visitor's way back to the landing page (Oct 14 2026)
   if (from) [].forEach.call(document.querySelectorAll('a[href="/privacy"]'), function(a){ a.href = '/privacy?from=' + from; });
 })();
