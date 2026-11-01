@@ -313,8 +313,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (c && c.repeat) o['repeat'] = 'Same client confirmed this session again — same booking number, NOT added to the total again';
       // Contracted out (Oct 14 2026): Miranda handed this session to another photographer on the New Booking page
       if (c && c.photographer) {
-        var pay = Number(c.payout) || 0;
-        o['contracted-out'] = 'Shot by ' + c.photographer + ' · ' + c.photographer + "'s pay " + money(pay) + (amount ? " · Miranda's share " + money(Math.max(0, amount - pay)) : '');
+        o['contracted-out'] = 'Shot by ' + c.photographer; // Nov 1 2026: no pay split
       }
       // Session on the same day as a wedding (Oct 15 2026): still confirmed, Miranda checks the timing
       if (c && c.headsUp) o['heads-up'] = '⚠️ ' + c.headsUp;

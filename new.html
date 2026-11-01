@@ -118,19 +118,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   </div>
 
   <div class="card">
-    <a class="btn ghost" id="cotog" href="#" style="margin-top:0">🤝 Contracting out this session</a>
+    <a class="btn ghost" id="cotog" href="#" style="margin-top:0">📷 Someone else is shooting this</a>
     <div id="cobox" hidden>
-      <h2>Contracting out <span class="small">(private, the client never sees this)</span></h2>
+      <h2>Someone else shooting <span class="small">(private)</span></h2>
       <label>Who's shooting it?</label>
       <div class="chips" id="cobtns"></div>
       <input id="coname" type="text" autocomplete="off" placeholder="Or type a name">
-      <label for="coval">Miranda's share</label>
-      <div class="chips" id="comode"><button type="button" class="chip on" data-m="pct">%</button><button type="button" class="chip" data-m="amt">$</button></div>
-      <div class="money pct" id="comoney"><span id="cosym">%</span><input id="coval" type="number" inputmode="decimal" min="0" step="any"></div>
-      <div class="small" id="conote" style="margin-top:6px"></div>
-      <a class="small" id="cosave" href="#" hidden style="display:inline-block;margin-top:6px"></a>
-      <div class="keep" id="cokeep"></div>
-      <a class="small" id="cooff" href="#" style="display:inline-block;margin-top:10px;color:var(--muted)">✕ Not contracting out</a>
+      <a class="small" id="cooff" href="#" style="display:inline-block;margin-top:10px;color:var(--muted)">✕ Miranda is shooting</a>
     </div>
   </div>
 
@@ -231,69 +225,26 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('cobtns').innerHTML = names.map(function(n){ return '<button type="button" class="chip' + (n.toLowerCase() === cur ? ' on' : '') + '">' + esc(n) + '</button>'; }).join('');
     Array.prototype.forEach.call($('cobtns').children, function(b){ b.addEventListener('click', function(){ $('coname').value = b.textContent; chips(); keep(); }); });
   }
-  // Miranda's share (Oct 15 2026): a % of the session (usual 25%, or $50 if that's more) or a $ amount.
-  // The photographer gets the rest. Add-ons later are split the same way.
-  // Oct 20 2026: Miranda's usual share is a flat $50 on every session except weddings; weddings are 25% (at least $50).
-  // Either can still be changed per booking. MANUAL = she changed it herself, so package changes leave it alone.
-  var SPLIT = { pct: 20, min: 0 }, FLAT = 50, MODE = 'pct', TOUCHED = false, MANUAL = false;
-  function isWed(){ var p = PK[$('pk').value] || ['']; return $('t').value === 'Wedding' || /wedding/i.test(p[0]); }
-  // Oct 30 2026: the usual split is 20% to Miranda on every session (weddings too)
-  function usual(){ if (MANUAL) return; TOUCHED = false; setMode('pct', true); }
-  function split(){
-    var v = $('coval').value === '' ? (MODE === 'pct' ? SPLIT.pct : 0) : num('coval');
-    if (MODE === 'amt') return { mode: 'amt', val: v };
-    var o = { mode: 'pct', val: v }; if (v === SPLIT.pct && SPLIT.min) o.min = SPLIT.min;
-    // Usual wedding split: 25% rounded up to the dollar, so it matches the deposit the client pays up front
-    if (!MANUAL && !DEPMAN && isWed()) { var t = data().total; if (t) return { mode: 'amt', val: Math.min(t, Math.ceil(shareOf(o, t))) }; }
-    return o;
-  }
-  function shareOf(sp, t){ var v = sp.mode === 'amt' ? sp.val : Math.max(t * sp.val / 100, sp.min || 0); return Math.round(Math.min(Math.max(0, t), v) * 100) / 100; }
-  function setMode(m, auto){
-    if (!auto) MANUAL = true;
-    MODE = m; Array.prototype.forEach.call($('comode').children, function(b){ b.classList.toggle('on', b.getAttribute('data-m') === m); });
-    $('cosym').textContent = m === 'pct' ? '%' : '$'; $('comoney').classList.toggle('pct', m === 'pct');
-    $('coval').value = m === 'pct' ? SPLIT.pct : (auto ? FLAT : ''); keep();
-  }
-  function keep(){
-    if ($('cobox').hidden) { autoDep(); return; }
-    var t = data().total, who = $('coname').value.trim() || 'the photographer', sp = split(), mine = shareOf(sp, t);
-    $('conote').textContent = MODE === 'pct' ? (sp.min ? 'Usual for weddings: ' + SPLIT.pct + '% or ' + money(SPLIT.min) + ', whichever is more' : sp.val + '% of the session') : (!MANUAL && sp.val === FLAT ? 'Usual: a flat ' + money(FLAT) + ' to Miranda (weddings are ' + SPLIT.pct + '%)' : 'Miranda keeps this dollar amount');
-    $('cokeep').innerHTML = t ? esc(who) + "'s pay <b>" + money(Math.max(0, t - mine)) + "</b> · Miranda's share <b>" + money(mine) + '</b>' : '';
-    var other = MODE === 'pct' && $('coval').value !== '' && num('coval') !== SPLIT.pct;
-    $('cosave').hidden = !other; if (other) $('cosave').textContent = 'Make ' + num('coval') + '% the usual';
-    autoDep();
-  }
-  // Deposit follows Miranda's share on a contracted wedding (rounded up to the dollar), $50 otherwise,
-  // until she types her own amount
+  // Nov 1 2026 (Randy): no pay split anymore. Only who's shooting is kept; deposit is $50 unless she types another amount.
+  function split(){ return null; }
+  function keep(){ autoDep(); }
   var DEPMAN = false;
   function autoDep(){
     if (DEPMAN) return;
-    var co = !$('cobox').hidden && $('coname').value.trim(), t = data().total, v = 50, why = '';
-    if (co && isWed() && t) { v = Math.ceil(shareOf(split(), t)); why = "Miranda's full share, paid up front"; }
+    var t = data().total, v = 50;
     if (t && v > t) v = t;
     if (Number($('dep').value) !== v) { $('dep').value = v; update(); }
-    $('depnote').textContent = why;
+    $('depnote').textContent = '';
   }
   try { fetch('/api/booking-counter').then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
     if (j && j.photographers && j.photographers.length) { names = j.photographers; chips(); }
-    if (j && j.split && isFinite(j.split.pct)) { SPLIT = j.split; if (MODE === 'pct' && !TOUCHED) $('coval').value = SPLIT.pct; keep(); }
   }).catch(function(){}); } catch (e) {}
-  chips(); $('coval').value = SPLIT.pct;
+  chips();
   $('coname').addEventListener('input', function(){ chips(); keep(); });
-  $('coval').addEventListener('input', function(){ TOUCHED = true; MANUAL = true; keep(); });
-  $('pk').addEventListener('change', function(){ usual(); }); $('t').addEventListener('change', function(){ usual(); });
-  Array.prototype.forEach.call($('comode').children, function(b){ b.addEventListener('click', function(){ TOUCHED = false; setMode(b.getAttribute('data-m')); if (MODE === 'amt') $('coval').focus(); }); });
-  $('cosave').addEventListener('click', function(e){
-    e.preventDefault(); var pct = num('coval');
-    if (!confirm('Make ' + pct + '% the usual share for Miranda on contracted sessions?')) return;
-    fetch('/api/booking-counter', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'split-default', pct: pct, by: who() }) })
-      .then(function(r){ return r.json(); }).then(function(j){ if (j && j.ok) { SPLIT = j.split; keep(); } else alert("That didn't save. Please try again."); })
-      .catch(function(){ alert("That didn't save. Please check your connection."); });
-  });
   document.addEventListener('input', keep); document.addEventListener('change', keep);
   $('dep').addEventListener('input', function(){ DEPMAN = $('dep').value !== ''; $('depnote').textContent = ''; });
-  $('cotog').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = false; $('cotog').hidden = true; MANUAL = false; usual(); });
-  $('cooff').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = true; $('cotog').hidden = false; $('coname').value = ''; TOUCHED = false; MANUAL = false; setMode('pct', true); chips(); });
+  $('cotog').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = false; $('cotog').hidden = true; keep(); });
+  $('cooff').addEventListener('click', function(e){ e.preventDefault(); $('cobox').hidden = true; $('cotog').hidden = false; $('coname').value = ''; chips(); keep(); });
 
   // Tell the site about this booking before the link goes out (client's phone for the test check, and who's shooting)
   function remember(o){

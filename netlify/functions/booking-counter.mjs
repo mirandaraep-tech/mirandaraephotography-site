@@ -66,7 +66,8 @@ const clip = (v, n = 120) => String(v == null ? "" : v).slice(0, n);
 // Deductions (Oct 16 2026): money taken off a booking from the master page (fewer people, a discount...)
 const lessOf = (b) => cents((b.deducts || []).reduce((s, x) => s + (x.amount || 0), 0));
 const totOf = (b) => cents((b.total || 0) + (b.addons || 0) - lessOf(b));
-const resplit = (b) => { if (b.split) b.payout = cents(totOf(b) - shareOf(b.split, totOf(b))); };
+// Nov 1 2026 (Randy): no more split on contracted sessions. Only who's shooting is kept; the full price counts for Miranda.
+const resplit = (b) => { delete b.split; b.payout = 0; };
 
 function summary(state, live) {
   const payouts = cents(state.payouts || 0);
@@ -339,14 +340,13 @@ export default async (req) => {
       b.photographer = shooter;
       if (shooter) {
         // Usual split (Oct 30 2026): 25% to Miranda, never less than $50, on every session (weddings too)
-        b.split = cleanSplit(data.split) || cleanSplit({ mode: "pct", val: (state.splitDefault || DEFAULT_SPLIT).pct, min: (state.splitDefault || DEFAULT_SPLIT).min });
-        resplit(b);
+        resplit(b); // Nov 1 2026: no split, just who's shooting
         const names = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS.slice();
         if (!names.some((n) => n.toLowerCase() === shooter.toLowerCase())) names.push(shooter);
         state.photographers = names.slice(-12);
         if (counted) { state.contracted = (state.contracted || 0) + 1; state.payouts = cents((state.payouts || 0) + (b.payout || 0)); }
       } else { delete b.split; b.payout = 0; }
-      data.detail = shooter ? "Now shot by " + shooter + " · their pay $" + (b.payout || 0) : "Back to Miranda";
+      data.detail = shooter ? "Now shot by " + shooter : "Back to Miranda";
       state.updated = now; await store.setJSON("state", state);
     }
     else if (a === "deduct") {
@@ -467,7 +467,7 @@ export default async (req) => {
     }
     const test = isTestName(name) || isTestPhone(data.phone) || !!data.testPhone;
     const total = cents(cleanMoney(data.amount));
-    const who = clip(data.photographer, 60).trim(), split = who ? cleanSplit(data.split) : null;
+    const who = clip(data.photographer, 60).trim(), split = null; // Nov 1 2026: no split
     if (!isPast) {
       const sameShooter = (x) => String(x.photographer || "").toLowerCase() === who.toLowerCase();
       const taken = list.find((x) => !x.cancelled && !x.past && !!x.test === test && sameShooter(x) && clash(x, b));
@@ -525,8 +525,7 @@ export default async (req) => {
       const who = String(data.photographer || "").trim().slice(0, 60);
       if (who) {
         p.photographer = who;
-        p.split = cleanSplit(data.split);
-        if (!p.split) p.payout = cleanMoney(data.payout); // older New Booking pages sent a dollar payout
+        delete p.split; p.payout = 0; // Nov 1 2026: no split, just who's shooting
         const names = Array.isArray(state.photographers) && state.photographers.length ? state.photographers : DEFAULT_PHOTOGRAPHERS.slice();
         if (!names.some((n) => n.toLowerCase() === who.toLowerCase())) names.push(who);
         state.photographers = names.slice(-12);
@@ -584,7 +583,7 @@ export default async (req) => {
   }
   const pend = (state.pending || []).find((p) => p.key === key) || null;
   // Photographer's pay for a contracted session: the session total minus Miranda's share
-  if (pend && pend.photographer && pend.split) pend.payout = cents(amount - shareOf(pend.split, amount));
+  if (pend) { delete pend.split; pend.payout = 0; } // Nov 1 2026: no split
   const isTest = isTestName(data.name) || isTestPhone(data.phone) || !!(pend && pend.testPhone);
   const bookings = await getList("bookings");
   // Who's shooting decides whose time it is (Oct 15 2026): a session contracted out (e.g. to Kallie)
