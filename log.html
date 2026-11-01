@@ -357,7 +357,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       try { localStorage.setItem('mrp-log-pass', PASS); } catch (e) {}
       DATA = j; $('lock').hidden = true;
       if (!WHO) { $('whoCard').hidden = false; $('app').hidden = true; return; }
-      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw();
+      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw(); freshPop();
     }).catch(function(){ $('asof').textContent = "Couldn't load. Pull down to refresh."; });
   }
   var PH = { names: ['Kallie'], split: { pct: 25, min: 50 } };
@@ -415,7 +415,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       map[k] = o;
     });
     var cut = new Date(Date.now() - 30 * 86400000).toISOString();
-    return Object.keys(map).filter(function(k){ var o = map[k]; return !bookings.some(function(b){ return bookedAs(o, b); }); }).map(function(k){ var o = map[k]; o.old = o.date ? o.date < TODAY : (o.asked || '') < cut; return o; });
+    // Nov 1 2026: if Miranda worked out a new date by text and sent the link for that date,
+    // the original request card goes away (the "Link texted" card for the new date takes its place)
+    var sentList = Object.keys(map).map(function(k){ return map[k]; }).filter(function(x){ return x.sent; });
+    var moved = function(o){ return !o.sent && sentList.some(function(x){ return x !== o && (x.sent.at || '') >= (o.asked || '') && bookedAs(o, { name: x.name, phone: x.phone, date: x.date }); }); };
+    return Object.keys(map).filter(function(k){ var o = map[k]; return !moved(o) && !bookings.some(function(b){ return bookedAs(o, b); }); }).map(function(k){ var o = map[k]; o.old = o.date ? o.date < TODAY : (o.asked || '') < cut; return o; });
   }
 
   // ---------- Filters ----------
@@ -640,6 +644,60 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     }
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
   }
+  // Nov 1 2026: when the app opens, new requests from the last 24 hours that nobody has answered pop up first.
+  // "Later" just closes it; a lead pops up once each time the app is opened (and again for any newer lead).
+  var SEEN = {};
+  function freshPop(){
+    if (document.querySelector('.veil')) return;
+    var cut = new Date(Date.now() - 86400000).toISOString();
+    var list = inquiries().filter(function(o){ return o.request && !o.sent && !o.old && (o.asked || '') >= cut && (MORE.tests || !o.test) && !SEEN[o.key]; });
+    if (!list.length) return;
+    list.forEach(function(o){ SEEN[o.key] = 1; });
+    list.sort(function(a, b){ return (b.asked || '') < (a.asked || '') ? -1 : 1; });
+    var h = '<h3>🔔 ' + (list.length === 1 ? 'New request' : list.length + ' new requests') + ' in the last 24 hours</h3>';
+    list.forEach(function(o){
+      h += '<div class="card" style="padding:12px;margin:10px 0" data-k="' + esc(o.key) + '"><div class="nm" style="font-size:18px">' + esc(o.name) + '</div>' +
+        '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' + availTag(o) +
+        '<div class="sub">Came in ' + esc(ago(o.asked)) + '</div>' +
+        ((avail(o) || {}).open === false ?
+          '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="build">Link for a new date</button><button class="btn" data-p="itext">Text</button></div></div>' :
+          '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="itext">Text</button><button class="btn" data-p="build">Send Confirm link</button></div></div>');
+    });
+    h += '<div class="acts"><button class="btn ghost" data-x>' + (list.length === 1 ? 'Later' : 'Do all ' + list.length + ' later') + '</button></div>';
+    sheet(h, function(e, v, close){
+      var b = e.target.closest('[data-p]'); if (!b) return;
+      var k = b.closest('[data-k]').getAttribute('data-k'), o = list.filter(function(x){ return x.key === k; })[0];
+      close(); inqAction(o, b.getAttribute('data-p'));
+    });
+  }
+  // Nov 1 2026: is the date they asked for open? Same rule as the Confirm page's slot check
+  // (same date + same time label, only Miranda's own sessions, contracted-out ones don't block her).
+  function guessTime(o){ return o.time || (/sunrise/i.test(o.detail || '') ? 'Sunrise' : /wedding/i.test(o.detail || '') ? 'Wedding' : /sunset/i.test(o.detail || '') ? 'Sunset' : 'Sunset'); }
+  function heldBy(d, t, test){ return (DATA.bookings || []).filter(function(b){ return !b.cancelled && !b.past && !b.photographer && !!b.test === !!test && b.date === d && low(b.time) === low(t); })[0]; }
+  function addDays(d, n){ var x = dt(d); x.setDate(x.getDate() + n); return ymd(x); }
+  function avail(o){
+    if (!o.date || o.date < TODAY) return null;
+    var t = guessTime(o); if (!/^(sunset|sunrise|wedding)$/i.test(t)) return null;
+    var who = heldBy(o.date, t, o.test);
+    if (!who) return { open: true, t: t };
+    var other = low(t) === 'sunset' ? 'Sunrise' : low(t) === 'sunrise' ? 'Sunset' : '', alts = [];
+    if (other && !heldBy(o.date, other, o.test)) alts.push({ d: o.date, t: other });
+    [-1, 1, 2, -2].forEach(function(n){ var d = addDays(o.date, n); if (alts.length < 2 && d >= TODAY && !heldBy(d, t, o.test)) alts.push({ d: d, t: t }); });
+    return { open: false, t: t, who: who, alts: alts };
+  }
+  function slotWords(a, sameDay){ var t = low(a.t); return sameDay ? (t === 'sunrise' ? 'sunrise that same morning' : t + ' that same evening') : t + ' on ' + longDay(a.d); }
+  function availText(o){
+    var a = avail(o), hi = 'Hi ' + first(o.name) + '! This is Miranda with Miranda Rae Photography 😊 ';
+    var place = o.beach && o.beach !== 'Other' ? ' at ' + o.beach : '';
+    if (!o.date) return hi + 'Thanks for reaching out! What date were you thinking for your session?';
+    if (!a) return hi + 'Thanks for reaching out about ' + longDay(o.date) + place + '! ';
+    if (a.open) return hi + 'Good news, ' + longDay(o.date) + (low(a.t) === 'wedding' ? '' : ' at ' + low(a.t)) + place + ' is open! Want me to hold it for you? I can send you a quick link to lock it in.';
+    return hi; // Nov 1 2026: date taken, so Miranda writes this one herself
+  }
+  function availTag(o){
+    var a = avail(o); if (!a) return '';
+    return '<div class="sub" style="color:var(--ink,inherit);font-weight:600">' + (a.open ? '✅ ' + esc(a.t) + ' is open' : '⛔ ' + esc(a.t) + ' is taken (' + esc(first(a.who.name)) + ')') + '</div>';
+  }
   function inqCard(o){
     var open = OPEN === 'i' + o.key, sent = !!o.sent;
     var h = '<div class="bk inq' + (open ? ' open' : '') + '" data-inq="' + esc(o.key) + '">' +
@@ -648,6 +706,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<span class="tg w">' + (sent ? '💬 Link texted' : '📩 New request') + '</span>' +
       '<div class="nm">' + esc(o.name) + '</div>' +
       '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' +
+      (sent ? '' : availTag(o)) +
       '</div><div class="rt">' + (o.time ? sessBtn(o, true) : '') + (o.amount ? '<span class="amt a-inq">' + money(o.amount) + '</span>' : '') +
       '<button class="dep na" type="button" tabindex="-1">' + (sent ? 'Waiting on customer to confirm' : 'Needs reply from Miranda, chop&nbsp;chop!') + '</button>' +
       (o.asked ? '<span class="came">' + (o.request ? 'Came in ' : 'Added ') + esc(shortDay(o.asked)) + '<br>' + ago(o.asked) + '</span>' : '') + '</div></div>';
@@ -658,9 +717,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (o.photographer) L += '<div class="ln mut">📷 Shot by ' + esc(o.photographer) + '</div>';
     L += '<div class="ln mut">📱 ' + (o.phone ? esc(fmtPhone(o.phone)) : 'No phone saved') + '</div>';
     L += '<button class="btn red cxb" data-a="dismiss">Not booking</button>';
-    var R = '<button class="btn b-paid" data-a="build">' + (sent ? 'New link' : 'Send Confirm link') + '</button>';
+    var R = '<button class="btn b-paid" data-a="build">' + (sent ? 'New link' : (avail(o) || {}).open === false ? 'Link for a new date' : 'Send Confirm link') + '</button>';
     if (sent && o.link) R += '<button class="btn ghost" data-a="resend">Text link again</button>';
-    R += '<button class="btn b-con" data-a="iconfirm">Confirmed</button>';
+    R += '<button class="btn b-con" data-a="iconfirm">Mark as booked<br><small style="font-weight:500;font-size:13px;opacity:.85">they said yes by text</small></button>';
     R += '<button class="btn ghost" data-a="itext">Text</button>';
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
   }
@@ -815,9 +874,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     return { el: v, close: close };
   }
   function toast(t){ var d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 2600); }
-  function ask(title, text, yes, no, cb){
-    sheet('<h3>' + title + '</h3>' + (text ? '<p class="muted">' + text + '</p>' : '') + '<div class="acts"><button class="btn ghost" data-x>' + (no || 'No') + '</button><button class="btn" data-yes>' + (yes || 'Yes') + '</button></div>',
-      function(e, v, close){ if (e.target.closest('[data-yes]')) { close(); cb(); } });
+  function ask(title, text, yes, no, cb, cbNo){
+    sheet('<h3>' + title + '</h3>' + (text ? '<p class="muted">' + text + '</p>' : '') + '<div class="acts"><button class="btn ghost" ' + (cbNo ? 'data-no' : 'data-x') + '>' + (no || 'No') + '</button><button class="btn" data-yes>' + (yes || 'Yes') + '</button></div>',
+      function(e, v, close){ if (e.target.closest('[data-yes]')) { close(); cb(); } else if (cbNo && e.target.closest('[data-no]')) { close(); cbNo(); } });
   }
   // Text composer: nothing sends by itself; it opens Messages with the text filled in
   function compose(b, title, msg){
@@ -1059,9 +1118,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'dismiss') return ask('Not booking?', esc(o.name) + ' comes off the Inquiry list. Their request stays in "Everything that came in."', 'Yes, remove', 'No', function(){
       post({ kind: 'dismiss', name: o.name, date: o.date, beach: o.beach, by: WHO, test: o.test }).then(function(){ OPEN = null; load(); });
     });
-    if (a === 'itext') return compose(o, 'Text ' + first(o.name), 'Hi ' + first(o.name) + '! This is Miranda with Miranda Rae Photography. ');
+    if (a === 'itext') return compose(o, 'Text ' + first(o.name), availText(o));
     if (a === 'resend') return compose(o, 'Confirm link', 'Hi ' + first(o.name) + '! Here\'s your confirmation link again. Check your session details, then tap Confirm and pay your deposit to hold your date: ' + o.link);
-    if (a === 'build') return buildSheet(o, false);
+    if (a === 'build') {
+      var av = o.sent ? null : avail(o);
+      if (av && !av.open) return ask(av.t + ' on ' + nice(o.date) + ' is taken', esc(av.who.name) + ' already has it. Text ' + esc(first(o.name)) + ' to find another time, or if you already agreed on a new date, set it on the next screen.', 'Text them', 'I have a new date', function(){ compose(o, 'Text ' + first(o.name), availText(o)); }, function(){ buildSheet(o, false); });
+      return buildSheet(o, false);
+    }
     if (a === 'iconfirm') {
       if (o.sent && o.date && o.amount) return ask('Did ' + esc(first(o.name)) + ' say yes?', 'This books ' + esc(o.name) + ' for ' + esc(nice(o.date)) + (o.time ? ' (' + esc(o.time) + ')' : '') + ' at ' + money(o.amount) + ' without them tapping the link.', 'Yes, book it', 'Not yet', function(){
         bookInquiry(o, { name: o.name, date: o.date, time: o.time, beach: o.beach, pkg: o.pkg, amount: o.amount, dep: o.dep, phone: o.phone, photographer: o.photographer || '' });
