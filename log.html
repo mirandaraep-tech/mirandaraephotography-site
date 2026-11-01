@@ -659,7 +659,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       h += '<div class="card" style="padding:12px;margin:10px 0" data-k="' + esc(o.key) + '"><div class="nm" style="font-size:18px">' + esc(o.name) + '</div>' +
         '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' + availTag(o) +
         '<div class="sub">Came in ' + esc(ago(o.asked)) + '</div>' +
-        '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="itext">Text</button><button class="btn" data-p="build">Send Confirm link</button></div></div>';
+        ((avail(o) || {}).open === false ?
+          '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="build">Link for a new date</button><button class="btn" data-p="itext">Text</button></div></div>' :
+          '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="itext">Text</button><button class="btn" data-p="build">Send Confirm link</button></div></div>');
     });
     h += '<div class="acts"><button class="btn ghost" data-x>' + (list.length === 1 ? 'Later' : 'Do all ' + list.length + ' later') + '</button></div>';
     sheet(h, function(e, v, close){
@@ -715,7 +717,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (o.photographer) L += '<div class="ln mut">📷 Shot by ' + esc(o.photographer) + '</div>';
     L += '<div class="ln mut">📱 ' + (o.phone ? esc(fmtPhone(o.phone)) : 'No phone saved') + '</div>';
     L += '<button class="btn red cxb" data-a="dismiss">Not booking</button>';
-    var R = '<button class="btn b-paid" data-a="build">' + (sent ? 'New link' : 'Send Confirm link') + '</button>';
+    var R = '<button class="btn b-paid" data-a="build">' + (sent ? 'New link' : (avail(o) || {}).open === false ? 'Link for a new date' : 'Send Confirm link') + '</button>';
     if (sent && o.link) R += '<button class="btn ghost" data-a="resend">Text link again</button>';
     R += '<button class="btn b-con" data-a="iconfirm">Mark as booked<br><small style="font-weight:500;font-size:13px;opacity:.85">they said yes by text</small></button>';
     R += '<button class="btn ghost" data-a="itext">Text</button>';
@@ -1120,7 +1122,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'resend') return compose(o, 'Confirm link', 'Hi ' + first(o.name) + '! Here\'s your confirmation link again. Check your session details, then tap Confirm and pay your deposit to hold your date: ' + o.link);
     if (a === 'build') {
       var av = o.sent ? null : avail(o);
-      if (av && !av.open) return ask(av.t + ' on ' + nice(o.date) + ' is taken', esc(av.who.name) + ' already has it. Text ' + esc(first(o.name)) + ' instead?', 'Text them instead', 'Send link anyway', function(){ compose(o, 'Text ' + first(o.name), availText(o)); }, function(){ buildSheet(o, false); });
+      if (av && !av.open) return ask(av.t + ' on ' + nice(o.date) + ' is taken', esc(av.who.name) + ' already has it. Text ' + esc(first(o.name)) + ' to find another time, or if you already agreed on a new date, set it on the next screen.', 'Text them', 'I have a new date', function(){ compose(o, 'Text ' + first(o.name), availText(o)); }, function(){ buildSheet(o, false); });
       return buildSheet(o, false);
     }
     if (a === 'iconfirm') {
