@@ -1691,7 +1691,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var dt = '<b>' + esc(d.date ? nice(d.date) : 'No date yet') + '</b>' + (d.time ? ' · ' + esc(d.time) : '');
     return '<div class="isum">' + (change ? '<button class="dtb" type="button" data-dt>' + dt + ' ✎</button>' : dt) + (d.beach ? '<br>' + esc(d.beach) : '') +
       '<br>' + esc(d.pkg || 'Session') + ' · <b>' + money(d.amount || 0) + '</b>' + (d.photographer ? '<br>📷 ' + esc(d.photographer) + ' shooting' : '') + '</div>' +
-      (change ? '<p style="margin:2px 0 0"><button class="lnk" type="button" data-chg>Change something first</button></p>' : '');
+      (change ? '<div class="acts" style="margin-top:8px"><button class="btn ghost" type="button" data-dt>📅 Change date</button><button class="btn ghost" type="button" data-chg>Change something else</button></div>' : '');
   }
   function inqLine(o){
     return '<div class="nm" style="font-size:19px">' + esc(o.name) + '</div>' +
