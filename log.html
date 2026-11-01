@@ -131,6 +131,13 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 /* Inquiries strip */
 .inqbar{width:100%;display:flex;justify-content:space-between;align-items:center;border:2px solid #f0d58f;background:#fff8e6;color:#7a4f00;border-radius:16px;padding:12px 14px;font-size:16px;font-weight:bold;cursor:pointer;margin-bottom:10px;text-align:left}
 .inqbar span:last-child{font-size:14px;font-weight:normal}
+/* Nov 1 2026: Clean up button and "What happened?" choices */
+.cleanbar{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:2px;border:2px dashed #b9c7cc;background:#fff;color:#33464d;border-radius:16px;padding:10px 14px;font-size:16px;font-weight:bold;cursor:pointer;margin-bottom:10px;text-align:left}
+.cleanbar small{font-weight:normal;font-size:13px;color:#6b7a80}
+.whyb{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:8px 14px}
+.whyb small{font-weight:normal;font-size:13px;opacity:.8}
+.whb{width:100%}
+.tg.q{background:#fff3cd;color:#7a4f00}
 .inqwrap{border-left:3px solid #f0d58f;padding-left:8px;margin-bottom:14px}
 
 /* Booking cards */
@@ -454,6 +461,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     log.forEach(function(e){
       // Oct 30 2026: Miranda said no after Bradyn's yes, so the Confirm link that went out no longer counts
       if (e.kind === 'void') { var vo = map[key(e)]; if (vo) { delete vo.sent; delete vo.link; } return; }
+      if (e.kind === 'waiting') { var w = map[key(e)]; if (w) { w.waiting = e.at; w.last = e.at; } return; }
       if (e.kind !== 'request' && e.kind !== 'sent') return;
       if (!String(e.name || '').trim()) return;
       var k = key(e); if (gone[k]) return;
@@ -468,10 +476,12 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     // the original request card goes away (the "Link texted" card for the new date takes its place)
     var sentList = Object.keys(map).map(function(k){ return map[k]; }).filter(function(x){ return x.sent; });
     var moved = function(o){ return !o.sent && sentList.some(function(x){ return x !== o && (x.sent.at || '') >= (o.asked || '') && bookedAs(o, { name: x.name, phone: x.phone, date: x.date }); }); };
-    var list = Object.keys(map).filter(function(k){ var o = map[k]; return !moved(o) && !bookings.some(function(b){ return bookedAs(o, b); }); }).map(function(k){ var o = map[k]; o.old = o.date ? o.date < TODAY : (o.asked || '') < cut; return o; });
+    var list = Object.keys(map).filter(function(k){ var o = map[k]; return !moved(o) && !bookings.some(function(b){ return bookedAs(o, b); }); }).map(function(k){ var o = map[k]; o.old = o.date ? o.date < TODAY : (o.asked || '') < cut; o.stale = isStale(o); return o; });
     sandyOn(list);
     return list;
   }
+  // Nov 1 2026: nobody has touched it in 7 days (no new request, link, or "Still talking") → "❓ What happened?" tag
+  function isStale(o){ var t = [o.asked, o.sent && o.sent.at, o.waiting].filter(Boolean).sort().pop() || ''; return !!t && t < new Date(Date.now() - 7 * 86400000).toISOString(); }
   // Oct 30 2026: Sandy's side. A card whose customer is penciled in shows ✏️; one Sandy is texting says so.
   // Matched by phone number (same date first). One customer's pencil-in shows on one card only.
   function pencils(){ return ((DATA.sandy && DATA.sandy.requests) || []).filter(function(r){ return r.status === 'penciled' && r.date >= TODAY; }); }
@@ -632,13 +642,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       ih = inq.map(function(o){ return inqCard(o); }).join('');
       if (CON === 'no' && !q) {
         var oldOnes = INQ.filter(function(o){ return o.old; });
-        ih = (inq.length ? '' : '<p class="muted" style="margin:0 4px 12px">No inquiries right now.</p>') + ih +
+        ih = (inq.length ? cleanBtn(inq) : '<p class="muted" style="margin:0 4px 12px">No inquiries right now.</p>') + ih +
           (oldOnes.length || inq.length ? '<p style="text-align:center;margin:6px 0 16px"><button class="lnk" id="clrInq" style="color:var(--bad)">Clear all old inquiries (' + oldOnes.length + ')</button></p>' : '');
       }
     } else if (inq.length) {
       var npen = inq.filter(function(o){ return o.pen; }).length;
       ih = '<button class="inqbar" id="inqTog" type="button"><span>📩 ' + inq.length + ' inquir' + (inq.length === 1 ? 'y' : 'ies') + (npen ? ' · ✏️ ' + npen + ' penciled in' : '') + '</span><span>' + (INQOPEN ? 'Hide ▴' : 'Show ▾') + '</span></button>' +
-        (INQOPEN ? '<div class="inqwrap">' + inq.map(function(o){ return inqCard(o); }).join('') + '</div>' : '');
+        (INQOPEN ? '<div class="inqwrap">' + cleanBtn(inq) + inq.map(function(o){ return inqCard(o); }).join('') + '</div>' : '');
     }
     $('inqBox').innerHTML = ih;
     $('inqAfter').innerHTML = after;
@@ -984,12 +994,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var h = '<div class="bk inq' + (o.pen ? ' pen' : '') + (open ? ' open' : '') + '" data-inq="' + esc(o.key) + '">' +
       '<div class="sum" data-tog role="button" tabindex="0" aria-expanded="' + open + '"><div class="lt">' +
       '<span class="pm">' + (open ? '−' : '+') + '</span>' + (o.test ? '<span class="tg t">TEST</span>' : '') +
-      (o.pen ? '<span class="tg pen">✏️ Penciled in</span>' : '<span class="tg w">' + (sent ? '💬 Link texted' : '📩 New request') + '</span>') +
+      (o.pen ? '<span class="tg pen">✏️ Penciled in</span>' : '<span class="tg w">' + (o.waiting ? '💬 Waiting on them' : sent ? '💬 Link texted' : '📩 New request') + '</span>') +
+      (o.stale && !o.pen ? '<span class="tg q">❓ What happened?</span>' : '') +
       '<div class="nm">' + esc(o.name) + '</div>' +
       '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.time ? (SESS_LBL[sessType(o)] === 'Other' ? o.time : SESS_LBL[sessType(o)].replace('♥ ', '')) : '', o.beach].filter(Boolean).join(' · ')) + '</div>' + (sent ? '' : availTag(o) + askedTag(o)) +
       '</div><div class="rt">' + (o.amount ? '<span class="amt a-inq">' + money(o.amount) + '</span>' : '') +
       (o.pen ? '<button class="dep na pen" type="button" tabindex="-1">✏️ Penciled in ' + esc(slotTxt(o.sreq)) + ', waiting on your OK</button>'
-        : '<button class="dep na" type="button" tabindex="-1">' + (sent ? 'Waiting on customer to confirm' : o.texting ? '💬 Sandy is texting them' : 'Needs reply') + '</button>') +
+        : '<button class="dep na" type="button" tabindex="-1">' + (o.waiting ? 'Still talking it over' : sent ? 'Waiting on customer to confirm' : o.texting ? '💬 Sandy is texting them' : 'Needs reply') + '</button>') +
       (o.asked ? '<span class="came">' + (o.request ? 'Came in ' : 'Added ') + ago(o.asked) + '</span>' : '') + '</div></div>';
     if (!open) return h + '</div>';
     var L = '';
@@ -1001,7 +1012,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     L += '<div class="ln mut">📱 ' + (o.phone ? esc(fmtPhone(o.phone)) : 'No phone saved') + '</div>';
     L += formLines(o);
     if (o.pen) L += '<button class="btn ghost cxb" data-a="unpencil" style="width:100%">✕ Remove pencil-in</button>';
-    L += '<button class="btn red cxb" data-a="dismiss">Not booking</button>';
+    if (o.waiting) L += '<div class="ln mut">💬 Marked "still talking" ' + esc(short(o.waiting)) + '</div>';
+    L += '<button class="btn cxb whb" data-a="what">What happened?</button>';
     var R = '<button class="btn b-paid" data-a="build">' + (sent ? 'New link' : (avail(o) || {}).open === false ? 'Link for a new date' : 'Set up Confirm link') + '</button>';
     if (sent && o.link) R += '<button class="btn ghost" data-a="resend">Text link again</button>';
     R += '<button class="btn b-con" data-a="iconfirm">Mark as booked<br><small style="font-weight:500;font-size:13px;opacity:.85">they said yes by text</small></button>';
@@ -1039,7 +1051,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('mt').innerHTML = line('📸 From her own sessions', own) + line('📷 Her share from contracted sessions' + (n ? ' <span class="muted">(' + n + ')</span>' : ''), share) +
       line('Total to Miranda', own + share, true) + '<p class="muted" style="margin:10px 0 0">Paid to photographers: <b>' + money(paidOut) + '</b>' + (who ? ' (' + who + ')' : '') + '</p>';
   }
-  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', 'shooter-paid': '💸 Photographer paid Miranda', 'paid-shooter': '💸 Miranda paid photographer', review: '⭐ Review asked', ad: '📣 Advertising', 'undo-shooter-paid': '↩️ Photographer payment undone' };
+  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', waiting: '💬 Still talking', 'shooter-paid': '💸 Photographer paid Miranda', 'paid-shooter': '💸 Miranda paid photographer', review: '⭐ Review asked', ad: '📣 Advertising', 'undo-shooter-paid': '↩️ Photographer payment undone' };
   function feed(tests){
     var log = DATA.log || [], done = {};
     log.forEach(function(e){ if (e.kind === 'confirm' || e.kind === 'added') done[low(e.name) + '|' + (e.date || '')] = 1; });
@@ -1223,6 +1235,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   $('app').addEventListener('click', function(e){
     if (e.target.id === 'inqTog' || e.target.closest('#inqTog')) { INQOPEN = !INQOPEN; draw(); return; }
     if (e.target.id === 'clrInq') { clearOld(); return; }
+    if (e.target.closest('#cleanUp')) { cleanUp(); return; }
     var box = e.target.closest('.bk'); if (!box) return;
     var btn = e.target.closest('[data-a]');
     var num = box.getAttribute('data-num'), ik = box.getAttribute('data-inq');
@@ -1431,6 +1444,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // ---------- Inquiry cards ----------
   function inqAction(o, a){
     if (!o) return;
+    if (a === 'what') return whatSheet(o);
     if (a === 'unpencil' && o.sreq) return sheet('<h3>Remove ' + esc(first(o.name)) + '\'s pencil-in?</h3><p class="muted">' + esc(slotTxt(o.sreq)) + (o.sreq.beach ? ' at ' + esc(o.sreq.beach) : '') + '</p>' +
       '<p style="font-size:17px;margin:12px 0 4px"><b>Text them other times?</b></p><p class="muted" style="margin:0">Sandy texts ' + esc(first(o.name)) + ' the closest open sunrises or sunsets.</p>' +
       '<div class="choice"><button class="btn" data-yes>Yes, text other times</button><button class="btn ghost" data-no>No, just remove it</button><button class="btn ghost" data-x>Cancel</button></div>',
@@ -1623,6 +1637,62 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     V.addEventListener('input', function(e){ var f = e.target.getAttribute('data-f'); if (f === 'ppl') PPLMAN = true; if (f === 'dep') { DEPMAN = true; V.querySelector('[data-dn]').textContent = ''; } else if (f === 'base') autoDep(); });
     autoDep(); showTot();
   }
+  // ---------- Nov 1 2026: "What happened?" and Clean up ----------
+  // One button per inquiry card. Booked → book it; Still talking → stays, marked "Waiting on them";
+  // the other three take it off the list (hidden, not erased; the request stays in "Everything that came in").
+  var WHY = [['booked', '✅ Booked', 'They said yes'], ['waiting', '💬 Still talking', 'Keep it on the list'], ['No answer', '🤐 No answer', 'They never wrote back'],
+    ['Went elsewhere', '🚫 Went elsewhere', 'Not interested, or booked someone else'], ['Duplicate or test', '🔁 Duplicate or test', 'Already on here, or just a test']];
+  function whyBtns(){ return '<div class="choice">' + WHY.map(function(w){ return '<button class="btn ghost whyb" data-why="' + w[0] + '"><b>' + w[1] + '</b><small>' + w[2] + '</small></button>'; }).join('') + '</div>'; }
+  function inqLine(o){
+    return '<div class="nm" style="font-size:19px">' + esc(o.name) + '</div><div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' +
+      '<div class="sub">' + (o.waiting ? '💬 Still talking (since ' + esc(shortDay(o.waiting)) + ')' : o.sent ? '💬 Link texted ' + esc(ago(o.sent.at)) : '📩 Came in ' + esc(ago(o.asked))) + '</div>' +
+      (o.detail ? '<div class="sub" style="margin-top:4px">"' + esc(o.detail) + '"</div>' : '');
+  }
+  // Does what the picked answer says. done() runs after it saves (Clean up uses it to show the next one).
+  function applyWhy(o, w, done){
+    if (w === 'booked') { inqAction(o, 'iconfirm'); return; }
+    var body = w === 'waiting' ? { kind: 'waiting', name: o.name, date: o.date, beach: o.beach, by: WHO, test: o.test }
+      : { kind: 'dismiss', why: w, name: o.name, date: o.date, beach: o.beach, by: WHO, test: o.test };
+    post(body).then(function(j){
+      if (!j || !j.ok) { alert("That didn't save. Please try again."); return; }
+      toast(w === 'waiting' ? first(o.name) + ' stays on the list' : first(o.name) + ' taken off the list');
+      if (OPEN === 'i' + o.key) OPEN = null;
+      return load().then(function(){ if (done) done(); });
+    }).catch(function(){ alert("That didn't save. Please check your connection and try again."); });
+  }
+  function whatSheet(o){
+    sheet('<h3>What happened with ' + esc(first(o.name)) + '?</h3>' + inqLine(o) + whyBtns() + '<div class="acts"><button class="btn ghost" data-x>Never mind</button></div>',
+      function(e, v, close){ var b = e.target.closest('[data-why]'); if (!b) return; close(); applyWhy(o, b.getAttribute('data-why')); });
+  }
+  function cleanBtn(inq){
+    var n = inq.length; if (!n) return '';
+    var st = inq.filter(function(o){ return o.stale; }).length;
+    return '<button class="cleanbar" id="cleanUp" type="button"><span>🧹 Clean up</span><small>Go through ' + (n === 1 ? 'it' : 'all ' + n) + ' one at a time' + (st ? ' · ' + st + ' need a look' : '') + '</small></button>';
+  }
+  // Walks through every open inquiry one at a time: the ones nobody's touched in a week first, then oldest first.
+  function cleanUp(){
+    var list = inquiries().filter(function(o){ return (MORE.tests || !o.test) && !o.old; });
+    list.sort(function(a, b){ return (b.stale ? 1 : 0) - (a.stale ? 1 : 0) || (a.asked || '').localeCompare(b.asked || ''); });
+    var keys = list.map(function(o){ return o.key; }), i = 0, total = keys.length;
+    if (!total) { toast('No inquiries to clean up.'); return; }
+    (function next(){
+      var o = null;
+      while (i < keys.length && !(o = findI(keys[i]))) i++;
+      if (!o) { toast('All caught up!'); return; }
+      sheet('<div class="muted" style="font-size:14px;margin-bottom:6px">🧹 ' + (i + 1) + ' of ' + total + '</div>' + inqLine(o) +
+        (o.stale ? '<div class="sub" style="font-weight:600;margin-top:4px">❓ Nothing has happened in over a week</div>' : '') +
+        '<p style="margin:14px 0 0;font-weight:bold">What happened?</p>' + whyBtns() +
+        '<div class="acts"><button class="btn ghost" data-x>Stop for now</button><button class="btn ghost" data-skip>Skip ›</button></div>',
+        function(e, v, close){
+          if (e.target.closest('[data-skip]')) { close(); i++; next(); return; }
+          var b = e.target.closest('[data-why]'); if (!b) return;
+          var w = b.getAttribute('data-why'); close();
+          if (w === 'booked') { i++; inqAction(o, 'iconfirm'); return; }   // booking opens its own form; Clean up stops there
+          i++; applyWhy(o, w, next);
+        });
+    })();
+  }
+
   function clearOld(){
     var old = inquiries().filter(function(o){ return o.old && (MORE.tests || !o.test); });
     if (!old.length) { toast('No old inquiries to clear.'); return; }
