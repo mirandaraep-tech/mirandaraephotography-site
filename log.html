@@ -963,8 +963,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         '<div class="sub" style="margin:0;text-align:right;white-space:nowrap;line-height:1.2"><b>' + esc(new Date(o.asked).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })) + '</b><br>' + esc(ago(o.asked)) + '</div></div>' +
         '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' +
         '<div class="sub">📷 ' + esc(PK[pkIndex(o)][0]) + ' · ' + (travFee(o) ? money(PK[pkIndex(o)][1]) + ' + ' + money(travFee(o)) + ' travel fee = <b>' + money(PK[pkIndex(o)][1] + travFee(o)) + '</b>' : money(o.amount || PK[pkIndex(o)][1])) + '</div>' + availTag(o) + askedTag(o) +
-        (taken || asked(o) ? '<div class="acts" style="margin-top:18px"><button class="btn ghost" data-p="build">' + (taken ? 'Link for a new date' : 'Send Confirm link') + '</button><button class="btn" data-p="itext">Text</button></div></div>'
-               : '<div class="acts" style="margin-top:18px"><button class="btn ghost" data-p="itext">Text</button><button class="btn" data-p="build">Send Confirm link</button></div></div>');
+        (taken || asked(o) ? '<div class="acts" style="margin-top:18px"><button class="btn ghost" data-p="build">' + (taken ? 'Link for a new date' : 'Set up Confirm link') + '</button><button class="btn" data-p="itext">Text</button></div></div>'
+               : '<div class="acts" style="margin-top:18px"><button class="btn ghost" data-p="itext">Text</button><button class="btn" data-p="build">Set up Confirm link</button></div></div>');
     });
     h += '<div class="acts"><button class="btn ghost" data-x>' + (list.length === 1 ? 'Later' : 'Do all ' + list.length + ' later') + '</button></div>';
     sheet(h, function(e, v, close){
@@ -996,7 +996,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     L += formLines(o);
     if (o.pen) L += '<button class="btn ghost cxb" data-a="unpencil" style="width:100%">✕ Remove pencil-in</button>';
     L += '<button class="btn red cxb" data-a="dismiss">Not booking</button>';
-    var R = '<button class="btn b-paid" data-a="build">' + (sent ? 'New link' : (avail(o) || {}).open === false ? 'Link for a new date' : 'Send Confirm link') + '</button>';
+    var R = '<button class="btn b-paid" data-a="build">' + (sent ? 'New link' : (avail(o) || {}).open === false ? 'Link for a new date' : 'Set up Confirm link') + '</button>';
     if (sent && o.link) R += '<button class="btn ghost" data-a="resend">Text link again</button>';
     R += '<button class="btn b-con" data-a="iconfirm">Mark as booked<br><small style="font-weight:500;font-size:13px;opacity:.85">they said yes by text</small></button>';
     R += '<button class="btn ghost" data-a="itext">Text</button>';
