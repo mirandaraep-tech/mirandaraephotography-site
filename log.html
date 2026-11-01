@@ -142,6 +142,8 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .isum b{font-size:17px}
 button.flag{border:0;cursor:pointer;font-family:inherit;text-align:left}
 .whyh{margin:14px 0 0;font-weight:bold}
+.todohd{display:flex;align-items:center;gap:8px;font:bold 19px Georgia,serif;color:var(--ink);margin:22px 4px 10px}
+.todohd span{font:bold 14px Arial,sans-serif;background:var(--ink);color:#fff;border-radius:999px;padding:2px 9px}
 /* Nov 1 2026: what shows when the app opens and nothing is new */
 .opn{font-size:16px;font-weight:bold;margin:0 0 4px}
 .lk{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding:10px 0;animation:lkin .35s ease}
@@ -660,7 +662,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (inq.length) after = '<div class="nbhd">Not booked yet</div>' + inq.map(function(o){ return inqCard(o); }).join('');
     } else if (VIEW === 'todo') {
       // To do: inquiries waiting on Miranda first, then bookings to check
-      if (inq.length) ih = '<div class="nbhd" style="border:0;margin-top:0;padding-top:0">Inquiries</div>' + inq.map(function(o){ return inqCard(o); }).join('') + (rows.length ? '<div class="nbhd">Bookings</div>' : '');
+      // Nov 1 2026: clear headings with counts so it reads as two lists
+      if (inq.length) ih = '<div class="todohd" style="margin-top:0">📩 Inquiries <span>' + inq.length + '</span></div>' + inq.map(function(o){ return inqCard(o); }).join('') + (rows.length ? '<div class="todohd">📷 Booked sessions <span>' + rows.length + '</span></div>' : '');
     } else if (CON === 'no' || q) {
       ih = inq.map(function(o){ return inqCard(o); }).join('');
       if (CON === 'no' && !q) {
