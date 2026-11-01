@@ -894,7 +894,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function askedTag(o){
     var m = asked(o); if (!m) return '';
     if (m.length <= 90) return '<div class="sub" style="font-weight:600">💬 They wrote: <span style="font-weight:400">"' + esc(m) + '"</span></div>';
-    return '<div class="sub" style="font-weight:600" data-msg>💬 They wrote: <span style="font-weight:400" data-short>"' + esc(m.slice(0, 90)) + '…" <button class="lnk" type="button" data-more>Read all</button></span>' +
+    return '<div class="sub" style="font-weight:600" data-msg>💬 They wrote: <span style="font-weight:400" data-short>"' + esc(m.slice(0, 90)) + '…" <button class="lnk" type="button" data-more style="padding:6px 0">Read all</button></span>' +
       '<span style="font-weight:400" data-full hidden>"' + esc(m) + '"</span></div>';
   }
   // "Read all" on a long message (pop-up or card) shows the whole thing in place
@@ -937,9 +937,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       var taken = (avail(o) || {}).open === false;
       h += '<div class="card" style="padding:12px;margin:10px 0" data-k="' + esc(o.key) + '"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><div class="nm" style="font-size:18px">' + esc(o.name) + '</div>' +
         '<div class="sub" style="margin:0;text-align:right;white-space:nowrap;line-height:1.2"><b>' + esc(new Date(o.asked).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })) + '</b><br>' + esc(ago(o.asked)) + '</div></div>' +
-        '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' + availTag(o) + askedTag(o) +
-        (taken || asked(o) ? '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="build">' + (taken ? 'Link for a new date' : 'Send Confirm link') + '</button><button class="btn" data-p="itext">Text</button></div></div>'
-               : '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="itext">Text</button><button class="btn" data-p="build">Send Confirm link</button></div></div>');
+        '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' +
+        '<div class="sub">📷 ' + esc(PK[pkIndex(o)][0]) + ' · ' + money(o.amount || PK[pkIndex(o)][1]) + '</div>' + availTag(o) + askedTag(o) +
+        (taken || asked(o) ? '<div class="acts" style="margin-top:18px"><button class="btn ghost" data-p="build">' + (taken ? 'Link for a new date' : 'Send Confirm link') + '</button><button class="btn" data-p="itext">Text</button></div></div>'
+               : '<div class="acts" style="margin-top:18px"><button class="btn ghost" data-p="itext">Text</button><button class="btn" data-p="build">Send Confirm link</button></div></div>');
     });
     h += '<div class="acts"><button class="btn ghost" data-x>' + (list.length === 1 ? 'Later' : 'Do all ' + list.length + ' later') + '</button></div>';
     sheet(h, function(e, v, close){
@@ -1468,11 +1469,16 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       esc(first(r.name)) + (r.status === 'penciled' ? ' was told they\'re penciled in for ' : ' asked Sandy for ') + esc(slotTxt(r)) + (r.beach ? ' at ' + esc(r.beach) : '') + '. Send ' + esc(first(o.name)) + '\'s anyway? If ' + esc(first(o.name)) + ' books it, Sandy texts ' + esc(first(r.name)) + ' other open times.',
       'Send anyway', 'Go back', go);
   }
-  function buildSheet(o, direct){
+  // Which package the Confirm-link form starts on (Nov 1 2026: shared with the new-request pop-up)
+  function pkIndex(o){
     var far = /Destin|30A|St\. George/i.test(o.beach || ''), pi = far ? 1 : 0;
     // Oct 21 2026: Beach Special and Classic are now one package; older bookings may use either old name
     var wantPk = low(o.pkg || '').replace(/^\$\d+\s*/, ''); if (/^(beach special|classic session)$/.test(wantPk)) wantPk = 'beach special (classic)';
     if (o.pkg) PK.forEach(function(p, i){ if (low(p[0]) === low(o.pkg) || low(p[0]) === wantPk) pi = i; });
+    return pi;
+  }
+  function buildSheet(o, direct){
+    var pi = pkIndex(o);
     var guessT = o.time || (/sunrise/i.test(o.detail || '') ? 'Sunrise' : /wedding/i.test(o.detail || '') ? 'Wedding' : 'Sunset');
     var fl = formLines(o);
     var s = sheet('<h3>' + (direct ? 'Book ' + esc(first(o.name)) + ' (no text)' : 'Confirm link for ' + esc(first(o.name))) + '</h3>' +
