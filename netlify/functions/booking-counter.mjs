@@ -367,9 +367,11 @@ export default async (req) => {
       const nd = day(data.date);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(nd)) return json({ error: "date" });
       const same = (x) => String(x.photographer || "").toLowerCase() === String(b.photographer || "").toLowerCase();
-      const other = list.find((x) => x !== b && !x.cancelled && !!x.test === !!b.test && same(x) && clash(x, { date: nd, time: b.time }));
+      // Nov 1 2026: the time can change along with the date (Sunset / Sunrise / Other)
+      const nt = data.time ? clip(data.time, 30) : b.time;
+      const other = list.find((x) => x !== b && !x.cancelled && !!x.test === !!b.test && same(x) && clash(x, { date: nd, time: nt }));
       if (other) return json({ conflict: true, with: other.num, name: other.name });
-      b.movedFrom = b.date; b.date = nd;
+      b.movedFrom = b.date; b.date = nd; b.time = nt;
       if (data.why) b.movedWhy = clip(data.why, 60); else delete b.movedWhy;
     } else return json({ error: "action" });
     await store.setJSON("bookings", list);

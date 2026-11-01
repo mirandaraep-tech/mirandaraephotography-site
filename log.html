@@ -142,6 +142,15 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .isum b{font-size:17px}
 button.flag{border:0;cursor:pointer;font-family:inherit;text-align:left}
 .whyh{margin:14px 0 0;font-weight:bold}
+/* Nov 1 2026: what shows when the app opens and nothing is new */
+.opn{font-size:16px;font-weight:bold;margin:0 0 4px}
+.lk{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding:10px 0;animation:lkin .35s ease}
+.lk:first-of-type{border-top:0}
+.lk .tx{flex:1;min-width:0;font-size:15px;line-height:1.35}
+.lk .tx b{font-size:16px}
+.lk .btn{min-height:40px;padding:6px 12px;font-size:14px;white-space:nowrap;flex:none}
+@keyframes lkin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.okpop{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);background:#fff;color:var(--ink);border:2px solid var(--line);border-radius:18px;padding:16px 26px;font-size:19px;font-weight:bold;z-index:60;box-shadow:0 10px 30px #0003;transition:opacity .4s}
 .dtb{border:0;background:none;padding:0;font:inherit;color:var(--teal);text-decoration:underline;cursor:pointer;text-align:left}
 .dtb b{font-size:17px}
 .tg.q{background:#fff3cd;color:#7a4f00}
@@ -413,13 +422,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
   // ---------- Loading ----------
   function load(){
+    BUSY++; var un = function(){ BUSY = Math.max(0, BUSY - 1); };
     return fetch(API + '?log=1', { headers: { 'x-pass': PASS }, cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(j){
       if (j.error) { $('app').hidden = true; $('whoCard').hidden = true; $('lock').hidden = false; if (PASS) $('perr').hidden = false; return; }
       try { localStorage.setItem('mrp-log-pass', PASS); } catch (e) {}
       DATA = j; $('lock').hidden = true;
       if (!WHO) { $('whoCard').hidden = false; $('app').hidden = true; return; }
-      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw(); freshPop(); openAlert();
-    }).catch(function(){ $('asof').textContent = "Couldn't load. Pull down to refresh."; });
+      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw(); if (OPENING) { OPENING = false; markOpen(); if (!freshPop()) openNote(); } else { freshPop(); lookAgain(); } openAlert();
+    }).then(un, function(){ un(); $('asof').textContent = "Couldn't load. Pull down to refresh."; });
   }
   var PH = { names: ['Kallie'], split: { pct: 20, min: 0 }, adPct: 20 };
   try { fetch(API).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ if (j && j.photographers && j.photographers.length) PH.names = j.photographers; if (j && j.split && isFinite(j.split.pct)) PH.split = j.split; if (j && isFinite(j.adPct)) PH.adPct = j.adPct; }).catch(function(){}); } catch (e) {}
@@ -976,7 +986,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (document.querySelector('.veil')) return;
     var cut = new Date(Date.now() - 86400000).toISOString();
     var list = inquiries().filter(function(o){ return o.request && !o.sent && !o.pen && !o.texting && !o.old && (o.asked || '') >= cut && (MORE.tests || !o.test) && !SEEN[o.key]; });
-    if (!list.length) return;
+    if (!list.length) return false;
     list.forEach(function(o){ SEEN[o.key] = 1; });
     list.sort(function(a, b){ return (b.asked || '') < (a.asked || '') ? -1 : 1; });
     var h = '<h3>🔔 ' + (list.length === 1 ? 'New request' : list.length + ' new requests') + ' in the last 24 hours</h3>';
@@ -995,7 +1005,74 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       var k = b.closest('[data-k]').getAttribute('data-k'), o = list.filter(function(x){ return x.key === k; })[0];
       close(); inqAction(o, b.getAttribute('data-p'));
     });
+    return true;
   }
+  // ---------- Nov 1 2026: when the app opens and nothing is new ----------
+  // "✓ Nothing new since you last checked" + up to 3 things to look at (most important first), each with one button.
+  // Finish one and the next slides up. "Later" closes it; it comes back the next time the app is opened.
+  // Nothing to do at all → "✓ All caught up" for a couple of seconds.
+  var OPENING = true, LASTOPEN = Date.now(), LOOKON = false, BUSY = 0, PREV = 0;
+  // when this phone last opened the app (for "since you last checked"), then remember this open
+  function markOpen(){ LASTOPEN = Date.now(); try { PREV = Number(localStorage.getItem('mrp-last-open') || 0); localStorage.setItem('mrp-last-open', String(Date.now())); } catch (e) {} }
+  function lookItems(){
+    var tst = function(x){ return MORE.tests || !x.test; }, out = [];
+    var bks = (DATA.bookings || []).filter(tst);
+    // 1) booked sessions whose date passed and still owe (the money ones)
+    bks.filter(function(b){ return flagged(b); }).sort(function(a, b){ return (a.shot ? 1 : 0) - (b.shot ? 1 : 0) || (a.date || '').localeCompare(b.date || ''); }).forEach(function(b){
+      out.push({ b: b, a: 'passed', ic: b.shot ? '📸' : '⚠️', why: b.shot ? 'shot, still owes ' + money(due(b)) : 'date passed, owes ' + money(due(b)), btn: 'What happened?' });
+    });
+    // 2) inquiries whose date passed, or nobody has touched in a week
+    inquiries().filter(function(o){ return tst(o) && !o.pen && (isPastDay(o.date) || (o.stale && !o.old)); }).sort(function(a, b){ return (a.asked || '').localeCompare(b.asked || ''); }).forEach(function(o){
+      var last = [o.asked, o.sent && o.sent.at, o.waiting].filter(Boolean).sort().pop() || '', days = Math.floor((Date.now() - new Date(last)) / 86400000);
+      out.push({ o: o, ic: isPastDay(o.date) ? '📆' : '❓', why: isPastDay(o.date) ? 'date passed, never booked' : 'no reply in ' + days + ' days', btn: 'What happened?' });
+    });
+    // 3) upcoming sessions with no deposit yet, soonest first
+    bks.filter(function(b){ return !b.cancelled && !b.past && (b.date || '') >= TODAY && !b.deposit && !b.paid && tot(b) > 0; }).sort(function(a, b){ return (a.date || '').localeCompare(b.date || ''); }).forEach(function(b){
+      out.push({ b: b, a: 'dep', ic: '💰', why: 'no deposit yet', btn: 'Deposit received' });
+    });
+    return out;
+  }
+  function sinceTxt(t){
+    if (!t) return '';
+    var d = new Date(t), tm = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }), dy = ymd(d);
+    return ' ' + (dy === TODAY ? 'today at ' : dy === ymd(new Date(Date.now() - 86400000)) ? 'yesterday at ' : 'on ' + d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' at ') + tm;
+  }
+  // Nov 1 2026 (Randy): the "few to look at" list shows once a week: the first time the app is opened on a
+  // Sunday, or the next day she opens it if she skipped Sunday. Other days, nothing new just shows
+  // "✓ No new requests" for a couple of seconds and goes away by itself.
+  function weekOf(d){ var t = dt(d); t.setDate(t.getDate() - t.getDay()); return ymd(t); }   // that week's Sunday
+  function openNote(){
+    var wk = weekOf(TODAY), done = ''; try { done = localStorage.getItem('mrp-look-week') || ''; } catch (e) {}
+    if (done < wk && lookItems().length) { try { localStorage.setItem('mrp-look-week', wk); } catch (e) {} lookPop(); return; }
+    caughtUp('✓ No new requests');
+  }
+  function caughtUp(t){
+    var d = document.createElement('div'); d.className = 'okpop'; d.textContent = t || '✓ All caught up'; document.body.appendChild(d);
+    setTimeout(function(){ d.style.opacity = '0'; }, 1800); setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 2300);
+  }
+  function lookPop(){
+    var all = lookItems();
+    if (!all.length) { LOOKON = false; caughtUp(); return; }
+    LOOKON = true;
+    var top = all.slice(0, 3);
+    var h = '<p class="opn" style="margin:0">✓ No new requests</p>' + (PREV ? '<p class="muted" style="margin:2px 0 0;font-size:14px">Since you last opened the app' + sinceTxt(PREV) + '</p>' : '') + '<h3 style="margin:12px 0 4px">This week, a few to look at</h3>' +
+      top.map(function(x, i){ var it = x.b || x.o;
+        return '<div class="lk"><div class="tx">' + x.ic + ' <b>' + esc(it.name) + '</b> · ' + esc(it.date ? nice(it.date).replace(/^\w+, /, '') : 'no date') + '<br><span class="muted">' + esc(x.why) + '</span></div><button class="btn ghost" data-li="' + i + '">' + x.btn + '</button></div>'; }).join('') +
+      (all.length > 3 ? '<p style="margin:8px 0 0"><button class="lnk" data-all>🧹 See all ' + all.length + '</button></p>' : '') +
+      '<div class="acts"><button class="btn ghost" data-later>Later</button></div>';
+    var sh = sheet(h, function(e, v, close){
+      if (e.target.closest('[data-later]')) { LOOKON = false; close(); return; }
+      if (e.target.closest('[data-all]')) { LOOKON = false; close(); VIEW = 'todo'; DAY = ''; OPEN = null; draw(); window.scrollTo({ top: 0 }); return; }
+      var li = e.target.closest('[data-li]'); if (!li) return;
+      var x = top[Number(li.getAttribute('data-li'))]; close();
+      if (x.o) whatSheet(x.o); else bookingAction(x.b, x.a);
+    });
+    // tapping the dark area outside closes it like Later
+    sh.el.addEventListener('click', function(e){ if (e.target === sh.el) LOOKON = false; });
+  }
+  // After she finishes one (or backs out of it), the list comes back with that one gone
+  function lookAgain(){ setTimeout(function(){ if (LOOKON && !BUSY && !document.querySelector('.veil')) lookPop(); }, 350); }
+  new MutationObserver(function(){ if (LOOKON && !document.querySelector('.veil')) lookAgain(); }).observe($('sheetHost'), { childList: true });
   function inqCard(o){
     var open = OPEN === 'i' + o.key, sent = !!o.sent && !o.pen;
     var h = '<div class="bk inq' + (o.pen ? ' pen' : '') + (open ? ' open' : '') + '" data-inq="' + esc(o.key) + '">' +
@@ -1216,7 +1293,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function msgRemind(b){ return 'Hi ' + first(b.name) + '! Just a reminder about your ' + tWord(b) + 'session tomorrow (' + longDay(b.date) + ')' + at(b) + '. Text me if anything changes. See you then!'; }
 
   // ---------- Saving changes ----------
-  function post(body){ body.pass = PASS; return fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify(body) }).then(function(r){ return r.json(); }); }
+  function post(body){ body.pass = PASS; BUSY++; var done = function(x){ BUSY = Math.max(0, BUSY - 1); return x; }; return fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify(body) }).then(function(r){ return r.json(); }).then(done, function(e){ done(); throw e; }); }
   function act(b, action, extra){
     var body = { kind: 'status', num: b.num, action: action, by: WHO }; for (var k in (extra || {})) body[k] = extra[k];
     return post(body).then(function(j){
@@ -1653,7 +1730,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // the other three take it off the list (hidden, not erased; the request stays in "Everything that came in").
   // Nov 1 2026 (later): "Booked" split in two (deposit paid / no deposit yet); a date that's passed gets
   // "It happened, paid in full" instead. The weather choices live on booked cards (an inquiry never paid a deposit).
-  var WHY = [['dep', '✅ Booked, deposit paid', 'They paid the deposit'], ['nodep', '📅 Booked, no deposit yet', 'They said yes, deposit still coming'],
+  var WHY = [['dep', '✅ Booked, deposit paid', 'They paid the deposit'], ['nodep', '⏳ Booked, no deposit yet', 'They said yes, deposit still coming'],
     ['full', '✅ It happened, paid in full', 'Adds it as a past session, marked paid'],
     ['waiting', '💬 Still talking', 'Keep it on the list'], ['No answer', '🤐 No answer', 'They never wrote back'],
     ['Went elsewhere', '🚫 Went elsewhere', 'Not interested, or booked someone else'], ['Duplicate or test', '🔁 Duplicate or test', 'Already on here, or just a test']];
@@ -1675,17 +1752,20 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // Nov 1 2026: tap the date in the gray box → calendar + Sunset / Sunrise / Other
   function datePick(d, cb){
     var T = ['Sunset', 'Sunrise', 'Other'];
-    sheet('<h3>Change the date</h3><p class="muted">' + esc(d.name) + '</p><label class="l">New date</label><input data-d type="date" value="' + esc(d.date || '') + '">' +
+    var dp = sheet('<h3>Change the date</h3><p class="muted">' + esc(d.name) + '</p><label class="l">New date</label><input data-d type="date" value="' + esc(d.date || '') + '">' +
       '<label class="l">Time</label><div class="chips" data-tm>' + T.map(function(t){ return '<button class="chip' + (low(d.time) === low(t) ? ' on' : '') + '" type="button" data-t="' + t + '">' + t + '</button>'; }).join('') + '</div>' +
+      '<p class="flag" data-warn hidden style="display:block;margin-top:10px"></p>' +
       '<p class="err" data-e hidden>Pick a date.</p><div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Use this date</button></div>',
       function(e, v, close){
         var c = e.target.closest('[data-t]');
-        if (c) { Array.prototype.forEach.call(v.querySelectorAll('[data-t]'), function(x){ x.classList.toggle('on', x === c); }); return; }
+        if (c) { Array.prototype.forEach.call(v.querySelectorAll('[data-t]'), function(x){ x.classList.toggle('on', x === c); }); warnLine(v); return; }
         if (!e.target.closest('[data-save]')) return;
         var nd = v.querySelector('[data-d]').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(nd)) { v.querySelector('[data-e]').hidden = false; return; }
         var on = v.querySelector('[data-t].on');
         close(); cb(nd, on ? on.getAttribute('data-t') : d.time);
       });
+    dp.el.querySelector('[data-d]').addEventListener('input', function(){ warnLine(dp.el); });
+    warnLine(dp.el);
   }
   function dealBox(d, change){
     var dt = '<b>' + esc(d.date ? nice(d.date) : 'No date yet') + '</b>' + (d.time ? ' · ' + esc(d.time) : '');
@@ -1723,7 +1803,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var past = isPastDay(d.date);
     sheet('<h3>' + (past ? 'Did ' + esc(first(d.name)) + '\'s session happen?' : 'Book ' + esc(first(d.name)) + '?') + '</h3>' + dealBox(d, !fromForm) +
       '<div class="choice">' + (past ? '<button class="btn whyb" data-why="full"><b>✅ It happened, paid in full</b><small>Adds it as a past session, marked paid</small></button>'
-        : '<button class="btn whyb" data-why="dep"><b>✅ Booked, deposit paid</b><small>They paid the deposit</small></button><button class="btn ghost whyb" data-why="nodep"><b>📅 Booked, no deposit yet</b><small>They said yes, deposit still coming</small></button>') +
+        : '<button class="btn whyb" data-why="dep"><b>✅ Booked, deposit paid</b><small>They paid the deposit</small></button><button class="btn ghost whyb" data-why="nodep"><b>⏳ Booked, no deposit yet</b><small>They said yes, deposit still coming</small></button>') +
       '</div><div class="acts"><button class="btn ghost" data-x>Never mind</button></div>',
       function(e, v, close){
         if (e.target.closest('[data-dt]')) { close(); datePick(d, function(nd, nt){ bookedSheet(o, Object.assign({}, d, { date: nd, time: nt }), done, fromForm); }); return; }
@@ -1790,10 +1870,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     sheet('<h3>What happened with ' + esc(first(b.name)) + '\'s session?</h3>' +
       '<div class="isum"><b>' + esc(b.date ? nice(b.date) : '') + '</b>' + (b.time ? ' · ' + esc(b.time) : '') + (b.beach ? '<br>' + esc(b.beach) : '') +
       '<br>' + esc(b.pkg || 'Session') + ' · <b>' + money(tot(b)) + '</b><br>' + (dep ? money(dep) + ' deposit in · ' : 'No deposit marked · ') + 'owes ' + money(owed) + '</div>' +
+      // Nov 1 2026: same top buttons as the inquiry boxes
+      '<div class="acts" style="margin-top:8px"><button class="btn ghost" type="button" data-p="date">📅 Change date</button><button class="btn ghost" type="button" data-p="edit">Change something else</button></div>' +
       '<div class="choice">' +
       opt('paid', '📸 Shot it, paid in full', 'Marks the last ' + money(owed) + ' paid', true) +
       (b.shot ? '<p class="muted" style="margin:0">Already marked shot, still owes ' + money(owed) + ' (<button class="lnk" data-p="undo-shot">undo</button>)</p>' : opt('owes', '💵 Shot it, still owes money', 'Stays in To do until it\'s paid')) +
-      opt('moved', '🌧️ Weather, moved to another day', 'Pick the new date') +
       opt('weather', '🌧️ Weather, couldn\'t reschedule, deposit kept', 'Cancels it; the deposit counts as collected') +
       opt('noshow', '🚫 They canceled or didn\'t show, deposit kept', 'Cancels it; the deposit counts as collected') +
       '</div><div class="acts"><button class="btn ghost" data-x>Never mind</button></div>',
@@ -1803,9 +1884,41 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         if (k === 'paid') return paidSheet(b);
         if (k === 'owes') return act(b, 'shot').then(function(nb){ if (nb) toast(first(b.name) + ' stays in To do until paid'); });
         if (k === 'undo-shot') return act(b, 'undo-shot');
-        if (k === 'moved') return moveSheet(b, 'Weather');
+        if (k === 'date') return moveWhySheet(b);
+        if (k === 'edit') return editSheet(b);
         keptSheet(b, k === 'weather' ? 'Weather, couldn\'t reschedule' : 'Canceled or no-show');
       });
+  }
+  // Nov 1 2026: someone already booked for that date and time (warning only; she can still go ahead)
+  function takenBy(d, t, skip){
+    if (!d || !t || low(t) === 'other') return null;
+    return (DATA.bookings || []).filter(function(x){ return x !== skip && !x.cancelled && !x.past && x.date === d && low(x.time) === low(t) && (MORE.tests || !x.test); })[0] || null;
+  }
+  function warnLine(v, skip){
+    var d = v.querySelector('[data-d]').value, on = v.querySelector('[data-t].on'), t = on ? on.getAttribute('data-t') : '', w = v.querySelector('[data-warn]');
+    var x = takenBy(d, t, skip);
+    w.hidden = !x; if (x) w.textContent = '⚠️ ' + x.name + ' already has ' + nice(d).replace(/^\w+, /, '') + ' ' + low(t) + (x.photographer ? ' (' + x.photographer + ' shooting)' : '');
+  }
+  // Change date from the Date passed box: new date plus why it moved (weather moves get counted)
+  function moveWhySheet(b){
+    var W = ['Weather', 'They asked', 'Other'], T = ['Sunset', 'Sunrise', 'Other'];
+    var s2 = sheet('<h3>Change the date</h3><p class="muted">' + esc(b.name) + '</p><label class="l">New date</label><input data-d type="date" value="">' +
+      '<label class="l">Time</label><div class="chips">' + T.map(function(t){ return '<button class="chip' + (low(b.time) === low(t) ? ' on' : '') + '" type="button" data-t="' + t + '">' + t + '</button>'; }).join('') + '</div>' +
+      '<p class="flag" data-warn hidden style="display:block;margin-top:10px"></p>' +
+      '<label class="l">Why?</label><div class="chips">' + W.map(function(w){ return '<button class="chip" type="button" data-w="' + w + '">' + w + '</button>'; }).join('') + '</div>' +
+      '<p class="err" data-e hidden>Pick the new date.</p><div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save new date</button></div>',
+      function(e, v, close){
+        var c = e.target.closest('[data-w]');
+        if (c) { Array.prototype.forEach.call(v.querySelectorAll('[data-w]'), function(x){ x.classList.toggle('on', x === c); }); return; }
+        var tc = e.target.closest('[data-t]');
+        if (tc) { Array.prototype.forEach.call(v.querySelectorAll('[data-t]'), function(x){ x.classList.toggle('on', x === tc); }); warnLine(v, b); return; }
+        if (!e.target.closest('[data-save]')) return;
+        var nd = v.querySelector('[data-d]').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(nd) || nd === b.date) { v.querySelector('[data-e]').hidden = false; return; }
+        var w = v.querySelector('[data-w].on'), why = w ? w.getAttribute('data-w') : '', ton = v.querySelector('[data-t].on'), nt = ton ? ton.getAttribute('data-t') : '';
+        var body = { date: nd }; if (why) body.why = why; if (nt && low(nt) !== low(b.time)) body.time = nt;
+        close(); act(b, 'move', body).then(function(nb){ if (nb) ask('Text the new date to customer?', '', 'Yes', 'No', function(){ compose(nb, 'Date change', msgMoved(nb)); }); });
+      });
+    s2.el.querySelector('[data-d]').addEventListener('input', function(){ warnLine(s2.el, b); });
   }
   function keptSheet(b, why){
     var dep = (b.deposit && b.deposit.amount) || 0;
@@ -1847,7 +1960,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   $('unlock').addEventListener('click', function(){ PASS = $('pass').value.trim(); $('perr').hidden = true; load(); });
   $('pass').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('unlock').click(); });
   $('forget').addEventListener('click', function(e){ e.preventDefault(); try { localStorage.removeItem('mrp-log-pass'); } catch (x) {} PASS = ''; $('app').hidden = true; $('lock').hidden = false; });
-  document.addEventListener('visibilitychange', function(){ if (!document.hidden && DATA && !document.querySelector('.veil')) { refreshDay(); load(); } });
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden && DATA && !document.querySelector('.veil')) { if (Date.now() - LASTOPEN > 30 * 60000) OPENING = true; refreshDay(); load(); } });
   if (PASS) load(); else $('lock').hidden = false;
 })();
 </script>
