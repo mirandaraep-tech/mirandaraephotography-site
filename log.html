@@ -662,9 +662,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (!o.date) return hi + 'Thanks for reaching out! What date were you thinking for your session?';
     if (!a) return hi + 'Thanks for reaching out about ' + longDay(o.date) + place + '! ';
     if (a.open) return hi + 'Good news, ' + longDay(o.date) + (low(a.t) === 'wedding' ? '' : ' at ' + low(a.t)) + place + ' is open! Want me to hold it for you? I can send you a quick link to lock it in.';
-    var opts = a.alts.map(function(x){ return slotWords(x, x.d === o.date); });
-    return hi + 'Thanks for reaching out! ' + (low(a.t) === 'wedding' ? 'I already have a wedding on ' + longDay(o.date) : a.t.charAt(0).toUpperCase() + low(a.t).slice(1) + ' on ' + longDay(o.date) + ' is already booked') + ', ' +
-      (opts.length ? 'but I have ' + opts.join(', or ') + ' open. Would either of those work for you?' : 'but I would love to find you another date. What other days work for you?');
+    return hi; // Nov 1 2026: date taken, so Miranda writes this one herself
   }
   function availTag(o){
     var a = avail(o); if (!a) return '';
@@ -1094,7 +1092,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'resend') return compose(o, 'Confirm link', 'Hi ' + first(o.name) + '! Here\'s your confirmation link again. Check your session details, then tap Confirm and pay your deposit to hold your date: ' + o.link);
     if (a === 'build') {
       var av = o.sent ? null : avail(o);
-      if (av && !av.open) return ask(av.t + ' on ' + nice(o.date) + ' is taken', esc(av.who.name) + ' already has it. Text ' + esc(first(o.name)) + ' other open times instead?', 'Text other times', 'Send link anyway', function(){ compose(o, 'Text ' + first(o.name), availText(o)); }, function(){ buildSheet(o, false); });
+      if (av && !av.open) return ask(av.t + ' on ' + nice(o.date) + ' is taken', esc(av.who.name) + ' already has it. Text ' + esc(first(o.name)) + ' instead?', 'Text them instead', 'Send link anyway', function(){ compose(o, 'Text ' + first(o.name), availText(o)); }, function(){ buildSheet(o, false); });
       return buildSheet(o, false);
     }
     if (a === 'iconfirm') {
