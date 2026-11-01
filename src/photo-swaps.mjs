@@ -23,6 +23,7 @@ const BOOKINGS_PASS_SHA256 = "37ba3881108bf3e48180350246c5959b9481633d0cb1d8694f
 const PIX = "https://images-pw.pixieset.com/site/B8woOD/";
 const headers = { "Cache-Control": "no-store" };
 const BEACHES = ["Mexico Beach", "Port St. Joe", "Cape San Blas", "Panama City Beach", "St. George Island", "Destin", "30A", "Not at a beach"];
+const EDITABLE = new Set(["index"]); // pages /my-photos may change: home page only (Randy, Oct 31 2026)
 const KINDS = ["Family", "Couples", "Wedding", "Maternity", "Proposal", "Senior"];
 
 // Pages that are private, retired, or are the full portfolio (those already show every photo)
@@ -243,7 +244,9 @@ export async function photoSwapsApi(req, env) {
   const role = await roleOf(req, live);
   if (!role) { await tooManyTries(live, true); return j({ error: "passcode" }, 403); }
 
-  const pages = await inventory(env, url.origin);
+  // Oct 31 2026: Randy decided /my-photos can only change the HOME PAGE photos for now. Every other page stays as built
+  // (a swap already saved on another page keeps showing; it just can't be changed from /my-photos).
+  const pages = (await inventory(env, url.origin)).filter((p) => EDITABLE.has(p.stem));
   if (req.method === "GET") {
     const s = await loadState(live, true);
     let picks = { favs: [], top: [] };
