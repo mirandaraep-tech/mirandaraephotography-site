@@ -903,9 +903,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     e.stopPropagation(); var w = b.closest('[data-msg]');
     w.querySelector('[data-short]').hidden = true; w.querySelector('[data-full]').hidden = false;
   }, true);
+  // Nov 1 2026: the booking holding that time hasn't paid its deposit yet, so the spot isn't locked in
+  function noDep(b){ return !!(b && b.num && !b.deposit && !b.paid); }
   function availTag(o){
     var a = avail(o); if (!a) return '';
-    return '<div class="sub" style="font-weight:600">' + (a.open ? '✅ ' + esc(a.t) + ' is open' : '⛔ ' + esc(a.t) + ' is taken (' + esc(first(a.who.name)) + ')') + '</div>';
+    return '<div class="sub" style="font-weight:600">' + (a.open ? '✅ ' + esc(a.t) + ' is open' : '⛔ ' + esc(a.t) + ' is taken (' + esc(first(a.who.name)) + ')' + (noDep(a.who) ? ' · ⚠️ no deposit yet' : '')) + '</div>';
   }
   // Nov 1 2026: Randy wants an email whenever Miranda or Bradyn opens the Bookings app.
   // Goes to mirandaraep@gmail.com only. At most once every 30 minutes per phone, so switching
@@ -1421,7 +1423,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'resend') return compose(o, 'Confirm link', 'Hi ' + first(o.name) + '! Here\'s your confirmation link again. Check your session details, then tap Confirm and pay your deposit to hold your date: ' + o.link);
     if (a === 'build') {
       var av = o.sent ? null : avail(o);
-      if (av && !av.open) return ask(av.t + ' on ' + nice(o.date) + ' is taken', esc(av.who.name) + ' already has it. Text ' + esc(first(o.name)) + ' to find another time, or if you already agreed on a new date, set it on the next screen.', 'Text them', 'I have a new date', function(){ compose(o, 'Text ' + first(o.name), availText(o)); }, function(){ buildSheet(o, false); });
+      if (av && !av.open) return ask(av.t + ' on ' + nice(o.date) + ' is taken', esc(av.who.name) + ' already has it' + (noDep(av.who) ? ' (no deposit yet)' : '') + '. Text ' + esc(first(o.name)) + ' to find another time, or if you already agreed on a new date, set it on the next screen.', 'Text them', 'I have a new date', function(){ compose(o, 'Text ' + first(o.name), availText(o)); }, function(){ buildSheet(o, false); });
       return buildSheet(o, false);
     }
     if (a === 'iconfirm') {
