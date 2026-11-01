@@ -254,9 +254,13 @@ export default async (req) => {
       const keep = data.deposit === "keep";
       const kept = keep ? cents(cleanMoney(data.amount) || dep) : 0;
       b.cancelled = { at: now, by: who, ...(data.deposit ? { deposit: keep ? "kept" : "returned" } : {}), ...(kept ? { kept } : {}),
-        ...(!keep && (cleanMoney(data.amount) || dep) ? { returned: cents(cleanMoney(data.amount) || dep) } : {}) };
+        ...(!keep && (cleanMoney(data.amount) || dep) ? { returned: cents(cleanMoney(data.amount) || dep) } : {}),
+        ...(data.why ? { why: clip(data.why, 60) } : {}) };
     }
     else if (a === "undo-cancel") delete b.cancelled;
+    // Nov 1 2026: "Shot it, still owes money" from the Date passed button. The session happened; the balance is still due.
+    else if (a === "shot") b.shot = { at: now, by: who };
+    else if (a === "undo-shot") delete b.shot;
     // Photographer owes Miranda (Oct 20 2026): on a contracted session the photographer collects the balance;
     // "Kallie paid me" records Miranda's part of it being handed over
     else if (a === "shooter-paid") {
@@ -366,14 +370,16 @@ export default async (req) => {
       const other = list.find((x) => x !== b && !x.cancelled && !!x.test === !!b.test && same(x) && clash(x, { date: nd, time: b.time }));
       if (other) return json({ conflict: true, with: other.num, name: other.name });
       b.movedFrom = b.date; b.date = nd;
+      if (data.why) b.movedWhy = clip(data.why, 60); else delete b.movedWhy;
     } else return json({ error: "action" });
     await store.setJSON("bookings", list);
     if (a === "edit" && data.fields && data.fields.total != null) { state.updated = now; await store.setJSON("state", state); }
     const amt = a === "deposit" ? b.deposit.amount : a === "paid" ? b.paid.amount : a === "deduct" ? b.deducts[b.deducts.length - 1].amount : a === "shooter-paid" ? b.shooterPaid[b.shooterPaid.length - 1].amount : a === "paid-shooter" ? b.paidShooter[b.paidShooter.length - 1].amount : 0;
     const cxd = a === "cancel" && b.cancelled.deposit ? (b.cancelled.deposit === "kept" ? "Deposit kept" + (b.cancelled.kept ? " $" + b.cancelled.kept : "") : "Deposit returned" + (b.cancelled.returned ? " $" + b.cancelled.returned : "")) : "";
+    const cxw = a === "cancel" && b.cancelled.why ? b.cancelled.why + (cxd ? " · " + cxd : "") : cxd;
     await logIt({ kind: a === "move" ? "moved" : a, num: b.num, name: b.name, amount: amt, by: who, test: !!b.test,
-      ...(a === "move" ? { date: b.date, detail: "Moved from " + b.movedFrom } : a === "deduct" ? { detail: b.deducts[b.deducts.length - 1].why }
-        : a === "edit" || a === "photographer" || a === "shooter-paid" || a === "paid-shooter" || a === "review" || a === "ad" ? { detail: data.detail } : cxd ? { detail: cxd } : {}) });
+      ...(a === "move" ? { date: b.date, detail: "Moved from " + b.movedFrom + (b.movedWhy ? " (" + b.movedWhy + ")" : "") } : a === "deduct" ? { detail: b.deducts[b.deducts.length - 1].why }
+        : a === "edit" || a === "photographer" || a === "shooter-paid" || a === "paid-shooter" || a === "review" || a === "ad" ? { detail: data.detail } : cxw ? { detail: cxw } : {}) });
     return json({ ok: true, booking: b });
   }
   // Sandy (Oct 30 2026): Miranda said no to a time after Bradyn's yes, before the deposit. The Confirm link that
