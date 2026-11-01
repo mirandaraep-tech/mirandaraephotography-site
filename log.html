@@ -658,9 +658,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     } else if (CON === 'no' || q) {
       ih = inq.map(function(o){ return inqCard(o); }).join('');
       if (CON === 'no' && !q) {
-        var oldOnes = INQ.filter(function(o){ return o.old; });
-        ih = cleanBtn(inq) + (inq.length ? '' : '<p class="muted" style="margin:0 4px 12px">No inquiries right now.</p>') + ih +
-          (oldOnes.length || inq.length ? '<p style="text-align:center;margin:6px 0 16px"><button class="lnk" id="clrInq" style="color:var(--bad)">Clear all old inquiries (' + oldOnes.length + ')</button></p>' : '');
+        ih = cleanBtn(inq) + (inq.length ? '' : '<p class="muted" style="margin:0 4px 12px">No inquiries right now.</p>') + ih;
       }
     } else if (inq.length) {
       var npen = inq.filter(function(o){ return o.pen; }).length;
@@ -1097,10 +1095,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     L += formLines(o);
     if (o.pen) L += '<button class="btn ghost cxb" data-a="unpencil" style="width:100%">✕ Remove pencil-in</button>';
     if (o.waiting) L += '<div class="ln mut">💬 Marked "still talking" ' + esc(short(o.waiting)) + '</div>';
-    L += '<button class="btn cxb whb" data-a="what">What happened?</button>';
     var R = '<button class="btn b-paid" data-a="build">' + (sent ? 'New link' : (avail(o) || {}).open === false ? 'Link for a new date' : 'Set up Confirm link') + '</button>';
     if (sent && o.link) R += '<button class="btn ghost" data-a="resend">Text link again</button>';
-    R += '<button class="btn b-con" data-a="iconfirm">Mark as booked<br><small style="font-weight:500;font-size:13px;opacity:.85">they said yes by text</small></button>';
+    // Nov 1 2026: "Mark as booked" folded into What happened? (Booked, deposit paid / no deposit yet)
+    R += '<button class="btn b-con" data-a="what">What happened?<br><small style="font-weight:500;font-size:13px;opacity:.85">booked, still talking, no answer…</small></button>';
     R += '<button class="btn ghost" data-a="itext">Text</button>';
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
   }
