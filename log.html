@@ -1037,13 +1037,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var d = new Date(t), tm = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }), dy = ymd(d);
     return ' ' + (dy === TODAY ? 'today at ' : dy === ymd(new Date(Date.now() - 86400000)) ? 'yesterday at ' : 'on ' + d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' at ') + tm;
   }
-  // Nov 1 2026 (Randy): the "few to look at" list shows once a week: the first time the app is opened on a
-  // Sunday, or the next day she opens it if she skipped Sunday. Other days, nothing new just shows
+  // Nov 1 2026 (Randy): the "few to look at" list shows once a week, on Sundays only: the first time the app is
+  // opened on a Sunday with no new requests. If she skips Sunday, it waits for next Sunday. Other days, nothing new just shows
   // "✓ No new requests" for a couple of seconds and goes away by itself.
   function weekOf(d){ var t = dt(d); t.setDate(t.getDate() - t.getDay()); return ymd(t); }   // that week's Sunday
   function openNote(){
     var wk = weekOf(TODAY), done = ''; try { done = localStorage.getItem('mrp-look-week') || ''; } catch (e) {}
-    if (done < wk && lookItems().length) { try { localStorage.setItem('mrp-look-week', wk); } catch (e) {} lookPop(); return; }
+    if (dt(TODAY).getDay() === 0 && done < wk && lookItems().length) { try { localStorage.setItem('mrp-look-week', wk); } catch (e) {} lookPop(); return; }
     caughtUp('✓ No new requests');
   }
   function caughtUp(t){
