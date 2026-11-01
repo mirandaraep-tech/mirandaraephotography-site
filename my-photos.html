@@ -216,11 +216,25 @@ input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);bord
     return fetch("/api/photo-swaps", { method: method, headers: { "x-pass": PASS, "Content-Type": "application/json" }, cache: "no-store", body: body ? JSON.stringify(body) : undefined })
       .then(function(r){ return r.json().then(function(j){ j._status = r.status; return j; }); });
   }
+  // Oct 31 2026: Randy wants an email whenever someone opens/signs in to this page (skipped for Randy's own phone and test copies).
+  // Sent once per page open, to mirandaraep@gmail.com only.
+  var alerted = false;
+  function loginAlert(j){
+    if (alerted || j.test) return; alerted = true;
+    var who = ""; try { who = localStorage.getItem("mrp-who") || ""; } catch (e) {}
+    if (/^randy$/i.test(who)) return;
+    var name = j.role === "miranda" ? "Miranda (her own passcode)" : (who || "Someone") + " (Bookings passcode)";
+    var phone = /iPhone|iPad/.test(navigator.userAgent) ? "iPhone/iPad" : /Android/.test(navigator.userAgent) ? "Android phone" : "computer";
+    try { fetch("/api/notify", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ _subject: "🔑 PHOTO PAGE OPENED: " + (who || "someone"), _template: "table", _captcha: "false",
+        "Who": name, "When": new Date().toLocaleString("en-US", { timeZone: "America/Chicago" }) + " Central", "Device": phone }) }); } catch (e) {}
+  }
   function load(){
     return api("GET").then(function(j){
       if (j.error) { show("lock"); if (PASS) { $("perr").textContent = j.error === "wait" ? "Too many tries. Wait 15 minutes and try again." : "That passcode didn't work."; $("perr").hidden = false; } return false; }
       try { localStorage.setItem("mrp-photos-pass", PASS); } catch (e) {}
       DATA = j; $("testbar").hidden = !j.test;
+      loginAlert(j);
       return true;
     }).catch(function(){ show("lock"); $("perr").textContent = "Couldn't reach the website. Check your signal and try again."; $("perr").hidden = false; return false; });
   }
