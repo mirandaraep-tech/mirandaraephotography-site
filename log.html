@@ -238,6 +238,12 @@ a.tel{color:var(--teal);font-weight:bold;text-decoration:none}
 .sheet .acts .btn{flex:1;min-height:50px}
 .money{display:flex;align-items:center;gap:6px}
 .money b{font-size:20px}
+.mbox{background:#f6f9fa;border:1px solid #e1ecef;border-radius:12px;padding:2px 12px 12px;margin-top:6px}
+.xrow{display:grid;grid-template-columns:1.5fr 1fr;gap:10px;align-items:end}
+.tbox{background:#f6f9fa;border-radius:12px;padding:6px 12px;margin-top:10px;font-size:15px}
+.tbox .tl{display:flex;justify-content:space-between;gap:10px;padding:4px 0}
+.tbox .tl.minus{color:#2f8a4e}
+.tbox .tl.big{font-weight:bold;font-size:17px;border-top:1px solid #dfe8eb;margin-top:4px;padding-top:7px}
 .choice{display:flex;flex-direction:column;gap:8px;margin-top:12px}
 .choice .btn{min-height:50px;width:100%}
 .note{background:#f3f6f7;border-radius:10px;padding:8px 10px;font-size:13px;color:var(--muted);margin-top:10px}
@@ -1521,7 +1527,18 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<div><label class="l">Price</label><div class="money"><b>$</b><input data-f="base" type="number" inputmode="decimal" value="' + (o.amount || PK[pi][1]) + '"></div></div></div>' +
       '<label style="display:flex;gap:10px;align-items:center;margin:12px 0 0"><input type="checkbox" data-trav style="width:22px;height:22px"' + (travFee(o) ? ' checked' : '') + '><span><b>Travel fee</b> <span class="muted">(Destin, 30A, St. George Island)</span></span>' +
       '<span class="money" style="margin-left:auto;max-width:110px"><b>$</b><input data-f="trav" type="number" inputmode="decimal" value="30"></span></label>' +
-      '<div class="muted" data-tot style="margin-top:6px;font-weight:600"></div>' +
+      // Nov 1 2026: extras like the New Booking page, tucked behind "+ More options" so the form stays short
+      '<p style="margin:10px 0 0"><button class="lnk" type="button" data-opts>+ More options</button> <span class="muted" style="font-size:13px">people, extras, discount</span></p>' +
+      '<div data-mbox hidden class="mbox">' +
+        '<label class="l">Number of people</label><input data-f="ppl" value="' + esc(PK[pi][3]) + '" placeholder="e.g. 8">' +
+        [['xp', 'Extra people', 'e.g. 2 more people'], ['xf', 'Extra photos', 'e.g. 10 more photos'], ['xt', 'Extra time', 'e.g. 15 more minutes']].map(function(r){
+          return '<div class="xrow"><div><label class="l">' + r[1] + '</label><input data-f="' + r[0] + 'd" placeholder="' + r[2] + '"></div>' +
+            '<div><label class="l">Amount</label><div class="money"><b>$</b><input data-f="' + r[0] + '" type="number" inputmode="decimal" min="0"></div></div></div>';
+        }).join('') +
+        '<div class="xrow"><div><label class="l">Discount reason <span style="font-weight:normal">(customer sees it)</span></label><input data-f="drd" placeholder="e.g. Returning client"></div>' +
+          '<div><label class="l">Amount off</label><div class="money"><b>$</b><input data-f="dc" type="number" inputmode="decimal" min="0"></div></div></div>' +
+      '</div>' +
+      '<div class="tbox" data-tot></div>' +
       '<label class="l">Deposit</label><div class="money"><b>$</b><input data-f="dep" type="number" inputmode="decimal" value="50"></div><div class="muted" data-dn style="font-size:13px;margin-top:4px"></div>' +
       '<label class="l">Who\'s shooting</label><div class="chips" data-who><button class="chip on" type="button" data-n="">Miranda</button>' + PH.names.filter(function(n){ return low(n) !== 'miranda'; }).map(function(n){ return '<button class="chip" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>' +
       '<p class="err" data-e hidden>Fill in the name and date first.</p>' +
@@ -1536,7 +1553,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         if (!g('n') || !/^\d{4}-\d{2}-\d{2}$/.test(g('d'))) { v.querySelector('[data-e]').hidden = false; return; }
         var p = PK[Number(g('pk'))], base = Math.round((parseFloat(g('base')) || 0) * 100) / 100, sh = (v.querySelector('[data-n].on') || {}).getAttribute ? v.querySelector('[data-n].on').getAttribute('data-n') : '';
         var trav = v.querySelector('[data-trav]').checked ? Math.round((parseFloat(g('trav')) || 0) * 100) / 100 : 0;
-        var lk = { v: 1, n: g('n'), d: g('d'), t: g('t'), b: g('b'), pk: p[0], base: base, len: p[2], ppl: p[3], ph: p[4], x: trav ? [['Travel fee' + (g('b') && g('b') !== 'Other' ? ' (' + g('b') + ')' : ''), trav]] : [], dc: 0, dr: '', note: '', by: WHO, total: base + trav };
+        var ex = extras();
+        var lk = { v: 1, n: g('n'), d: g('d'), t: g('t'), b: g('b'), pk: p[0], base: base, len: p[2], ppl: g('ppl'), ph: p[4], x: ex.x, dc: ex.dc, dr: ex.dr, note: '', by: WHO, total: ex.total };
         var dp = Math.round((parseFloat(g('dep')) || 50) * 100) / 100; if (dp !== 50) lk.dep = dp;
         if (sh) lk.sh = sh;
         var sp = sh ? usualSplit({ time: lk.t, pkg: lk.pk }) : null;
@@ -1565,7 +1583,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         compose({ name: lk.n, phone: ph }, 'Confirm link', confirmText(lk, url, dp));
         setTimeout(load, 1500);
     }
-    var DEPMAN = false, V = s.el;
+    var DEPMAN = false, PPLMAN = false, V = s.el;
     function autoDep(){
       if (DEPMAN) return;
       var sh = V.querySelector('[data-n].on').getAttribute('data-n'), t = parseFloat(V.querySelector('[data-f="base"]').value) || 0;
@@ -1574,18 +1592,35 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (t && d > t) d = t;
       V.querySelector('[data-f="dep"]').value = d; V.querySelector('[data-dn]').textContent = why;
     }
-    // Nov 1 2026: running total under the travel fee, e.g. "Total: $199 + $30 travel fee = $229"
-    function showTot(){
-      var b = parseFloat(V.querySelector('[data-f="base"]').value) || 0, tv = V.querySelector('[data-trav]').checked ? (parseFloat(V.querySelector('[data-f="trav"]').value) || 0) : 0;
-      V.querySelector('[data-tot]').textContent = tv ? 'Total: ' + money(b) + ' + ' + money(tv) + ' travel fee = ' + money(b + tv) : 'Total: ' + money(b);
+    // Nov 1 2026: every extra is its own line (same lines the customer sees on the Confirm page), then the total
+    function extras(){
+      var f = function(k){ return V.querySelector('[data-f="' + k + '"]').value.trim(); };
+      var amt = function(k){ var n = parseFloat(f(k)); return isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : 0; };
+      var base = amt('base'), x = [], b = f('b');
+      if (V.querySelector('[data-trav]').checked && amt('trav')) x.push(['Travel fee' + (b && b !== 'Other' ? ' (' + b + ')' : ''), amt('trav')]);
+      [['xp', 'Extra people'], ['xf', 'Extra photos'], ['xt', 'Extra time']].forEach(function(r){ if (amt(r[0])) x.push([f(r[0] + 'd') || r[1], amt(r[0])]); });
+      var dc = amt('dc'), sum = base; x.forEach(function(e){ sum += e[1]; });
+      return { base: base, x: x, dc: dc, dr: dc ? f('drd') : '', total: Math.max(0, Math.round((sum - dc) * 100) / 100) };
     }
+    function showTot(){
+      var e = extras(), row = function(a, b, c){ return '<div class="tl' + (c || '') + '"><span>' + a + '</span><span>' + b + '</span></div>'; };
+      var h = row(esc(PK[Number(V.querySelector('[data-f="pk"]').value)][0]), money(e.base));
+      e.x.forEach(function(x){ h += row('+ ' + esc(x[0]), money(x[1])); });
+      if (e.dc) h += row('− Discount' + (e.dr ? ': ' + esc(e.dr) : ''), '−' + money(e.dc), ' minus');
+      V.querySelector('[data-tot]').innerHTML = h + row('Total', money(e.total), ' big');
+    }
+    V.addEventListener('click', function(e){
+      var m = e.target.closest('[data-opts]'); if (!m) return;
+      var box = V.querySelector('[data-mbox]'); box.hidden = !box.hidden;
+      m.textContent = box.hidden ? '+ More options' : '− Fewer options';
+    });
     V.addEventListener('change', function(e){
       var f = e.target.getAttribute('data-f');
-      if (f === 'pk') V.querySelector('[data-f="base"]').value = PK[Number(e.target.value)][1];
+      if (f === 'pk') { V.querySelector('[data-f="base"]').value = PK[Number(e.target.value)][1]; if (!PPLMAN) V.querySelector('[data-f="ppl"]').value = PK[Number(e.target.value)][3]; }
       if (f === 'b') V.querySelector('[data-trav]').checked = farBeach(e.target.value);
       autoDep(); showTot(); });
     V.addEventListener('input', showTot);
-    V.addEventListener('input', function(e){ var f = e.target.getAttribute('data-f'); if (f === 'dep') { DEPMAN = true; V.querySelector('[data-dn]').textContent = ''; } else if (f === 'base') autoDep(); });
+    V.addEventListener('input', function(e){ var f = e.target.getAttribute('data-f'); if (f === 'ppl') PPLMAN = true; if (f === 'dep') { DEPMAN = true; V.querySelector('[data-dn]').textContent = ''; } else if (f === 'base') autoDep(); });
     autoDep(); showTot();
   }
   function clearOld(){
