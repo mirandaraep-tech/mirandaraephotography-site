@@ -657,7 +657,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         '<div class="sub">Came in ' + esc(ago(o.asked)) + '</div>' +
         '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="itext">Text</button><button class="btn" data-p="build">Send Confirm link</button></div></div>';
     });
-    h += '<div class="acts"><button class="btn ghost" data-x>Later</button></div>';
+    h += '<div class="acts"><button class="btn ghost" data-x>' + (list.length === 1 ? 'Later' : 'Do all ' + list.length + ' later') + '</button></div>';
     sheet(h, function(e, v, close){
       var b = e.target.closest('[data-p]'); if (!b) return;
       var k = b.closest('[data-k]').getAttribute('data-k'), o = list.filter(function(x){ return x.key === k; })[0];
