@@ -893,8 +893,16 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function asked(o){ var m = String((o.form && o.form.message) || '').trim(); return m; }
   function askedTag(o){
     var m = asked(o); if (!m) return '';
-    return '<div class="sub" style="font-weight:600">💬 They asked: <span style="font-weight:400">"' + esc(m.length > 90 ? m.slice(0, 90) + '…' : m) + '"</span></div>';
+    if (m.length <= 90) return '<div class="sub" style="font-weight:600">💬 They wrote: <span style="font-weight:400">"' + esc(m) + '"</span></div>';
+    return '<div class="sub" style="font-weight:600" data-msg>💬 They wrote: <span style="font-weight:400" data-short>"' + esc(m.slice(0, 90)) + '…" <button class="lnk" type="button" data-more>Read all</button></span>' +
+      '<span style="font-weight:400" data-full hidden>"' + esc(m) + '"</span></div>';
   }
+  // "Read all" on a long message (pop-up or card) shows the whole thing in place
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-more]'); if (!b) return;
+    e.stopPropagation(); var w = b.closest('[data-msg]');
+    w.querySelector('[data-short]').hidden = true; w.querySelector('[data-full]').hidden = false;
+  }, true);
   function availTag(o){
     var a = avail(o); if (!a) return '';
     return '<div class="sub" style="font-weight:600">' + (a.open ? '✅ ' + esc(a.t) + ' is open' : '⛔ ' + esc(a.t) + ' is taken (' + esc(first(a.who.name)) + ')') + '</div>';
