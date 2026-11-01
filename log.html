@@ -239,19 +239,14 @@ a.tel{color:var(--teal);font-weight:bold;text-decoration:none}
 .money{display:flex;align-items:center;gap:6px}
 .money b{font-size:20px}
 .choice{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-/* Confirm-link form (Nov 1 2026): sections, extras rows, travel fee, client total */
-.sheet .sec{font:bold 12px Arial,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);margin:18px 0 0;padding-top:12px;border-top:1px solid #eee5da}
-.sheet .sec span{letter-spacing:0;text-transform:none;font-weight:normal;color:var(--muted)}
+/* Confirm-link form (Nov 1 2026): short form, extras behind "+ More options" */
 .sheet .xrow{display:grid;grid-template-columns:1.6fr 1fr;gap:10px;align-items:end}
-.sheet .trav{display:flex;gap:10px;align-items:center;margin:10px 0 0;font-size:15px}
+.sheet .trav{display:flex;gap:10px;align-items:center;margin:12px 0 0;font-size:15px}
 .sheet .trav input[type=checkbox]{width:24px;height:24px;flex:none}
 .sheet .trav .money{margin-left:auto;max-width:110px}
-.sheet .ctot{border:2px solid var(--teal);border-radius:12px;padding:10px 12px;background:#eef7f8;margin-top:6px}
-.sheet .ctot .tl{display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:2px 0}
-.sheet .ctot .tl small,.sheet .ctot>small{color:var(--muted);font-size:13px}
-.sheet .ctot .tl.off{color:#2f8a4e}
-.sheet .ctot .tl.big{font-weight:bold;font-size:19px;border-top:1px solid #bcdde3;margin-top:6px;padding-top:6px}
-.sheet .btn.wide{width:100%;min-height:52px;margin-top:14px}
+.sheet .ctot{background:#eef7f8;border-radius:10px;padding:10px 12px;margin-top:12px;font-size:16px}
+.sheet .ctot b{font-size:19px}
+.sheet .lnk.more{display:block;margin:12px 0 0;text-align:left;font-size:15px}
 .choice .btn{min-height:50px;width:100%}
 .note{background:#f3f6f7;border-radius:10px;padding:8px 10px;font-size:13px;color:var(--muted);margin-top:10px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:12px;padding:10px 16px;font-size:15px;z-index:60;box-shadow:0 8px 24px #0004}
@@ -377,29 +372,25 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function less(b){ return (b.deducts || []).reduce(function(s, x){ return s + (x.amount || 0); }, 0); }
   function tot(b){ return Math.round(((b.total || 0) + (b.addons || 0) - less(b)) * 100) / 100; }
   function shareOf(sp, t){ var v = sp.mode === 'amt' ? sp.val : Math.max(t * sp.val / 100, sp.min || 0); return Math.round(Math.min(Math.max(0, t), v) * 100) / 100; }
-  function payOf(b){ if (!b.photographer) return 0; return b.split ? Math.round((tot(b) - shareOf(b.split, tot(b))) * 100) / 100 : (b.payout || 0); }
-  function mineOf(b){ return Math.max(0, tot(b) - payOf(b)); }
+  // Nov 1 2026 (Randy): no more pay split when Kallie or someone else shoots. Only who's shooting is kept;
+  // every booking counts in full, the same as Miranda's own sessions.
+  function payOf(b){ return 0; }
+  function mineOf(b){ return tot(b); }
   function collOf(b){ return Math.min(tot(b), ((b.deposit && b.deposit.amount) || 0) + ((b.paid && b.paid.amount) || 0)); }
   // What Miranda keeps of the money collected: all of it on her own sessions, only her share on contracted ones
   // On a contracted session Miranda gets the deposit; the photographer collects the balance and hands over
   // whatever else is Miranda's ("Kallie paid me")
   // Oct 30 2026: Miranda held more than her share (her deposit), so she owes the photographer the difference
   function paidOut(b){ return (b.paidShooter || []).reduce(function(s, x){ return s + (x.amount || 0); }, 0); }
-  function mirandaOwes(b){
-    if (!b.photographer || b.cancelled || !(b.paid || (b.date && b.date < TODAY))) return 0;
-    return Math.max(0, Math.round((((b.deposit && b.deposit.amount) || 0) + handed(b) - paidOut(b) - mineOf(b)) * 100) / 100);
-  }
+  function mirandaOwes(b){ return 0; }
   function handed(b){ return (b.shooterPaid || []).reduce(function(s, x){ return s + (x.amount || 0); }, 0); }
   function keepOf(b){
     // Cancelled with the deposit kept: Miranda keeps all of it, even on a contracted session (nobody else worked)
     if (b.cancelled) return b.cancelled.kept || 0;
-    return b.photographer ? Math.min(mineOf(b), ((b.deposit && b.deposit.amount) || 0) + handed(b)) : collOf(b);
+    return collOf(b);
   }
   // The photographer owes Miranda once they've collected the balance (Paid in Full) and her share isn't covered yet
-  function shooterOwes(b){
-    if (!b.photographer || b.cancelled || !b.paid) return 0;
-    return Math.max(0, Math.round((mineOf(b) - keepOf(b)) * 100) / 100);
-  }
+  function shooterOwes(b){ return 0; }
   function due(b){ return Math.max(0, Math.round((tot(b) - ((b.deposit && b.deposit.amount) || 0) - ((b.paid && b.paid.amount) || 0)) * 100) / 100); }
   function flagged(b){ return !b.inq && !b.cancelled && !b.past && b.date && b.date < TODAY && due(b) > 0; }
   function real(b){ return !b.inq && !b.test && !b.past; }
@@ -524,7 +515,6 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function fitsMore(b){
     if (MORE.bal === 'owes' && (b.inq || due(b) <= 0)) return false;
     if (MORE.bal === 'paid' && (b.inq || due(b) > 0)) return false;
-    if (MORE.bal === 'shooter' && (b.inq || !shooterOwes(b))) return false;
     if (MORE.status === 'upcoming' && !((b.date || '') >= TODAY)) return false;
     if (MORE.status === 'completed' && (b.inq || !(b.date && b.date < TODAY))) return false;
     if (MORE.status === 'needs' && !flagged(b)) return false;
@@ -552,7 +542,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     // On a contracted session only Miranda's share counts in the boxes (the photographer keeps the rest),
     // so Booked = Collected + Still to collect always adds up
     pool.forEach(function(b){ keep += keepOf(b); if (b.cancelled) return; n++;
-      if (b.photographer) { booked += mineOf(b); owe += Math.max(0, mineOf(b) - keepOf(b)); } else { booked += tot(b); owe += due(b); } });
+      booked += tot(b); owe += due(b); });
     var up = all.filter(function(b){ return real(b) && !b.cancelled && (b.date || '') >= TODAY; }).length;
     var SHORT = { current: 'Current', today: 'Today', tomorrow: 'Tomorrow', week: 'This week', month: 'This month', year: 'This year', lastyear: 'Last year', all: 'All' };
     $('tPer').textContent = (DAY ? nice(DAY) : SHORT[PERIODS[PI][0]]) + ' ↻';
@@ -819,13 +809,12 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       // Oct 30 2026: the session time goes in the date line (change it with Edit)
       '<div class="sub">' + esc([b.date ? nice(b.date) : 'No date', b.time ? SESS_LBL[sessType(b)] === 'Other' ? b.time : SESS_LBL[sessType(b)].replace('♥ ', '') : '', b.beach].filter(Boolean).join(' · ')) + '</div>' +
       (fl ? '<div class="flag">⚠️ Date passed — shot or moved?</div>' : '') +
-      (so ? '<div class="flag owes">💸 ' + esc(b.photographer) + ' owes Miranda ' + money(so) + '</div>' : mirandaOwes(b) ? '<div class="flag owes">💸 Miranda owes ' + esc(b.photographer) + ' ' + money(mirandaOwes(b)) + '</div>' : '') +
       '</div><div class="rt">' + moneyBtn(b) + '</div></div>';
     if (!open) return h + '</div>';
     // Inside the card (Oct 30 2026): a money receipt, a tappable phone, and three buttons (Text, Edit, Photographer)
     var L = '<div class="ln mut">' + (b.past ? 'Past entry' : b.num < 101 ? 'Early booking' : b.num < 900000 ? '#' + b.num : 'Test') + (b.by ? ' · set up by ' + esc(b.by) : '') + '</div>' +
       // Oct 30 2026: who's shooting is always shown; Miranda unless another photographer is set
-      (b.photographer ? '' : '<div class="ln"><b style="color:#4b42b8">📷 Miranda shooting</b></div>');
+      '<div class="ln"><b style="color:#4b42b8">📷 ' + esc(b.photographer || 'Miranda') + ' shooting</b></div>';
     if (b.phone) L += '<div class="ln"><a class="tel" href="tel:+1' + esc(String(b.phone).replace(/\D/g, '').slice(-10)) + '">📱 ' + esc(fmtPhone(b.phone)) + ' · Call</a></div>';
     var row = function(l, v, cls){ return '<div' + (cls ? ' class="' + cls + '"' : '') + '><span>' + l + '</span><span>' + v + '</span></div>'; };
     var R2 = row(esc(b.pkg || 'Session'), money(b.total || 0));
@@ -839,19 +828,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (b.addons || (b.deducts || []).length) R2 += row('Total', money(total), 'tt');
     // Oct 30 2026: Miranda collects the deposit; on a contracted session the photographer collects the rest
     if (b.deposit) R2 += row('Deposit', '−' + money(b.deposit.amount));
-    if (b.paid) R2 += row((b.photographer ? 'Rest paid to ' + esc(b.photographer) : 'Paid') + (b.paid.method ? ' (' + esc(b.paid.method) + ')' : '') + ' ' + esc(short(b.paid.at)), '−' + money(b.paid.amount));
-    if (!b.cancelled) R2 += row(owed > 0 ? (b.photographer ? 'Photographer collects' : 'Left to pay') : 'Paid in full ✓', money(owed), 'tt');
-    // Contracted session (Oct 30 2026): the split goes on the same receipt
-    if (b.photographer) {
-      var how = b.split ? (b.split.mode === 'amt' ? '' : ' (' + b.split.val + '%' + (b.split.min ? ', at least ' + money(b.split.min) : '') + ')') : '';
-      R2 += '<div class="sp">📷 ' + esc(b.photographer) + ' shooting</div>' + row(esc(b.photographer) + "'s pay", money(payOf(b))) + row('Miranda\'s share' + how, money(mineOf(b)));
-      (b.shooterPaid || []).forEach(function(x, i, arr){ R2 += row(esc(b.photographer) + ' paid Miranda ' + esc(short(x.at)) + (i === arr.length - 1 ? ' <button class="lnk" data-a="undo-shooter-paid">undo</button>' : ''), money(x.amount)); });
-      (b.paidShooter || []).forEach(function(x, i, arr){ R2 += row('Miranda paid ' + esc(b.photographer) + ' ' + esc(short(x.at)) + (i === arr.length - 1 ? ' <button class="lnk" data-a="undo-paid-shooter">undo</button>' : ''), money(x.amount)); });
-      var mo = mirandaOwes(b);
-      if (so) R2 += row('💸 ' + esc(b.photographer) + ' owes Miranda', money(so), 'tt');
-      else if (mo) R2 += row('💸 Miranda owes ' + esc(b.photographer), money(mo), 'tt');
-      else if (b.paid && !b.cancelled) R2 += '<div class="tt"><span>✓ All settled with ' + esc(b.photographer) + '</span><span></span></div>';
-    }
+    if (b.paid) R2 += row('Paid' + (b.paid.method ? ' (' + esc(b.paid.method) + ')' : '') + ' ' + esc(short(b.paid.at)), '−' + money(b.paid.amount));
+    if (!b.cancelled) R2 += row(owed > 0 ? 'Left to pay' : 'Paid in full ✓', money(owed), 'tt');
     // Advertising (Oct 30 2026): what an ad cost for this booking, taken from Miranda's part
     if (b.ad && (b.ad.val || (b.ad.items || []).length)) {
       R2 += '<div class="sp"><span class="sq sm"></span></div>';
@@ -859,8 +837,6 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       (b.ad.items || []).forEach(function(i){ R2 += row(esc(i.what || ''), '−' + money(i.amt)); });
     }
     L += '<div class="rcpt">' + R2 + '</div>';
-    if (b.photographer && so) L += '<button class="btn" data-a="shooter-paid" style="width:100%;margin-bottom:8px">' + esc(b.photographer) + ' paid me ' + money(so) + '</button>';
-    else if (b.photographer && mirandaOwes(b)) L += '<button class="btn" data-a="paid-shooter" style="width:100%;margin-bottom:8px">I paid ' + esc(b.photographer) + ' ' + money(mirandaOwes(b)) + '</button>';
     if (b.cancelled) L += '<div class="kv">Cancelled ' + esc(short(b.cancelled.at)) + (b.cancelled.by ? ' by ' + esc(b.cancelled.by) : '') + (b.cancelled.kept ? ' · kept ' + money(b.cancelled.kept) : b.cancelled.returned ? ' · returned ' + money(b.cancelled.returned) : '') + '</div>';
     if (b.notes) L += '<div class="kv">Notes – <b>' + esc(b.notes) + '</b></div>';
     if (b.reviewAsked) L += '<div class="kv">⭐ Review asked – <b>' + esc(b.reviewAsked.site) + '</b> · ' + esc(short(b.reviewAsked.at)) + '</div>';
@@ -1019,13 +995,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
   // ---------- Spreadsheet view ----------
   function table(rows){
-    var h = '<div class="card" style="padding:10px"><div class="tbl"><table><tr><th>#</th><th>Date</th><th>Time</th><th>Client</th><th>Beach</th><th>Package</th><th>Total</th><th>Deposit</th><th>Paid in full</th><th>Still due</th><th>Photographer</th><th>Their pay</th><th>Miranda&#39;s share</th><th>Set up by</th><th>Status</th></tr>';
+    var h = '<div class="card" style="padding:10px"><div class="tbl"><table><tr><th>#</th><th>Date</th><th>Time</th><th>Client</th><th>Beach</th><th>Package</th><th>Total</th><th>Deposit</th><th>Paid in full</th><th>Still due</th><th>Photographer</th><th>Set up by</th><th>Status</th></tr>';
     rows.forEach(function(b){
       h += '<tr class="' + (b.cancelled ? 'cx' : '') + (b.test ? ' tst' : '') + '"><td>' + (b.past ? 'past' : b.num < 101 ? 'early' : b.num < 900000 ? b.num : 'test') + '</td><td>' + esc(b.date ? nice(b.date) : '') + '</td><td>' + esc(b.time || '') +
         '</td><td>' + esc(b.name) + '</td><td>' + esc(b.beach || '') + '</td><td>' + esc(b.pkg || '') + '</td><td>' + money(tot(b)) +
         '</td><td>' + (b.deposit ? money(b.deposit.amount) + ' ' + esc(b.deposit.method || '') : '') + '</td><td>' + (b.paid ? money(b.paid.amount) : '') +
         '</td><td>' + (b.cancelled ? '' : money(due(b))) + '</td><td>' + esc(b.photographer || 'Miranda') +
-        '</td><td>' + (b.photographer ? money(payOf(b)) : '') + '</td><td>' + money(mineOf(b)) + '</td><td>' + esc(b.by || '') + '</td><td>' + statusOf(b)[0] + '</td></tr>';
+        '</td><td>' + esc(b.by || '') + '</td><td>' + statusOf(b)[0] + '</td></tr>';
     });
     return h + '</table></div></div>';
   }
@@ -1371,26 +1347,19 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   }
   function shooterSheet(b){
     var cur = b.photographer || 'Miranda', names = ['Miranda'].concat(PH.names.filter(function(n){ return low(n) !== 'miranda'; }));
-    var sp = b.split || usualSplit(b);
     var s = sheet('<h3>Who\'s shooting?</h3><p class="muted">' + esc(b.name) + ' · ' + esc(b.date ? nice(b.date) : '') + (b.time ? ' · ' + esc(b.time) : '') + '</p>' +
       '<div class="chips" data-who style="margin-top:6px">' + names.map(function(n){ return '<button class="chip' + (low(n) === low(cur) ? ' on' : '') + '" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '<button class="chip" type="button" data-n="">Other</button></div>' +
       '<input data-other placeholder="Photographer\'s name" hidden style="margin-top:8px">' +
-      '<div data-split' + (cur === 'Miranda' ? ' hidden' : '') + '><label class="l">Miranda\'s share</label><div class="chips"><button class="chip' + (sp.mode !== 'amt' ? ' on' : '') + '" type="button" data-mode="pct">%</button><button class="chip' + (sp.mode === 'amt' ? ' on' : '') + '" type="button" data-mode="amt">$</button></div>' +
-      '<div class="money" style="margin-top:8px"><b data-sym>' + (sp.mode === 'amt' ? '$' : '%') + '</b><input data-sv type="number" inputmode="decimal" value="' + sp.val + '"></div><div class="note" data-calc></div></div>' +
       '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save</button></div>',
       function(e, v, close){
-        var n = e.target.closest('[data-n]'), md = e.target.closest('[data-mode]');
-        if (n) { Array.prototype.forEach.call(v.querySelectorAll('[data-n]'), function(x){ x.classList.toggle('on', x === n); }); var nm = n.getAttribute('data-n'); v.querySelector('[data-other]').hidden = nm !== ''; v.querySelector('[data-split]').hidden = nm === 'Miranda'; if (nm === '') v.querySelector('[data-other]').focus(); calc(); return; }
-        if (md) { Array.prototype.forEach.call(v.querySelectorAll('[data-mode]'), function(x){ x.classList.toggle('on', x === md); }); var m = md.getAttribute('data-mode'); v.querySelector('[data-sym]').textContent = m === 'amt' ? '$' : '%'; v.querySelector('[data-sv]').value = m === 'amt' ? 50 : PH.split.pct; calc(); return; }
+        var n = e.target.closest('[data-n]');
+        if (n) { Array.prototype.forEach.call(v.querySelectorAll('[data-n]'), function(x){ x.classList.toggle('on', x === n); }); var nm = n.getAttribute('data-n'); v.querySelector('[data-other]').hidden = nm !== ''; if (nm === '') v.querySelector('[data-other]').focus(); return; }
         if (!e.target.closest('[data-save]')) return;
         var who = whoPicked(); if (who === null) { alert('Type the photographer\'s name.'); return; }
-        close(); act(b, 'photographer', { photographer: who === 'Miranda' ? '' : who, split: who === 'Miranda' ? null : splitPicked() });
+        close(); act(b, 'photographer', { photographer: who === 'Miranda' ? '' : who, split: null });
       });
     var v = s.el;
     function whoPicked(){ var on = v.querySelector('[data-n].on'); if (!on) return 'Miranda'; var nm = on.getAttribute('data-n'); if (nm !== '') return nm; var o = v.querySelector('[data-other]').value.trim(); return o || null; }
-    function splitPicked(){ var m = (v.querySelector('[data-mode].on') || {}).getAttribute ? v.querySelector('[data-mode].on').getAttribute('data-mode') : 'pct', val = parseFloat(v.querySelector('[data-sv]').value) || 0; var o = { mode: m, val: val }; if (m === 'pct' && val === PH.split.pct && PH.split.min) o.min = PH.split.min; return o; }
-    function calc(){ var who = whoPicked(); if (!who || who === 'Miranda') return; var t = tot(b), mine = shareOf(splitPicked(), t); v.querySelector('[data-calc]').innerHTML = esc(who) + "'s pay <b>" + money(Math.max(0, t - mine)) + "</b> · Miranda's share <b>" + money(mine) + '</b>'; }
-    v.addEventListener('input', calc); calc();
   }
   function extraSheet(b){
     sheet('<h3>Add an extra</h3><p class="muted">' + esc(b.name) + '</p><label class="l">What was added</label><input data-w maxlength="120" placeholder="Like 10 more photos" autofocus>' +
@@ -1518,8 +1487,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // Only on a fresh request; once a link went out its price already has the fee folded in.
   function farBeach(b){ return /Destin|30A|St\. George/i.test(b || ''); }
   function travFee(o){ return !o.sent && !o.amount && farBeach(o.beach) ? 30 : 0; }
-  // Nov 1 2026: the Confirm-link form now works like the New Booking page: people and photos, extras with amounts,
-  // the $30 travel fee, a discount, a running "What the client will see" total, and a Preview Client's Page button.
+  // Nov 1 2026: the Confirm-link form. Basics always show (name, phone, date, session, beach, package, price,
+  // travel fee, total); extras, discount, people/photos, deposit and who's shooting sit behind "+ More options".
+  // No pay split anymore when Kallie or someone else shoots (Randy, Nov 1 2026); only who's shooting is kept.
   function buildSheet(o, direct){
     var pi = pkIndex(o), P0 = PK[pi];
     var fl = formLines(o);
@@ -1528,41 +1498,35 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       (o.detail ? '<p class="muted" style="margin:0">They asked about: ' + esc(o.detail) + '</p>' : '') +
       (o.pen ? '<p style="margin:6px 0 0"><b>✏️ Penciled in by Sandy</b> for ' + esc(slotTxt(o.sreq)) + '</p>' : '') +
       (fl ? '<div class="fbox">' + fl + '</div>' : '') +
-      '<div class="sec">Client</div>' +
-      '<label class="l">Name</label><input data-f="n" value="' + esc(o.name) + '">' +
-      '<label class="l">Cell phone</label><input data-f="ph" type="tel" value="' + esc(fmtPhone(o.phone || '')) + '" placeholder="Client\'s cell">' +
+      '<div class="row"><div><label class="l">Name</label><input data-f="n" value="' + esc(o.name) + '"></div><div><label class="l">Cell phone</label><input data-f="ph" type="tel" value="' + esc(fmtPhone(o.phone || '')) + '" placeholder="Client\'s cell"></div></div>' +
       '<div class="row"><div><label class="l">Date</label><input data-f="d" type="date" value="' + esc(o.date || '') + '"></div><div><label class="l">Session</label><select data-f="t">' + opts(TIMES.slice(0, 6), guessTime(o)) + '</select></div></div>' +
       '<label class="l">Beach</label><select data-f="b">' + opts(BEACHES, o.beach || 'Mexico Beach') + '</select>' +
-      '<div class="sec">Session</div>' +
-      '<label class="l">Package</label><select data-f="pk">' + PK.map(function(p, i){ return '<option value="' + i + '"' + (i === pi ? ' selected' : '') + '>' + esc(p[0]) + (p[1] ? ' – $' + p[1] : '') + '</option>'; }).join('') + '</select>' +
-      '<div class="row"><div><label class="l">Price</label><div class="money"><b>$</b><input data-f="base" type="number" inputmode="decimal" value="' + (o.amount || P0[1]) + '"></div></div>' +
-      '<div><label class="l">Deposit</label><div class="money"><b>$</b><input data-f="dep" type="number" inputmode="decimal" value="50"></div></div></div>' +
-      '<div class="muted" data-dn style="font-size:13px"></div>' +
-      '<div class="row"><div><label class="l">People</label><input data-f="ppl" value="' + esc(P0[3]) + '" placeholder="Up to 6"></div><div><label class="l">Edited photos</label><input data-f="pho" value="' + esc(P0[4]) + '" placeholder="15"></div></div>' +
-      '<div class="sec">Extras <span>(added to the price)</span></div>' +
-      '<label class="trav"><input type="checkbox" data-trav' + (travFee(o) ? ' checked' : '') + '><span><b>Travel fee</b><br><span class="muted">Destin, 30A, St. George Island</span></span>' +
+      '<div class="xrow"><div><label class="l">Package</label><select data-f="pk">' + PK.map(function(p, i){ return '<option value="' + i + '"' + (i === pi ? ' selected' : '') + '>' + esc(p[0]) + '</option>'; }).join('') + '</select></div>' +
+      '<div><label class="l">Price</label><div class="money"><b>$</b><input data-f="base" type="number" inputmode="decimal" value="' + (o.amount || P0[1]) + '"></div></div></div>' +
+      '<label class="trav"><input type="checkbox" data-trav' + (travFee(o) ? ' checked' : '') + '><span><b>Travel fee</b> <span class="muted">Destin, 30A, St. George</span></span>' +
       '<span class="money"><b>$</b><input data-f="trav" type="number" inputmode="decimal" value="30"></span></label>' +
-      xrow('x1', 'Extra people', 'e.g. 2 more people') + xrow('x2', 'Extra photos', 'e.g. 10 more photos') + xrow('x3', 'Extra time', 'e.g. 15 more minutes') +
-      '<div class="sec">Discount <span>(taken off the price)</span></div>' +
-      '<div class="xrow"><div><label class="l">Reason (client sees it)</label><input data-f="dr" placeholder="e.g. Returning client"></div><div><label class="l">Amount off</label><div class="money"><b>$</b><input data-f="dc" type="number" inputmode="decimal" min="0"></div></div></div>' +
-      '<label class="l">Who\'s shooting</label><div class="chips" data-who><button class="chip on" type="button" data-n="">Miranda</button>' + PH.names.filter(function(n){ return low(n) !== 'miranda'; }).map(function(n){ return '<button class="chip" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>' +
-      '<div class="sec">What the client will see</div><div class="ctot" data-tot></div>' +
+      '<div class="ctot" data-tot></div>' +
+      '<button class="lnk more" type="button" data-moreopts>＋ More options</button><div class="muted" data-morehint style="font-size:13px">Extras, discount, deposit, who\'s shooting</div>' +
+      '<div data-mbox hidden>' +
+        '<div class="row"><div><label class="l">People</label><input data-f="ppl" value="' + esc(P0[3]) + '" placeholder="Up to 6"></div><div><label class="l">Edited photos</label><input data-f="pho" value="' + esc(P0[4]) + '" placeholder="15"></div></div>' +
+        xrow('x1', 'Extra people', 'e.g. 2 more people') + xrow('x2', 'Extra photos', 'e.g. 10 more photos') + xrow('x3', 'Extra time', 'e.g. 15 more minutes') +
+        '<div class="xrow"><div><label class="l">Discount reason (client sees it)</label><input data-f="dr" placeholder="e.g. Returning client"></div><div><label class="l">Amount off</label><div class="money"><b>$</b><input data-f="dc" type="number" inputmode="decimal" min="0"></div></div></div>' +
+        '<div class="xrow"><div><label class="l">Who\'s shooting</label><div class="chips" data-who><button class="chip on" type="button" data-n="">Miranda</button>' + PH.names.filter(function(n){ return low(n) !== 'miranda'; }).map(function(n){ return '<button class="chip" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div></div>' +
+        '<div><label class="l">Deposit</label><div class="money"><b>$</b><input data-f="dep" type="number" inputmode="decimal" value="50"></div></div></div>' +
+      '</div>' +
       '<p class="err" data-e hidden>Fill in the name and date first.</p>' +
       (direct ? '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>Book it</button></div>'
-        : '<button class="btn wide" data-go>👀 Preview Client\'s Page</button><p class="muted" style="text-align:center;margin:6px 0 0;font-size:13px">You\'ll see their page first, then text it.</p>' +
-          '<div class="acts"><button class="btn ghost" data-x>Cancel</button></div>' +
+        : '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>👀 Preview Client\'s Page</button></div>' +
           '<p style="text-align:center;margin:10px 0 0"><button class="lnk" data-alt>They already said yes? Book without texting</button></p>'),
       function(e, v, close){
+        if (e.target.closest('[data-moreopts]')) { v.querySelector('[data-mbox]').hidden = false; e.target.closest('[data-moreopts]').hidden = true; v.querySelector('[data-morehint]').hidden = true; return; }
         var n = e.target.closest('[data-n]');
-        if (n) { Array.prototype.forEach.call(v.querySelectorAll('[data-n]'), function(x){ x.classList.toggle('on', x === n); }); autoDep(); return; }
+        if (n) { Array.prototype.forEach.call(v.querySelectorAll('[data-n]'), function(x){ x.classList.toggle('on', x === n); }); return; }
         var go = e.target.closest('[data-go]'), alt = e.target.closest('[data-alt]');
         if (!go && !alt) return;
         var lk = data();
         if (!lk.n || !/^\d{4}-\d{2}-\d{2}$/.test(lk.d)) { v.querySelector('[data-e]').hidden = false; v.querySelector('[data-e]').scrollIntoView({ block: 'center' }); return; }
-        var ph = g('ph'), sh = lk.sh || '', dp = lk.dep || 50;
-        var sp = sh ? usualSplit({ time: lk.t, pkg: lk.pk }) : null;
-        // Usual wedding split rounds to the dollar so Miranda's share matches the deposit paid up front
-        if (sh && isWed({ time: lk.t, pkg: lk.pk }) && !DEPMAN && lk.total) sp = { mode: 'amt', val: dp };
+        var ph = g('ph'), sh = lk.sh || '', dp = lk.dep || 50, sp = null;
         var pkTxt = lk.pk + (lk.x.length || lk.dc ? ' + extras' : '');
         if (direct || alt) { close(); pencilWarn(lk.d, lk.t, { name: lk.n, phone: ph }, function(){ bookInquiry(o, { name: lk.n, date: lk.d, time: lk.t, beach: lk.b, pkg: pkTxt, amount: lk.total, dep: dp, phone: ph, photographer: sh, split: sp }); }); return; }
         // Show Miranda the customer's page first; she texts it from there or goes back to fix it (the form stays open underneath)
@@ -1585,7 +1549,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       compose({ name: lk.n, phone: ph }, 'Confirm link', confirmText(lk, url, dp));
       setTimeout(load, 1500);
     }
-    var DEPMAN = false, V = s.el;
+    var V = s.el;
     var f = function(k){ return V.querySelector('[data-f="' + k + '"]'); };
     var g = function(k){ return f(k).value.trim(); };
     var amt = function(k){ var n = parseFloat(g(k)); return isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : 0; };
@@ -1597,40 +1561,24 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       var lk = { v: 1, n: g('n'), d: g('d'), t: g('t'), b: b, pk: p[0], base: amt('base'), len: p[2], ppl: g('ppl'), ph: g('pho'), x: x, dc: amt('dc'), dr: g('dr'), note: '', by: WHO };
       var tot = lk.base; x.forEach(function(e){ tot += e[1]; });
       lk.total = Math.max(0, Math.round((tot - lk.dc) * 100) / 100);
-      var dp = amt('dep') || 50; if (dp !== 50) lk.dep = dp;
+      var dp = amt('dep') || 50; if (lk.total && dp > lk.total) dp = lk.total; if (dp !== 50) lk.dep = dp;
       var sh = V.querySelector('[data-n].on').getAttribute('data-n'); if (sh) lk.sh = sh;
       return lk;
     }
-    function autoDep(){
-      if (DEPMAN) return;
-      var lk = data(), d = 50, why = '';
-      var info = { time: lk.t, pkg: lk.pk };
-      if (lk.sh && isWed(info) && lk.total) { d = Math.ceil(shareOf(usualSplit(info), lk.total)); why = "Miranda's full share, paid up front"; }
-      if (lk.total && d > lk.total) d = lk.total;
-      f('dep').value = d; V.querySelector('[data-dn]').textContent = why;
-    }
-    // Running "What the client will see" box, the same lines the client's page shows
+    // One line: "Total $249 · $50 deposit" (the preview shows the customer every line)
     function showTot(){
-      var lk = data(), h = '', det = [lk.ppl ? lk.ppl + ' people' : '', lk.ph ? lk.ph + ' edited photos' : ''].filter(Boolean).join(' · ');
-      h += '<div class="tl"><span>' + esc(lk.pk) + (det ? '<br><small>' + esc(det) + '</small>' : '') + '</span><span>' + money(lk.base) + '</span></div>';
-      lk.x.forEach(function(e){ h += '<div class="tl"><span>+ ' + esc(e[0]) + '</span><span>' + money(e[1]) + '</span></div>'; });
-      if (lk.dc) h += '<div class="tl off"><span>− Discount' + (lk.dr ? ': ' + esc(lk.dr) : '') + '</span><span>−' + money(lk.dc) + '</span></div>';
-      h += '<div class="tl big"><span>Total</span><span>' + money(lk.total) + '</span></div>';
-      var dp = lk.dep || 50; if (lk.total > dp) h += '<small>' + money(dp) + ' deposit to confirm · ' + money(lk.total - dp) + ' on session day</small>';
-      V.querySelector('[data-tot]').innerHTML = h;
+      var lk = data(), dp = lk.dep || 50, adds = lk.x.length + (lk.dc ? 1 : 0);
+      var parts = adds ? ' <span class="muted">(' + [money(lk.base)].concat(lk.x.map(function(e){ return '+ ' + money(e[1]); })).concat(lk.dc ? ['− ' + money(lk.dc)] : []).join(' ') + ')</span>' : '';
+      V.querySelector('[data-tot]').innerHTML = 'Total <b>' + money(lk.total) + '</b>' + parts + '<br><span class="muted">' + money(dp) + ' deposit to hold the date</span>';
     }
     V.addEventListener('change', function(e){
       var k = e.target.getAttribute('data-f');
       if (k === 'pk') { var p = PK[Number(e.target.value)]; f('base').value = p[1]; f('ppl').value = p[3]; f('pho').value = p[4]; }
       if (k === 'b') V.querySelector('[data-trav]').checked = farBeach(e.target.value);
-      autoDep(); showTot();
-    });
-    V.addEventListener('input', function(e){
-      var k = e.target.getAttribute('data-f');
-      if (k === 'dep') { DEPMAN = true; V.querySelector('[data-dn]').textContent = ''; } else autoDep();
       showTot();
     });
-    autoDep(); showTot();
+    V.addEventListener('input', showTot);
+    showTot();
   }
   function clearOld(){
     var old = inquiries().filter(function(o){ return o.old && (MORE.tests || !o.test); });
