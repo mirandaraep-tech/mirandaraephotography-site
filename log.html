@@ -599,7 +599,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     CON = VIEW === 'inq' ? 'no' : VIEW === 'booked' ? 'yes' : ''; DEP = '';
     var vis = function(b){ return tests || !b.test; };
     var nB = all.filter(function(b){ return vis(b) && !b.cancelled && fitsPeriod(b); }).length;
-    var nI = INQ.filter(function(o){ return !o.old; }).length;
+    var nI = INQ.filter(function(o){ return !o.old || isPastDay(o.date); }).length;
     var nTd = all.filter(function(b){ return vis(b) && todoB(b); }).length + INQ.filter(todoI).length;
     [['vBk', 'booked', 'Booked', nB], ['vInq', 'inq', 'Inquiries', nI], ['vTodo', 'todo', 'To do', nTd]].forEach(function(t){
       var on = VIEW === t[1] && !DAY && !Q;
