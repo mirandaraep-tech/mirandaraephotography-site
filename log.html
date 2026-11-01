@@ -415,7 +415,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       map[k] = o;
     });
     var cut = new Date(Date.now() - 30 * 86400000).toISOString();
-    return Object.keys(map).filter(function(k){ var o = map[k]; return !bookings.some(function(b){ return bookedAs(o, b); }); }).map(function(k){ var o = map[k]; o.old = o.date ? o.date < TODAY : (o.asked || '') < cut; return o; });
+    // Nov 1 2026: if Miranda worked out a new date by text and sent the link for that date,
+    // the original request card goes away (the "Link texted" card for the new date takes its place)
+    var sentList = Object.keys(map).map(function(k){ return map[k]; }).filter(function(x){ return x.sent; });
+    var moved = function(o){ return !o.sent && sentList.some(function(x){ return x !== o && (x.sent.at || '') >= (o.asked || '') && bookedAs(o, { name: x.name, phone: x.phone, date: x.date }); }); };
+    return Object.keys(map).filter(function(k){ var o = map[k]; return !moved(o) && !bookings.some(function(b){ return bookedAs(o, b); }); }).map(function(k){ var o = map[k]; o.old = o.date ? o.date < TODAY : (o.asked || '') < cut; return o; });
   }
 
   // ---------- Filters ----------
