@@ -1487,7 +1487,6 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<div><label class="l">Price</label><div class="money"><b>$</b><input data-f="base" type="number" inputmode="decimal" value="' + (o.amount || PK[pi][1]) + '"></div></div></div>' +
       '<label class="l">Deposit</label><div class="money"><b>$</b><input data-f="dep" type="number" inputmode="decimal" value="50"></div><div class="muted" data-dn style="font-size:13px;margin-top:4px"></div>' +
       '<label class="l">Who\'s shooting</label><div class="chips" data-who><button class="chip on" type="button" data-n="">Miranda</button>' + PH.names.filter(function(n){ return low(n) !== 'miranda'; }).map(function(n){ return '<button class="chip" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>' +
-      '<p class="muted" style="margin:6px 0 0">A contracted session uses the usual split: ' + PH.split.pct + '% to Miranda (on a wedding the deposit is her full share). Change it later with the Photographer button.</p>' +
       '<p class="err" data-e hidden>Fill in the name and date first.</p>' +
       '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>' + (direct ? 'Book it' : 'Text Confirm link') + '</button></div>' +
       (direct ? '' : '<p style="text-align:center;margin:10px 0 0"><button class="lnk" data-alt>They already said yes? Book without texting</button></p>'),
@@ -1506,8 +1505,18 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         // Usual wedding split rounds to the dollar so Miranda's share matches the deposit paid up front
         if (sh && isWed({ time: lk.t, pkg: lk.pk }) && !DEPMAN && base) sp = { mode: 'amt', val: dp };
         if (direct || alt) { close(); pencilWarn(lk.d, lk.t, { name: lk.n, phone: g('ph') }, function(){ bookInquiry(o, { name: lk.n, date: lk.d, time: lk.t, beach: lk.b, pkg: lk.pk, amount: base, dep: dp, phone: g('ph'), photographer: sh, split: sp }); }); return; }
-        close();
-        pencilWarn(lk.d, lk.t, { name: lk.n, phone: g('ph') }, function(){ sendLink(lk, dp, sh, sp, g('ph')); });
+        // Nov 1 2026: show Miranda the customer's page first; she sends from there or goes back to fix it
+        var phv = g('ph'); // the form stays open underneath, so going back keeps everything she typed
+        var pvUrl = location.origin + '/confirm?s=' + b64(JSON.stringify(lk)) + '&preview=1';
+        sheet('<h3>Here\'s what ' + esc(first(lk.n)) + ' will see</h3>' +
+          '<iframe src="' + esc(pvUrl) + '" title="Customer preview" style="width:100%;height:58vh;border:1px solid var(--line,#ddd);border-radius:12px;background:#fff"></iframe>' +
+          '<div class="acts"><button class="btn ghost" data-fix>Go back and fix</button><button class="btn" data-ok>Looks good, text it</button></div>',
+          function(e, pv, closePv){
+            if (e.target.closest('[data-fix]')) { closePv(); return; }
+            if (!e.target.closest('[data-ok]')) return;
+            closePv(); close();
+            pencilWarn(lk.d, lk.t, { name: lk.n, phone: phv }, function(){ sendLink(lk, dp, sh, sp, phv); });
+          });
       });
     function sendLink(lk, dp, sh, sp, ph){
         var base = lk.base;
