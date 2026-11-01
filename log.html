@@ -937,7 +937,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       var taken = (avail(o) || {}).open === false;
       h += '<div class="card" style="padding:12px;margin:10px 0" data-k="' + esc(o.key) + '"><div class="nm" style="font-size:18px">' + esc(o.name) + '</div>' +
         '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' + availTag(o) + askedTag(o) +
-        '<div class="sub">Came in ' + esc(ago(o.asked)) + '</div>' +
+        '<div class="sub">Came in ' + esc(ago(o.asked)) + ' at ' + esc(new Date(o.asked).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })) + '</div>' +
         (taken || asked(o) ? '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="build">' + (taken ? 'Link for a new date' : 'Send Confirm link') + '</button><button class="btn" data-p="itext">Text</button></div></div>'
                : '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="itext">Text</button><button class="btn" data-p="build">Send Confirm link</button></div></div>');
     });
