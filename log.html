@@ -54,7 +54,19 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .tile.grn{background:#eef8f1;border-color:#bfe3cb;cursor:default}.tile.grn b{color:var(--ok)}
 .tile.dueT{cursor:default}
 .tile.blu{background:#e9f4f6;border-color:#bcdce3}.tile.blu.on{border:2px solid var(--teal)}.tile.blu b{color:var(--teal)}
-.frow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.frow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+/* Nov 2026: four big tabs, name on top and the count underneath */
+.frow .fb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:62px;font-size:15px;font-weight:bold;padding:6px 2px;white-space:nowrap}
+.frow .fb .ct{margin:0;font-size:13px;min-width:22px}
+.frow .fb .ic{font-size:15px;line-height:1}
+.listhd{justify-content:flex-start;align-items:center}.listhd .pl{margin-left:auto}
+.srch{border:0;background:none;font-size:20px;line-height:1;padding:4px 2px 4px 10px;cursor:pointer;opacity:.75}
+.srch.on{opacity:1}
+.srow{display:flex;gap:6px;margin-top:8px}.srow .sx{border:2px solid var(--line);background:#fff;color:var(--teal);border-radius:14px;width:46px;font-size:17px;cursor:pointer}
+#q::-webkit-search-cancel-button{display:none}
+.calcard{padding:10px 12px 12px}
+.dayhd{font:bold 18px Georgia,serif;margin:4px 4px 2px}.daysun{margin:0 4px 10px}
+.moneycard{box-shadow:none;border:1px solid var(--line);margin:4px 0 14px}
 .fb{border:2px solid var(--line);background:#fff;color:var(--teal);border-radius:14px;min-height:46px;padding:4px 6px;font-size:15px;cursor:pointer;line-height:1.15}
 .fb.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:bold}
 /* Oct 30 2026: Confirmed = dark green with ✓, Not confirmed = bright yellow with ✕ (light vs dark, plus the marks) */
@@ -66,7 +78,6 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .mini{display:flex;border:1px solid #c9d3d6;border-radius:7px;overflow:hidden;line-height:1}
 .mini i{font-style:normal;background:var(--teal);color:#fff;font-size:11px;font-weight:bold;letter-spacing:1px;padding:9px 6px}
 .mini u{text-decoration:none;font:bold 19px Georgia,serif;color:var(--ink);padding:5px 7px;background:#fff}
-#tmrBtn.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:bold}
 .sbtn{border:2px solid var(--line);background:#fff;border-radius:14px;padding:0 14px;color:var(--teal);font-size:15px;cursor:pointer;min-height:46px}
 .sbtn.on{border-color:var(--teal)}
 #q{flex:1;min-width:0;min-height:46px;border-radius:14px}
@@ -314,40 +325,22 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   </div>
 
   <div id="app" hidden>
-    <div class="card topcard">
-        <div class="asof" id="asof"></div>
-        <div class="tiles">
-          <button class="tile bk1" id="tBookedTile" type="button">
-            <span class="hd" id="tPer">Current bookings ↻</span>
-            <b id="tBooked">–</b>
-            <span class="lb" id="tBookedN">Booked</span>
-            <div class="nx" id="tNext"></div>
-          </button>
-          <div class="tile grn"><span class="hd">&nbsp;</span><b id="tCollected">–</b><span class="lb">Collected</span></div>
-          <div class="tile dueT"><span class="hd">&nbsp;</span><b id="tDue">–</b><span class="lb">Still to collect</span></div>
-          <!-- Oct 30 2026: Upcoming sessions box removed (the Booked tab shows the count) -->
-          <button class="tile blu" id="tUpTile" type="button" hidden><b id="tUp">–</b><span class="lb">Upcoming sessions</span></button>
-        </div>
-      </div>
+    <!-- Nov 2026: four big tabs on top, nothing above them. Money boxes moved into "More" at the bottom;
+         Search is a small 🔍 by the heading; the Tomorrow button is gone (tomorrow shows at the top of Needs you) -->
     <div class="head" id="head">
       <div class="frow">
-        <!-- Oct 30 2026: three plain tabs instead of buttons that change when tapped -->
+        <button class="fb" id="vTodo" type="button" data-v="todo">Needs you</button>
+        <button class="fb" id="vCal" type="button" data-v="cal">Calendar</button>
         <button class="fb" id="vBk" type="button" data-v="booked">Booked</button>
         <button class="fb" id="vInq" type="button" data-v="inq">Inquiries</button>
-        <button class="fb" id="vTodo" type="button" data-v="todo">To do</button>
       </div>
-      <div class="crow" id="crow">
-        <div class="calpop" id="calPop" hidden></div>
-        <button class="cbtn" id="calBtn" type="button"><span class="mini"><i id="calMon">OCT</i><u id="calDay">19</u></span>Calendar</button>
-        <button class="sbtn" id="srchBtn" type="button">Search</button>
-        <button class="sbtn" id="tmrBtn" type="button">Tomorrow</button>
-        <input id="q" type="search" autocomplete="off" placeholder="Name or phone" hidden>
-      </div>
+      <div class="srow" id="srow" hidden><input id="q" type="search" autocomplete="off" placeholder="Search a name or phone"><button class="sx" id="qClr" type="button" aria-label="Close search">✕</button></div>
       <div class="daychip" id="fChip" hidden><span id="fTxt"></span><button id="fClr" type="button">✕ Show all</button></div>
       <div class="daychip" id="dayChip" hidden><span id="dayTxt"></span><button id="dayClr" type="button">✕ Show all</button></div>
     </div>
 
-    <div class="listhd"><h2>Bookings</h2><span class="pl" id="listLbl"></span></div>
+    <div class="listhd"><h2 id="listTtl">Needs you</h2><span class="pl" id="listLbl"></span><button class="srch" id="srchBtn" type="button" aria-label="Search">🔍</button></div>
+    <div id="calBox"></div>
     <div id="dayHd"></div>
     <div id="inqBox"></div>
     <div id="list"></div>
@@ -362,6 +355,22 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <!-- Nov 1 2026: the setup links (mostly for Randy) are tucked behind one "More" link -->
     <p style="text-align:center;margin:14px 0 4px"><button class="lnk" id="moreTog" type="button">More ▾</button></p>
     <div id="moreBox" hidden>
+    <div class="card topcard moneycard">
+        <div class="asof" id="asof"></div>
+        <!-- money boxes live here now (Nov 2026) -->
+        <div class="tiles">
+          <button class="tile bk1" id="tBookedTile" type="button">
+            <span class="hd" id="tPer">Current bookings ↻</span>
+            <b id="tBooked">–</b>
+            <span class="lb" id="tBookedN">Booked</span>
+            <div class="nx" id="tNext"></div>
+          </button>
+          <div class="tile grn"><span class="hd">&nbsp;</span><b id="tCollected">–</b><span class="lb">Collected</span></div>
+          <div class="tile dueT"><span class="hd">&nbsp;</span><b id="tDue">–</b><span class="lb">Still to collect</span></div>
+          <!-- Oct 30 2026: Upcoming sessions box removed (the Booked tab shows the count) -->
+          <button class="tile blu" id="tUpTile" type="button" hidden><b id="tUp">–</b><span class="lb">Upcoming sessions</span></button>
+        </div>
+      </div>
       <p style="text-align:center;margin:4px 0 12px"><button class="lnk" id="tblTog">Spreadsheet view</button> &nbsp;·&nbsp; <button class="lnk" id="testTog">Show tests</button></p>
       <p style="text-align:center" class="muted"><span id="whoLine"></span> · <button class="lnk" id="whoChg">Change</button></p>
       <p style="text-align:center"><button class="lnk" id="clearTests" style="color:var(--bad)">Clear all tests</button></p>
@@ -523,7 +532,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
   // ---------- Filters ----------
   var PERIODS = [['current', 'Current bookings'], ['today', 'Today'], ['tomorrow', 'Tomorrow'], ['week', 'This week'], ['month', 'This month'], ['year', 'This year'], ['lastyear', 'Last year'], ['all', 'All']];
-  var VIEW = 'booked'; // Oct 30 2026 tabs: booked | inq | todo
+  var VIEW = 'todo'; // Nov 2026 tabs: todo (Needs you, opens here) | cal | booked | inq
   // To do: upcoming sessions with no deposit yet, and past sessions not marked paid
   function todoB(b){ return !b.past && !b.cancelled && (flagged(b) || ((b.date || '') >= TODAY && !b.deposit && !b.paid && tot(b) > 0)); }
   // ...and inquiries penciled in, or nobody has answered yet
@@ -575,7 +584,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var INQ = inquiries().filter(function(o){ return tests || !o.test; });
 
     // Money boxes follow the Booked box's period (Current, Today, Tomorrow...). Tests, past entries and inquiries never count.
-    var pool = all.filter(function(b){ return real(b) && (DAY ? b.date === DAY : fitsPeriod(b)); });
+    // Nov 2026: the Calendar tab owns the picked day; every other tab shows no single day
+    if (VIEW === 'cal') { if (!DAY) DAY = TODAY; } else DAY = '';
+    var pool = all.filter(function(b){ return real(b) && fitsPeriod(b); });
     var booked = 0, keep = 0, owe = 0, n = 0;
     // On a contracted session only Miranda's share counts in the boxes (the photographer keeps the rest),
     // so Booked = Collected + Still to collect always adds up
@@ -583,10 +594,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (b.photographer) { booked += mineOf(b); owe += Math.max(0, mineOf(b) - keepOf(b)); } else { booked += tot(b); owe += due(b); } });
     var up = all.filter(function(b){ return real(b) && !b.cancelled && (b.date || '') >= TODAY; }).length;
     var SHORT = { current: 'Current', today: 'Today', tomorrow: 'Tomorrow', week: 'This week', month: 'This month', year: 'This year', lastyear: 'Last year', all: 'All' };
-    $('tPer').textContent = (DAY ? nice(DAY) : SHORT[PERIODS[PI][0]]) + ' ↻';
+    $('tPer').textContent = SHORT[PERIODS[PI][0]] + ' ↻';
     $('tBooked').textContent = money(booked);
     $('tBookedN').textContent = 'Booked';
-    $('tNext').textContent = DAY ? 'Tap for Current →' : 'Tap for ' + PERIODS[(PI + 1) % PERIODS.length][1] + ' →';
+    $('tNext').textContent = 'Tap for ' + PERIODS[(PI + 1) % PERIODS.length][1] + ' →';
     $('tCollected').textContent = money(keep); $('tDue').textContent = money(owe); $('tUp').textContent = up;
 
     // Updated line: the last change anyone made, and who made it
@@ -602,22 +613,20 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var vis = function(b){ return tests || !b.test; };
     var nB = all.filter(function(b){ return vis(b) && !b.cancelled && fitsPeriod(b); }).length;
     var nI = INQ.filter(function(o){ return !o.old || isPastDay(o.date); }).length;
-    var nTd = all.filter(function(b){ return vis(b) && todoB(b); }).length + INQ.filter(todoI).length;
-    [['vBk', 'booked', 'Booked', nB], ['vInq', 'inq', 'Inquiries', nI], ['vTodo', 'todo', 'To do', nTd]].forEach(function(t){
-      var on = VIEW === t[1] && !DAY && !Q;
+    // Nov 2026: tomorrow's sessions sit at the top of Needs you (reminder texts), so they count there
+    var TMR = all.filter(function(b){ return vis(b) && !b.cancelled && !b.past && b.date === TOMORROW; }).sort(sorter());
+    var nTd = all.filter(function(b){ return vis(b) && todoB(b) && b.date !== TOMORROW; }).length + TMR.length + INQ.filter(todoI).length;
+    [['vTodo', 'todo', 'Needs you', nTd], ['vCal', 'cal', 'Calendar', -1], ['vBk', 'booked', 'Booked', nB], ['vInq', 'inq', 'Inquiries', nI]].forEach(function(t){
+      var on = VIEW === t[1] && !Q;
       $(t[0]).classList.toggle('on', on);
-      $(t[0]).innerHTML = (on ? '✓ ' : '') + t[2] + '<span class="ct">' + t[3] + '</span>';
+      $(t[0]).innerHTML = '<span>' + t[2] + '</span><span class="' + (t[3] < 0 ? 'ic' : 'ct') + '">' + (on ? '✓ ' : '') + (t[3] < 0 ? '📅' : t[3]) + '</span>';
     });
     $('tUpTile').classList.toggle('on', MORE.status === 'upcoming');
-    var cm = dt(DAY || TODAY); $('calMon').textContent = cm.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(); $('calDay').textContent = cm.getDate();
-    $('calBtn').classList.toggle('on', !!DAY && DAY !== TOMORROW);
-    $('tmrBtn').classList.toggle('on', DAY === TOMORROW); $('tmrBtn').textContent = (DAY === TOMORROW ? '✓ ' : '') + 'Tomorrow';
-    $('dayChip').hidden = !DAY;
+    $('dayChip').hidden = true; // Nov 2026: the Calendar tab shows the day's heading under the calendar instead
     // Oct 20 2026: one tap back to everything when Confirmed / Deposit / Needs a look is on
     var fOn = [];
     $('fChip').hidden = !!DAY || !fOn.length;
     if (fOn.length) $('fTxt').innerHTML = 'Showing only <b>' + esc(fOn.join(' + ').replace(/[↻✓✕]/g, '').replace(/\s+/g, ' ').trim()) + '</b>';
-    if (DAY) { var sn = sun(DAY); $('dayTxt').innerHTML = 'Showing <b>' + esc(longDay(DAY)) + '</b><br><span class="muted">🌅 ' + sn[0] + ' · 🌇 ' + sn[1] + ' (Mexico Beach)</span>'; }
 
     // Which bookings show
     var q = low(Q);
@@ -628,7 +637,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (MORE.status === 'cancelled') return !!b.cancelled && fitsPeriodAny(b);
       if (MORE.status === 'pastentries') return !!b.past;
       if (b.cancelled) return false;
-      if (VIEW === 'todo') return todoB(b);
+      if (VIEW === 'todo') return todoB(b) && b.date !== TOMORROW; // tomorrow's have their own spot on top
       if (!fitsPeriod(b)) return false;
       if (CON === 'no') return false;
       if (DEP === 'in' && !(b.deposit || b.paid)) return false;
@@ -653,17 +662,27 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       return (b.request ? b.request.at : b.asked || '').localeCompare(a.request ? a.request.at : a.asked || '');
     });
 
-    $('listLbl').textContent = q ? 'Search' : DAY ? nice(DAY) : VIEW === 'inq' ? 'Inquiries' : VIEW === 'todo' ? 'Needs Miranda' : PERIODS[PI][1];
-    $('dayHd').innerHTML = '';
+    $('listTtl').textContent = q ? 'Search' : { todo: 'Needs you', cal: 'Calendar', booked: 'Booked', inq: 'Inquiries' }[VIEW];
+    $('listLbl').textContent = q ? '' : VIEW === 'booked' ? PERIODS[PI][1] : '';
+    $('srchBtn').classList.toggle('on', !$('srow').hidden);
+    // Calendar tab: the calendar sits right on the page; the picked day's sessions show under it
+    $('calBox').innerHTML = VIEW === 'cal' && !q ? '<div class="card calcard">' + calendar() + '</div>' : '';
+    var dsn = DAY && !q ? sun(DAY) : null;
+    $('dayHd').innerHTML = dsn ? '<div class="dayhd">' + esc(DAY === TODAY ? 'Today, ' + longDay(DAY) : DAY === TOMORROW ? 'Tomorrow, ' + longDay(DAY) : longDay(DAY)) + '</div><p class="muted daysun">🌅 ' + dsn[0] + ' · 🌇 ' + dsn[1] + ' (Mexico Beach)</p>' : '';
     var ih = '';
     var after = '';
     if (DAY) {
       // Oct 20 2026: on a tapped day, booked sessions come first; inquiries go below under "Not booked yet"
       if (inq.length) after = '<div class="nbhd">Not booked yet</div>' + inq.map(function(o){ return inqCard(o); }).join('');
-    } else if (VIEW === 'todo') {
+    } else if (VIEW === 'todo' && !q) {
       // To do: inquiries waiting on Miranda first, then bookings to check
       // Nov 1 2026: clear headings with counts so it reads as two lists
-      if (inq.length) ih = '<div class="todohd" style="margin-top:0">📩 Inquiries <span>' + inq.length + '</span></div>' + inq.map(function(o){ return inqCard(o); }).join('') + (rows.length ? '<div class="todohd">📷 Booked sessions <span>' + rows.length + '</span></div>' : '');
+      // Nov 2026: tomorrow's sessions first (so reminders get sent), then inquiries, then bookings to check
+      var tm = TMR;
+      ih = tm.length ? '<div class="todohd" style="margin-top:0">📅 Tomorrow · ' + esc(nice(TOMORROW)) + ' <span>' + tm.length + '</span></div>' + tm.map(function(b){ return card(b); }).join('')
+        : '<p class="muted" style="margin:0 4px 6px">📅 Nothing booked tomorrow.</p>';
+      if (inq.length) ih += '<div class="todohd"' + (tm.length ? '' : ' style="margin-top:6px"') + '>📩 Inquiries <span>' + inq.length + '</span></div>' + inq.map(function(o){ return inqCard(o); }).join('');
+      if (rows.length) ih += '<div class="todohd">📷 Booked sessions to check <span>' + rows.length + '</span></div>';
     } else if (CON === 'no' || q) {
       ih = inq.map(function(o){ return inqCard(o); }).join('');
       if (CON === 'no' && !q) {
@@ -676,14 +695,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     }
     $('inqBox').innerHTML = ih;
     $('inqAfter').innerHTML = after;
-    var EMPTY = DAY ? 'Nothing booked this day.' : q ? 'No one by that name.' : CON === 'no' ? '' : VIEW === 'todo' ? (inq.length ? '' : 'Nothing needs Miranda right now.') : 'Nothing here with these filters.';
+    var EMPTY = DAY ? 'Nothing booked this day.' : q ? 'No one by that name.' : CON === 'no' ? '' : VIEW === 'todo' ? (inq.length ? '' : '✓ Nothing else needs you right now.') : 'Nothing here with these filters.';
     $('list').innerHTML = TABLE ? table(rows) : rows.length ? rows.map(function(b){ return card(b); }).join('') : (EMPTY ? '<p class="muted" style="margin:6px 4px 14px">' + EMPTY + '</p>' : '');
     $('tblTog').textContent = TABLE ? 'Back to cards' : 'Spreadsheet view';
     // Oct 20 2026: tests (Randy's/Miranda's/Bradyn's numbers or "test" in the name) hide unless this is on; never in totals
     var nT = (DATA.bookings || []).filter(function(b){ return b.test && !b.cancelled; }).length + inquiries().filter(function(o){ return o.test && !o.old; }).length;
     $('testTog').textContent = MORE.tests ? 'Hide tests' : 'Show tests' + (nT ? ' (' + nT + ')' : '');
     $('head').classList.toggle('compact', !!document.querySelector('#app .bk.open'));
-    if (!$('calPop').hidden) $('calPop').innerHTML = calendar();
     feed(tests);
     $('whoLine').textContent = 'Using this phone: ' + WHO;
   }
@@ -1195,62 +1213,28 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     }
     return h + '</div><div class="legend"><span><span class="mk full"></span>Booked, deposit in</span><span><span class="mk ring"></span>Booked, no deposit yet</span><span><span class="mk q">?</span>Inquiry, not booked yet</span><span><span class="mk pen">✏️</span>Penciled in by Sandy, waiting on your OK</span><span><span class="mk x">✕</span>Day off · ✕↑ sunrise off · ✕↓ sunset off (text Sandy to change)</span></div>';
   }
-  // Make room above the buttons for the calendar, and scroll the money boxes out of the way so bookings show below
-  function calPin(){
-    var p = $('calPop'), wide = window.innerWidth >= 700;
-    p.classList.toggle('pin', wide && !p.hidden);
-    var CW = 340, side = false;
-    if (wide && !p.hidden) {
-      var r = $('crow').getBoundingClientRect();
-      side = r.left >= CW + 36; // Oct 20 2026: wide desktop windows put the calendar on the left of the bookings
-      if (side) { p.style.left = (r.left - CW - 24) + 'px'; p.style.width = CW + 'px'; }
-      else { p.style.left = r.left + 'px'; p.style.width = r.width + 'px'; }
-      p.style.right = 'auto';
-    } else { p.style.left = ''; p.style.width = ''; p.style.right = ''; }
-    $('head').classList.toggle('calside', side); p.classList.toggle('side', side);
-    $('head').classList.toggle('calopen', !p.hidden && !side);
-  }
-  try { new MutationObserver(calPin).observe($('calPop'), { attributes: true, attributeFilter: ['hidden'] }); } catch (e) {}
-  window.addEventListener('resize', function(){ if (!$('calPop').hidden) calPin(); });
-  function calRoom(first){
-    var h = $('head'), p = $('calPop'); calPin(); h.style.setProperty('--calh', p.offsetHeight + 'px');
-    if (!first) return;
-    var tc = document.querySelector('.topcard'), start = tc ? tc.offsetTop + tc.offsetHeight + 10 : 0;
-    if (window.scrollY < start) window.scrollTo({ top: start });
-  }
-  $('calBtn').addEventListener('click', function(){
-    var p = $('calPop');
-    if (p.hidden) { CALM = (DAY || TODAY).slice(0, 7); p.innerHTML = calendar(); p.hidden = false; calRoom(true); } else p.hidden = true;
-  });
-  $('calPop').addEventListener('click', function(e){
-    e.stopPropagation(); // taps inside the calendar never close it (the redraw would otherwise look like an outside tap)
+  // Nov 2026: the calendar is its own tab, right on the page (no pop-up). Tap a day to see it underneath.
+  $('calBox').addEventListener('click', function(e){
     var nav = e.target.closest('button[data-cal]'), dy = e.target.closest('button[data-day]');
-    if (nav) { var y = Number(CALM.slice(0, 4)), m = Number(CALM.slice(5, 7)) + Number(nav.getAttribute('data-cal')); if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } CALM = y + '-' + String(m).padStart(2, '0'); $('calPop').innerHTML = calendar(); calRoom(); return; }
+    if (nav) { var y = Number(CALM.slice(0, 4)), m = Number(CALM.slice(5, 7)) + Number(nav.getAttribute('data-cal')); if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; } CALM = y + '-' + String(m).padStart(2, '0'); draw(); return; }
     if (!dy) return;
-    // Picking a day shows only that day's clients (below the open calendar) and clears the other filters
-    DAY = dy.getAttribute('data-day'); CON = ''; DEP = ''; MORE = { bal: '', status: '', type: '', loc: '', shooter: '', tests: MORE.tests }; Q = ''; $('q').value = ''; $('q').hidden = true; $('srchBtn').classList.remove('on');
-    // Calendar stays open; that day's clients show underneath it (Oct 20 2026)
-    OPEN = null; draw(); calRoom();
-    var tc = document.querySelector('.topcard'); window.scrollTo({ top: tc ? tc.offsetTop + tc.offsetHeight + 10 : 0 });
+    DAY = dy.getAttribute('data-day'); OPEN = null; draw();
   });
   $('dayClr').addEventListener('click', function(){ DAY = ''; draw(); });
-  // One-tap Tomorrow (Oct 30 2026): shows tomorrow's sessions (and inquiries); tap again for everything
-  $('tmrBtn').addEventListener('click', function(){ DAY = DAY === TOMORROW ? '' : TOMORROW; Q = ''; $('q').value = ''; $('q').hidden = true; $('srchBtn').classList.remove('on'); OPEN = null; draw(); });
-  document.addEventListener('click', function(e){
-    if (!$('calPop').hidden && !e.target.closest('#calPop') && !e.target.closest('#calBtn')) $('calPop').hidden = true;
-  });
 
   // ---------- Top buttons ----------
-  $('tBookedTile').addEventListener('click', function(){ if (DAY) { DAY = ''; PI = 0; } else PI = (PI + 1) % PERIODS.length; OPEN = null; draw(); });
+  $('tBookedTile').addEventListener('click', function(){ PI = (PI + 1) % PERIODS.length; OPEN = null; draw(); });
   $('tUpTile').addEventListener('click', function(){ VIEW = 'booked'; DAY = ''; PI = 0; CON = ''; DEP = ''; MORE.status = MORE.status === 'upcoming' ? '' : 'upcoming'; Q = ''; $('q').value = ''; draw(); });
   $('fClr').addEventListener('click', function(){ CON = ''; DEP = ''; MORE.status = ''; OPEN = null; draw(); });
-  ['vBk', 'vInq', 'vTodo'].forEach(function(id){ $(id).addEventListener('click', function(){ VIEW = $(id).getAttribute('data-v'); DAY = ''; PI = 0; /* Oct 30 2026: a tab also puts the money boxes back on Current */ Q = ''; $('q').value = ''; $('q').hidden = true; $('srchBtn').classList.remove('on'); MORE.status = ''; OPEN = null; draw(); window.scrollTo({ top: 0 }); }); });
+  ['vTodo', 'vCal', 'vBk', 'vInq'].forEach(function(id){ $(id).addEventListener('click', function(){ VIEW = $(id).getAttribute('data-v'); DAY = ''; CALM = TODAY.slice(0, 7); PI = 0; /* Oct 30 2026: a tab also puts the money boxes back on Current */ Q = ''; $('q').value = ''; $('srow').hidden = true; MORE.status = ''; OPEN = null; draw(); window.scrollTo({ top: 0 }); }); });
   // Tap once to see only sessions that need a look; tap again to go back to all bookings
   // (Needs a look and Deposit buttons replaced by the To do tab, Oct 30 2026)
+  // Nov 2026: small 🔍 by the heading opens a search box under the tabs; ✕ closes it
+  function closeSearch(){ $('q').value = ''; Q = ''; $('srow').hidden = true; draw(); }
   $('srchBtn').addEventListener('click', function(){
-    var q = $('q'); if (q.hidden) { q.hidden = false; $('srchBtn').classList.add('on'); q.focus(); }
-    else { q.value = ''; Q = ''; q.hidden = true; $('srchBtn').classList.remove('on'); draw(); }
+    if ($('srow').hidden) { $('srow').hidden = false; $('srchBtn').classList.add('on'); $('q').focus(); window.scrollTo({ top: 0 }); } else closeSearch();
   });
+  $('qClr').addEventListener('click', closeSearch);
   $('q').addEventListener('input', function(){ Q = $('q').value; draw(); });
   $('histTog').addEventListener('click', function(){ var f = $('feed'); f.hidden = !f.hidden; $('histArr').textContent = f.hidden ? 'Show ▾' : 'Hide ▴'; });
   $('tblTog').addEventListener('click', function(){ TABLE = !TABLE; draw(); });
