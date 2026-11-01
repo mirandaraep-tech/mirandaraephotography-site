@@ -889,6 +889,20 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a && a.open) return hi + 'Good news, ' + longDay(o.date) + (low(a.t) === 'wedding' ? '' : ' at ' + low(a.t)) + place + ' is open! Want me to hold it for you? I can send you a quick link to lock it in.';
     return hi; // date taken (or unknown), so Miranda writes this one herself
   }
+  // Nov 1 2026: they typed a question or note on the form, so Miranda should text before sending the link
+  function asked(o){ var m = String((o.form && o.form.message) || '').trim(); return m; }
+  function askedTag(o){
+    var m = asked(o); if (!m) return '';
+    if (m.length <= 90) return '<div class="sub" style="font-weight:600">💬 They wrote: <span style="font-weight:400">"' + esc(m) + '"</span></div>';
+    return '<div class="sub" style="font-weight:600" data-msg>💬 They wrote: <span style="font-weight:400" data-short>"' + esc(m.slice(0, 90)) + '…" <button class="lnk" type="button" data-more>Read all</button></span>' +
+      '<span style="font-weight:400" data-full hidden>"' + esc(m) + '"</span></div>';
+  }
+  // "Read all" on a long message (pop-up or card) shows the whole thing in place
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-more]'); if (!b) return;
+    e.stopPropagation(); var w = b.closest('[data-msg]');
+    w.querySelector('[data-short]').hidden = true; w.querySelector('[data-full]').hidden = false;
+  }, true);
   function availTag(o){
     var a = avail(o); if (!a) return '';
     return '<div class="sub" style="font-weight:600">' + (a.open ? '✅ ' + esc(a.t) + ' is open' : '⛔ ' + esc(a.t) + ' is taken (' + esc(first(a.who.name)) + ')') + '</div>';
@@ -907,9 +921,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     list.forEach(function(o){
       var taken = (avail(o) || {}).open === false;
       h += '<div class="card" style="padding:12px;margin:10px 0" data-k="' + esc(o.key) + '"><div class="nm" style="font-size:18px">' + esc(o.name) + '</div>' +
-        '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' + availTag(o) +
+        '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' + availTag(o) + askedTag(o) +
         '<div class="sub">Came in ' + esc(ago(o.asked)) + '</div>' +
-        (taken ? '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="build">Link for a new date</button><button class="btn" data-p="itext">Text</button></div></div>'
+        (taken || asked(o) ? '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="build">' + (taken ? 'Link for a new date' : 'Send Confirm link') + '</button><button class="btn" data-p="itext">Text</button></div></div>'
                : '<div class="acts" style="margin-top:10px"><button class="btn ghost" data-p="itext">Text</button><button class="btn" data-p="build">Send Confirm link</button></div></div>');
     });
     h += '<div class="acts"><button class="btn ghost" data-x>' + (list.length === 1 ? 'Later' : 'Do all ' + list.length + ' later') + '</button></div>';
@@ -926,7 +940,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<span class="pm">' + (open ? '−' : '+') + '</span>' + (o.test ? '<span class="tg t">TEST</span>' : '') +
       (o.pen ? '<span class="tg pen">✏️ Penciled in</span>' : '<span class="tg w">' + (sent ? '💬 Link texted' : '📩 New request') + '</span>') +
       '<div class="nm">' + esc(o.name) + '</div>' +
-      '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.time ? (SESS_LBL[sessType(o)] === 'Other' ? o.time : SESS_LBL[sessType(o)].replace('♥ ', '')) : '', o.beach].filter(Boolean).join(' · ')) + '</div>' + (sent ? '' : availTag(o)) +
+      '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.time ? (SESS_LBL[sessType(o)] === 'Other' ? o.time : SESS_LBL[sessType(o)].replace('♥ ', '')) : '', o.beach].filter(Boolean).join(' · ')) + '</div>' + (sent ? '' : availTag(o) + askedTag(o)) +
       '</div><div class="rt">' + (o.amount ? '<span class="amt a-inq">' + money(o.amount) + '</span>' : '') +
       (o.pen ? '<button class="dep na pen" type="button" tabindex="-1">✏️ Penciled in ' + esc(slotTxt(o.sreq)) + ', waiting on your OK</button>'
         : '<button class="dep na" type="button" tabindex="-1">' + (sent ? 'Waiting on customer to confirm' : o.texting ? '💬 Sandy is texting them' : 'Needs reply') + '</button>') +
