@@ -1867,10 +1867,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     sheet('<h3>What happened with ' + esc(first(b.name)) + '\'s session?</h3>' +
       '<div class="isum"><b>' + esc(b.date ? nice(b.date) : '') + '</b>' + (b.time ? ' · ' + esc(b.time) : '') + (b.beach ? '<br>' + esc(b.beach) : '') +
       '<br>' + esc(b.pkg || 'Session') + ' · <b>' + money(tot(b)) + '</b><br>' + (dep ? money(dep) + ' deposit in · ' : 'No deposit marked · ') + 'owes ' + money(owed) + '</div>' +
+      // Nov 1 2026: same top buttons as the inquiry boxes
+      '<div class="acts" style="margin-top:8px"><button class="btn ghost" type="button" data-p="date">📅 Change date</button><button class="btn ghost" type="button" data-p="edit">Change something else</button></div>' +
       '<div class="choice">' +
       opt('paid', '📸 Shot it, paid in full', 'Marks the last ' + money(owed) + ' paid', true) +
       (b.shot ? '<p class="muted" style="margin:0">Already marked shot, still owes ' + money(owed) + ' (<button class="lnk" data-p="undo-shot">undo</button>)</p>' : opt('owes', '💵 Shot it, still owes money', 'Stays in To do until it\'s paid')) +
-      opt('moved', '🌧️ Weather, moved to another day', 'Pick the new date') +
       opt('weather', '🌧️ Weather, couldn\'t reschedule, deposit kept', 'Cancels it; the deposit counts as collected') +
       opt('noshow', '🚫 They canceled or didn\'t show, deposit kept', 'Cancels it; the deposit counts as collected') +
       '</div><div class="acts"><button class="btn ghost" data-x>Never mind</button></div>',
@@ -1880,8 +1881,24 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         if (k === 'paid') return paidSheet(b);
         if (k === 'owes') return act(b, 'shot').then(function(nb){ if (nb) toast(first(b.name) + ' stays in To do until paid'); });
         if (k === 'undo-shot') return act(b, 'undo-shot');
-        if (k === 'moved') return moveSheet(b, 'Weather');
+        if (k === 'date') return moveWhySheet(b);
+        if (k === 'edit') return editSheet(b);
         keptSheet(b, k === 'weather' ? 'Weather, couldn\'t reschedule' : 'Canceled or no-show');
+      });
+  }
+  // Change date from the Date passed box: new date plus why it moved (weather moves get counted)
+  function moveWhySheet(b){
+    var W = ['Weather', 'They asked', 'Other'];
+    sheet('<h3>Change the date</h3><p class="muted">' + esc(b.name) + (b.time ? ' · ' + esc(b.time) : '') + '</p><label class="l">New date</label><input data-d type="date" value="">' +
+      '<label class="l">Why?</label><div class="chips">' + W.map(function(w){ return '<button class="chip" type="button" data-w="' + w + '">' + w + '</button>'; }).join('') + '</div>' +
+      '<p class="err" data-e hidden>Pick the new date.</p><div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save new date</button></div>',
+      function(e, v, close){
+        var c = e.target.closest('[data-w]');
+        if (c) { Array.prototype.forEach.call(v.querySelectorAll('[data-w]'), function(x){ x.classList.toggle('on', x === c); }); return; }
+        if (!e.target.closest('[data-save]')) return;
+        var nd = v.querySelector('[data-d]').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(nd) || nd === b.date) { v.querySelector('[data-e]').hidden = false; return; }
+        var w = v.querySelector('[data-w].on'), why = w ? w.getAttribute('data-w') : '';
+        close(); act(b, 'move', why ? { date: nd, why: why } : { date: nd }).then(function(nb){ if (nb) ask('Text the new date to customer?', '', 'Yes', 'No', function(){ compose(nb, 'Date change', msgMoved(nb)); }); });
       });
   }
   function keptSheet(b, why){
