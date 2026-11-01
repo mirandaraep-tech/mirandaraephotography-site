@@ -502,6 +502,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     return list;
   }
   // Nov 1 2026: nobody has touched it in 7 days (no new request, link, or "Still talking") → "❓ What happened?" tag
+  function quietDays(o){ var t = [o.asked, o.sent && o.sent.at, o.waiting].filter(Boolean).sort().pop() || ''; return t ? Math.floor((Date.now() - new Date(t)) / 86400000) : 0; }
   function isStale(o){ var t = [o.asked, o.sent && o.sent.at, o.waiting].filter(Boolean).sort().pop() || ''; return !!t && t < new Date(Date.now() - 7 * 86400000).toISOString(); }
   // Oct 30 2026: Sandy's side. A card whose customer is penciled in shows ✏️; one Sandy is texting says so.
   // Matched by phone number (same date first). One customer's pencil-in shows on one card only.
@@ -1080,8 +1081,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var h = '<div class="bk inq' + (o.pen ? ' pen' : '') + (open ? ' open' : '') + '" data-inq="' + esc(o.key) + '">' +
       '<div class="sum" data-tog role="button" tabindex="0" aria-expanded="' + open + '"><div class="lt">' +
       '<span class="pm">' + (open ? '−' : '+') + '</span>' + (o.test ? '<span class="tg t">TEST</span>' : '') +
-      (o.pen ? '<span class="tg pen">✏️ Penciled in</span>' : '<span class="tg w">' + (o.waiting ? '💬 Waiting on them' : sent ? '💬 Link texted' : '📩 New request') + '</span>') +
-      (o.stale && !o.pen ? '<span class="tg q">❓ What happened?</span>' : '') +
+      // Nov 1 2026: one tag per card, whichever matters most
+      (o.pen ? '<span class="tg pen">✏️ Penciled in</span>' : isPastDay(o.date) ? '<span class="tg q">📆 Date passed</span>'
+        : o.stale ? '<span class="tg q">❓ No reply in ' + quietDays(o) + ' days</span>'
+        : '<span class="tg w">' + (o.waiting ? '💬 Waiting on them' : sent ? '💬 Link texted' : '📩 New request') + '</span>') +
       '<div class="nm">' + esc(o.name) + '</div>' +
       '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.time ? (SESS_LBL[sessType(o)] === 'Other' ? o.time : SESS_LBL[sessType(o)].replace('♥ ', '')) : '', o.beach].filter(Boolean).join(' · ')) + '</div>' + (sent ? '' : availTag(o) + askedTag(o)) +
       '</div><div class="rt">' + (o.amount ? '<span class="amt a-inq">' + money(o.amount) + '</span>' : '') +
