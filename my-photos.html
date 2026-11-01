@@ -131,9 +131,9 @@ input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);bord
   <!-- list of pages -->
   <section id="home" hidden>
     <div class="how">
-      <b>Change any photo on your website</b>
+      <b>Change the photos on your home page</b>
       <ol>
-        <li>Tap a page.</li>
+        <li>Tap Home page.</li>
         <li>Tap <b style="display:inline;font-size:inherit">Change photo</b> under the one you want to swap.</li>
         <li>Pick a photo from your Pixieset. It's on the website right away.</li>
       </ol>
@@ -142,7 +142,7 @@ input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);bord
     <div class="how" id="goneNote" hidden style="background:#fff3dc;border:1px solid #f0d49b;margin-top:10px"></div>
     <h2>Website pages</h2>
     <div id="siteList"></div>
-    <h2>Ad pages <span style="text-transform:none;letter-spacing:0">(hidden, only people who tap an ad see them)</span></h2>
+    <h2 id="adHead">Ad pages <span style="text-transform:none;letter-spacing:0">(hidden, only people who tap an ad see them)</span></h2>
     <div id="adList"></div>
     <h2>Recent changes</h2>
     <div class="card hist" id="hist"></div>
@@ -241,6 +241,7 @@ input{font:inherit;font-size:20px;padding:12px;border:2px solid var(--line);bord
           '</span><span class="nm"><b>' + esc(p.name) + '</b><small>' + p.photos.length + ' photo' + (p.photos.length === 1 ? "" : "s") + (n ? ' <span class="badge">' + n + ' changed</span>' : "") + (p.photos.some(function(ph){ return gone(p.stem, ph.raw); }) ? ' <span class="badge" style="background:#fff3dc;color:#8a5a00">needs a new pick</span>' : "") + '</small></span><span class="ch">›</span></button>';
       }).join("");
     });
+    $("adHead").hidden = $("adList").hidden = !DATA.pages.some(function(p){ return p.group === "ads"; });
     var g = DATA.gone || [];
     $("goneNote").hidden = !g.length;
     if (g.length) {
