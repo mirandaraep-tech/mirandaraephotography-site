@@ -206,7 +206,8 @@ export function alertText(f, { subject, site, page, emailed, test }) {
 }
 async function textAlerts(deps, base, body, test) {
   if (!deps || !deps.tell) return;
-  for (const who of test ? [RANDY] : [RANDY, MIRANDA]) {
+  // Nov 1 2026: Miranda no longer gets this right away; Sandy texts her only if it's still unanswered after an hour
+  for (const who of [RANDY]) {
     try { await deps.tell(base, who, body); } catch (e) { console.log("alert text failed", who, String(e)); }
   }
 }

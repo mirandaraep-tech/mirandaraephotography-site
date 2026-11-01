@@ -29,6 +29,8 @@ export const MIRANDA = "4482196539";
 export const BRADYN = "2566134522";
 // Oct 30 2026: who gets asked to okay a customer's date. Both at once; the first YES or NO decides.
 export const STAFF = [MIRANDA, BRADYN];
+// Nov 1 2026: Sandy no longer texts Miranda or Bradyn on her own, except the one-hour new-request nudge
+export const STAFF_QUIET = true;
 // Pretend customer used by the "Customer" button on the private /sandy page. Never really texted.
 export const TEST_CUSTOMER = "8505550100";
 // Customers' conversations kept by phone number; the pretend customer's stays separate
@@ -627,7 +629,7 @@ export async function deliver(base, to, body, kind) {
   let sent = false, error = "";
   if (!PEOPLE[digits(to)] && digits(to) !== TEST_CUSTOMER && !customerTextsOn()) {
     await record(base, { kind, to: digits(to), body, sent: false, held: "customer texting is off" });
-    await deliver(base, MIRANDA, "Sandy here: I'm not texting customers right now, so I didn't send this to " + fmtPhone(to) + ". If you want them to get it, text it to them yourself:\n\"" + String(body).slice(0, 900) + "\"", "held-for-miranda");
+    if (!STAFF_QUIET) await deliver(base, MIRANDA, "Sandy here: I'm not texting customers right now, so I didn't send this to " + fmtPhone(to) + ". If you want them to get it, text it to them yourself:\n\"" + String(body).slice(0, 900) + "\"", "held-for-miranda");
     return { sent: false, error: "", held: true };
   }
   if (textingOn() && isLive(base) && digits(to) !== TEST_CUSTOMER) { try { await sendText(to, body); sent = true; } catch (e) { error = String(e.message || e); } }
@@ -678,6 +680,7 @@ export async function customerSection(base, withTests) {
 
 // Text Miranda something about a customer, and keep it in her conversation so she can just reply YES
 export async function notifyMiranda(base, text, { page = false } = {}) {
+  if (STAFF_QUIET) { await record(base, { kind: "to-miranda-quiet", to: MIRANDA, body: text, sent: false }); return; } // Nov 1 2026, see tellStaff
   const key = page ? "page-" + MIRANDA : null;
   if (page) {
     const s = sandyStore(base), h = (await s.get(key, { type: "json" })) || [];
@@ -692,6 +695,10 @@ export async function notifyMiranda(base, text, { page = false } = {}) {
 // Text one staff member (Miranda or Bradyn), kept in their conversation so they can just reply YES (Oct 30 2026)
 export async function tellStaff(base, phone, text, { page = false } = {}) {
   const p = digits(phone);
+  // Nov 1 2026: Randy asked Sandy to stop texting Bradyn altogether and to stop texting Miranda about
+  // everything except new website requests nobody answered within an hour (nudgeCheck in customers.mjs).
+  // Notices still go in Sandy's log, so nothing is lost; they just aren't texted.
+  if (STAFF_QUIET) { await record(base, { kind: "to-staff-quiet", to: p, body: text, sent: false }); return; }
   if (page) {
     const s = sandyStore(base), key = "page-" + p, h = (await s.get(key, { type: "json" })) || [];
     await s.setJSON(key, h.concat({ role: "user", content: "[Customer update]" }, { role: "assistant", content: text }).slice(-20));
