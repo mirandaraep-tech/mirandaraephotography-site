@@ -398,7 +398,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       try { localStorage.setItem('mrp-log-pass', PASS); } catch (e) {}
       DATA = j; $('lock').hidden = true;
       if (!WHO) { $('whoCard').hidden = false; $('app').hidden = true; return; }
-      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw(); freshPop();
+      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw(); freshPop(); openAlert();
     }).catch(function(){ $('asof').textContent = "Couldn't load. Pull down to refresh."; });
   }
   var PH = { names: ['Kallie'], split: { pct: 20, min: 0 }, adPct: 20 };
@@ -906,6 +906,21 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function availTag(o){
     var a = avail(o); if (!a) return '';
     return '<div class="sub" style="font-weight:600">' + (a.open ? '✅ ' + esc(a.t) + ' is open' : '⛔ ' + esc(a.t) + ' is taken (' + esc(first(a.who.name)) + ')') + '</div>';
+  }
+  // Nov 1 2026: Randy wants an email whenever Miranda or Bradyn opens the Bookings app.
+  // Goes to mirandaraep@gmail.com only. At most once every 30 minutes per phone, so switching
+  // back and forth between apps doesn't flood his inbox. Never for Randy or on test copies.
+  function openAlert(){
+    if (!LIVE || !/^(miranda|bradyn|braden)$/i.test(String(WHO || '').trim())) return;
+    var last = 0; try { last = Number(localStorage.getItem('mrp-open-alert') || 0); } catch (e) {}
+    if (Date.now() - last < 30 * 60000) return;
+    try { localStorage.setItem('mrp-open-alert', String(Date.now())); } catch (e) {}
+    var waiting = inquiries().filter(function(o){ return !o.test && !o.old && !o.sent && !o.pen; }).length;
+    var phone = /iPhone|iPad/.test(navigator.userAgent) ? 'iPhone/iPad' : /Android/.test(navigator.userAgent) ? 'Android phone' : 'computer';
+    try { fetch('/api/notify', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ _subject: '🔔 APP OPENED: ' + WHO + ' just opened the Bookings app', _template: 'table', _captcha: 'false',
+        'Who': WHO, 'When': new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' }) + ' Central', 'Device': phone,
+        'Requests waiting for a reply': String(waiting) }) }).catch(function(){}); } catch (e) {}
   }
   // Nov 1 2026: when the app opens, new requests from the last 24 hours that nobody has answered pop up first.
   // "Later" just closes it; a lead pops up once each time the app is opened (and again for any newer lead).
