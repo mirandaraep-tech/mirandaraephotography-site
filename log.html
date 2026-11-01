@@ -132,7 +132,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .inqbar{width:100%;display:flex;justify-content:space-between;align-items:center;border:2px solid #f0d58f;background:#fff8e6;color:#7a4f00;border-radius:16px;padding:12px 14px;font-size:16px;font-weight:bold;cursor:pointer;margin-bottom:10px;text-align:left}
 .inqbar span:last-child{font-size:14px;font-weight:normal}
 /* Nov 1 2026: Clean up button and "What happened?" choices */
-.cleanbar{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:2px;border:2px dashed #b9c7cc;background:#fff;color:#33464d;border-radius:16px;padding:10px 14px;font-size:16px;font-weight:bold;cursor:pointer;margin-bottom:10px;text-align:left}
+.cleanbar{width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;border:1.5px solid #cfdde1;background:#fff;color:#33464d;border-radius:12px;padding:8px 14px;font-size:15px;font-weight:bold;cursor:pointer;margin-bottom:10px;text-align:left}
 .cleanbar small{font-weight:normal;font-size:13px;color:#6b7a80}
 .whyb{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:8px 14px}
 .whyb small{font-weight:normal;font-size:13px;opacity:.8}
@@ -525,7 +525,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // To do: upcoming sessions with no deposit yet, and past sessions not marked paid
   function todoB(b){ return !b.past && !b.cancelled && (flagged(b) || ((b.date || '') >= TODAY && !b.deposit && !b.paid && tot(b) > 0)); }
   // ...and inquiries penciled in, or nobody has answered yet
-  function todoI(o){ return !o.old && (o.pen || (!o.sent && !o.texting)); }
+  // Nov 1 2026: also inquiries whose date passed or with no reply in a week, so To do holds everything that needs her
+  function todoI(o){ return o.pen || isPastDay(o.date) || o.stale || (!o.old && !o.sent && !o.texting); }
   var PI = 0, CON = '', DEP = '', MORE = { bal: '', status: '', type: '', loc: '', shooter: '', tests: false }, DAY = '', Q = '', INQOPEN = false, TABLE = false, OPEN = null;
   function inPeriod(d, per){
     if (per === 'all') return true;
@@ -1841,7 +1842,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function cleanBtn(inq){
     var all = inquiries().filter(cleanable), n = all.length; if (!n) return '';
     var st = all.filter(function(o){ return o.stale || isPastDay(o.date); }).length;
-    return '<button class="cleanbar" id="cleanUp" type="button"><span>🧹 Clean up</span><small>Go through ' + (n === 1 ? 'it' : 'all ' + n) + ' one at a time' + (st ? ' · ' + st + ' need a look' : '') + '</small></button>';
+    // Nov 1 2026: one small line, only when something needs a look
+    if (!st) return '';
+    return '<button class="cleanbar" id="cleanUp" type="button"><span>🧹 Clean up · ' + st + ' need' + (st === 1 ? 's' : '') + ' a look</span><span style="font-weight:normal">›</span></button>';
   }
   // Walks through every open inquiry one at a time: the ones nobody's touched in a week first, then oldest first,
   // then the ones whose date has passed.
