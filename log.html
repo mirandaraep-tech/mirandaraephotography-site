@@ -137,6 +137,13 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .whyb{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:8px 14px}
 .whyb small{font-weight:normal;font-size:13px;opacity:.8}
 .whb{width:100%}
+/* Nov 1 2026: session summary at the top of What happened? / Clean up, and the Date passed button */
+.isum{background:#f6f8f9;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0 2px;font-size:15px;line-height:1.45}
+.isum b{font-size:17px}
+button.flag{border:0;cursor:pointer;font-family:inherit;text-align:left}
+.whyh{margin:14px 0 0;font-weight:bold}
+.dtb{border:0;background:none;padding:0;font:inherit;color:var(--teal);text-decoration:underline;cursor:pointer;text-align:left}
+.dtb b{font-size:17px}
 .tg.q{background:#fff3cd;color:#7a4f00}
 .inqwrap{border-left:3px solid #f0d58f;padding-left:8px;margin-bottom:14px}
 
@@ -642,7 +649,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       ih = inq.map(function(o){ return inqCard(o); }).join('');
       if (CON === 'no' && !q) {
         var oldOnes = INQ.filter(function(o){ return o.old; });
-        ih = (inq.length ? cleanBtn(inq) : '<p class="muted" style="margin:0 4px 12px">No inquiries right now.</p>') + ih +
+        ih = cleanBtn(inq) + (inq.length ? '' : '<p class="muted" style="margin:0 4px 12px">No inquiries right now.</p>') + ih +
           (oldOnes.length || inq.length ? '<p style="text-align:center;margin:6px 0 16px"><button class="lnk" id="clrInq" style="color:var(--bad)">Clear all old inquiries (' + oldOnes.length + ')</button></p>' : '');
       }
     } else if (inq.length) {
@@ -821,7 +828,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<div class="nm"' + (s[1] === 's-con' && !tags ? ' style="margin-top:0"' : '') + '>' + esc(b.name) + '</div>' +
       // Oct 30 2026: the session time goes in the date line (change it with Edit)
       '<div class="sub">' + esc([b.date ? nice(b.date) : 'No date', b.time ? SESS_LBL[sessType(b)] === 'Other' ? b.time : SESS_LBL[sessType(b)].replace('♥ ', '') : '', b.beach].filter(Boolean).join(' · ')) + '</div>' +
-      (fl ? '<div class="flag">⚠️ Date passed — shot or moved?</div>' : '') +
+      (fl ? (b.shot ? '<button class="flag" type="button" data-a="passed">📸 Shot · still owes ' + money(owed) + ' ›</button>' : '<button class="flag" type="button" data-a="passed">⚠️ Date passed — shot or moved? ›</button>') : '') +
       (so ? '<div class="flag owes">💸 ' + esc(b.photographer) + ' owes Miranda ' + money(so) + '</div>' : mirandaOwes(b) ? '<div class="flag owes">💸 Miranda owes ' + esc(b.photographer) + ' ' + money(mirandaOwes(b)) + '</div>' : '') +
       '</div><div class="rt">' + moneyBtn(b) + '</div></div>';
     if (!open) return h + '</div>';
@@ -1051,7 +1058,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     $('mt').innerHTML = line('📸 From her own sessions', own) + line('📷 Her share from contracted sessions' + (n ? ' <span class="muted">(' + n + ')</span>' : ''), share) +
       line('Total to Miranda', own + share, true) + '<p class="muted" style="margin:10px 0 0">Paid to photographers: <b>' + money(paidOut) + '</b>' + (who ? ' (' + who + ')' : '') + '</p>';
   }
-  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', waiting: '💬 Still talking', 'shooter-paid': '💸 Photographer paid Miranda', 'paid-shooter': '💸 Miranda paid photographer', review: '⭐ Review asked', ad: '📣 Advertising', 'undo-shooter-paid': '↩️ Photographer payment undone' };
+  var LBL = { request: '📩 Request', sent: '💬 Link texted', confirm: '✅ Confirmed', 'slot-taken': '⚠️ Time already booked', deposit: '💳 Deposit received', 'undo-deposit': '↩️ Deposit undone', paid: '💵 Paid in full', 'undo-paid': '↩️ Paid in full undone', cancel: '✕ Cancelled', 'undo-cancel': '↩️ Cancel undone', addon: '➕ Add-on', deduct: '➖ Deducted', 'undo-deduct': '↩️ Deduction undone', moved: '📅 Date moved', 'split-default': '⚙️ Usual split changed', past: '🗂️ Past session added', added: '📝 Added (no text)', edit: '✏️ Edited', photographer: '📷 Photographer changed', dismiss: '🚫 Not booking', waiting: '💬 Still talking', 'shooter-paid': '💸 Photographer paid Miranda', 'paid-shooter': '💸 Miranda paid photographer', review: '⭐ Review asked', ad: '📣 Advertising', 'undo-shooter-paid': '↩️ Photographer payment undone', shot: '📸 Shot, still owes', 'undo-shot': '↩️ Shot undone' };
   function feed(tests){
     var log = DATA.log || [], done = {};
     log.forEach(function(e){ if (e.kind === 'confirm' || e.kind === 'added') done[low(e.name) + '|' + (e.date || '')] = 1; });
@@ -1184,9 +1191,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       function(e, v, close){ if (e.target.closest('[data-yes]')) { close(); cb(); } else if (cbNo && e.target.closest('[data-no]')) { close(); cbNo(); } });
   }
   // Text composer: nothing sends by itself; it opens Messages with the text filled in
-  function compose(b, title, msg){
+  function compose(b, title, msg, then){
     var ph = b.phone || '';
-    sheet('<h3>' + esc(title) + '</h3><label class="l">To</label><input data-to type="tel" value="' + esc(fmtPhone(ph)) + '" placeholder="Client\'s cell">' +
+    var s = sheet('<h3>' + esc(title) + '</h3><label class="l">To</label><input data-to type="tel" value="' + esc(fmtPhone(ph)) + '" placeholder="Client\'s cell">' +
       '<label class="l">Message (you can change it)</label><textarea data-msg>' + esc(msg) + '</textarea>' +
       '<div class="note">This opens your texting app with the message ready. Nothing sends until you press Send there.</div>' +
       '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-go>Open in Messages</button></div>',
@@ -1195,6 +1202,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         var to = v.querySelector('[data-to]').value.replace(/[^\d+]/g, ''), body = v.querySelector('[data-msg]').value;
         close(); location.href = 'sms:' + to + (isIOS ? '&' : '?') + 'body=' + encodeURIComponent(body);
       });
+    if (then) s.el.addEventListener('click', function(e){ if (!s.el.parentNode) setTimeout(then, 300); });
   }
   var tWord = function(b){ var t = low(b.time); return t && t !== 'other' ? t + ' ' : ''; };
   var at = function(b){ return b.beach && b.beach !== 'Other' ? ' at ' + b.beach : ''; };
@@ -1286,6 +1294,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (a === 'paid-shooter') { var mo = mirandaOwes(b); return ask('Paid ' + esc(b.photographer) + ' ' + money(mo) + '?', 'Miranda kept the ' + money((b.deposit && b.deposit.amount) || 0) + ' deposit, which is more than her ' + money(mineOf(b)) + ' share, so this is the difference.', 'Yes, paid', 'Not yet', function(){ act(b, 'paid-shooter', { amount: mo }); }); }
     if (a === 'undo-paid-shooter') return ask('Undo that payment?', '', 'Undo', 'Keep it', function(){ act(b, 'undo-paid-shooter'); });
     if (a === 'cancel') return cancelSheet(b);
+    if (a === 'passed') return passedSheet(b);
+    if (a === 'undo-shot') return ask('Undo "shot it"?', '', 'Undo', 'Keep it', function(){ act(b, 'undo-shot'); });
     if (a === 'undo-cancel') return ask('Bring this booking back?', esc(b.name) + "'s booking goes back on the list and the totals.", 'Undo cancel', 'Leave cancelled', function(){ act(b, 'undo-cancel'); });
   }
   var METHODS = ['Venmo', 'Cash App', 'PayPal', 'Pixieset', 'Cash', 'Other'];
@@ -1314,13 +1324,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         close(); act(b, 'paid', { method: method(v) }).then(function(nb){ if (nb) ask('Text a payment receipt to customer?', '', 'Yes', 'No', function(){ compose(nb, 'Payment receipt', msgReceipt(nb, owed)); }); });
       });
   }
-  function moveSheet(b){
-    sheet('<h3>Move date</h3><p class="muted">' + esc(b.name) + (b.time ? ' · ' + esc(b.time) : '') + '</p><label class="l">New date</label><input data-d type="date" value="' + esc(b.date || '') + '"><p class="err" data-e hidden>Pick the new date.</p>' +
+  function moveSheet(b, why){
+    sheet('<h3>' + (why ? 'Pick the new date' : 'Move date') + '</h3><p class="muted">' + esc(b.name) + (b.time ? ' · ' + esc(b.time) : '') + '</p><label class="l">New date</label><input data-d type="date" value="' + esc(b.date || '') + '"><p class="err" data-e hidden>Pick the new date.</p>' +
       '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save new date</button></div>',
       function(e, v, close){
         if (!e.target.closest('[data-save]')) return;
         var nd = v.querySelector('[data-d]').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(nd) || nd === b.date) { v.querySelector('[data-e]').hidden = false; return; }
-        close(); act(b, 'move', { date: nd }).then(function(nb){ if (nb) ask('Text the new date to customer?', '', 'Yes', 'No', function(){ compose(nb, 'Date change', msgMoved(nb)); }); });
+        close(); act(b, 'move', why ? { date: nd, why: why } : { date: nd }).then(function(nb){ if (nb) ask('Text the new date to customer?', '', 'Yes', 'No', function(){ compose(nb, 'Date change', msgMoved(nb)); }); });
       });
   }
   var TIMES = ['Sunset', 'Sunrise', 'Midday', 'Wedding', 'Engagement', 'Other', ''];
@@ -1468,15 +1478,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (av && !av.open) return ask(av.t + ' on ' + nice(o.date) + ' is taken', esc(av.who.name) + ' already has it' + (noDep(av.who) ? ' (no deposit yet)' : '') + '. Text ' + esc(first(o.name)) + ' to find another time, or if you already agreed on a new date, set it on the next screen.', 'Text them', 'I have a new date', function(){ compose(o, 'Text ' + first(o.name), availText(o)); }, function(){ buildSheet(o, false); });
       return buildSheet(o, false);
     }
-    if (a === 'iconfirm') {
-      if (o.sent && o.date && o.amount) return ask('Did ' + esc(first(o.name)) + ' say yes?', 'This books ' + esc(o.name) + ' for ' + esc(nice(o.date)) + (o.time ? ' (' + esc(o.time) + ')' : '') + ' at ' + money(o.amount) + ' without them tapping the link.', 'Yes, book it', 'Not yet', function(){
-        bookInquiry(o, { name: o.name, date: o.date, time: o.time, beach: o.beach, pkg: o.pkg, amount: o.amount, dep: o.dep, phone: o.phone, photographer: o.photographer || '' });
-      });
-      return buildSheet(o, true);
-    }
+    // Nov 1 2026: Mark as booked asks about the deposit (or, for a date that's passed, books it as a past session paid in full)
+    if (a === 'iconfirm') return o.date ? bookedSheet(o, inqDeal(o)) : buildSheet(o, true);
   }
-  function bookInquiry(o, d){
-    var body = { kind: 'direct', fromInquiry: true, name: d.name, date: d.date, time: d.time || '', beach: d.beach || '', pkg: d.pkg || '', amount: d.amount || 0, dep: d.dep || 50, phone: d.phone || '', by: WHO, pay: 'none', photographer: d.photographer || '', split: d.split || null };
+  function bookInquiry(o, d, done){
+    var body = { kind: 'direct', fromInquiry: true, name: d.name, date: d.date, time: d.time || '', beach: d.beach || '', pkg: d.pkg || '', amount: d.amount || 0, dep: d.dep || 50, phone: d.phone || '', by: WHO, pay: d.pay || 'none', deposit: d.deposit || 0, method: d.method || '', photographer: d.photographer || '', split: d.split || null };
     return post(body).then(function(j){
       if (j.conflict) {
         if (!confirm('#' + j.with + ' ' + j.withName + ' already has that time on that date. Book it anyway?')) return;
@@ -1487,8 +1493,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     function after(j){
       if (j.duplicate) { alert(o.name + ' is already booked for that date.'); return load(); }
       if (!j.ok) { alert("That didn't save. Please try again."); return; }
-      OPEN = j.booking && j.booking.num ? 'b' + j.booking.num : null;
-      return load().then(function(){ if (j.past) return; ask('Text confirmation to customer?', '', 'Yes', 'No', function(){ compose(j.booking, 'Confirmation text', msgConfirm(j.booking)); }); });
+      if (o && o.date && d.date !== o.date) post({ kind: 'dismiss', why: 'Booked on another date', name: o.name, date: o.date, beach: o.beach, by: WHO, test: o.test }).catch(function(){});
+      OPEN = done ? null : j.booking && j.booking.num ? 'b' + j.booking.num : null;
+      toast(first(d.name) + (j.past ? ' added as a past session, paid in full' : ' booked' + (d.pay === 'deposit' ? ', deposit in' : ', no deposit yet')));
+      return load().then(function(){
+        if (j.past) { if (done) done(); return; }
+        ask('Text confirmation to customer?', '', 'Yes', 'No', function(){ compose(j.booking, 'Confirmation text', msgConfirm(j.booking), done); }, done);
+      });
     }
   }
   // Build the client's Confirm link right from the card (same link New Booking makes), or book them directly
@@ -1525,7 +1536,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // Only on a fresh request; once a link went out its price already has the fee folded in.
   function farBeach(b){ return /Destin|30A|St\. George/i.test(b || ''); }
   function travFee(o){ return !o.sent && !o.amount && farBeach(o.beach) ? 30 : 0; }
-  function buildSheet(o, direct){
+  function buildSheet(o, direct, done){
     var pi = pkIndex(o);
     var guessT = o.time || (/sunrise/i.test(o.detail || '') ? 'Sunrise' : /wedding/i.test(o.detail || '') ? 'Wedding' : 'Sunset');
     var fl = formLines(o);
@@ -1574,7 +1585,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         var sp = sh ? usualSplit({ time: lk.t, pkg: lk.pk }) : null;
         // Usual wedding split rounds to the dollar so Miranda's share matches the deposit paid up front
         if (sh && isWed({ time: lk.t, pkg: lk.pk }) && !DEPMAN && base) sp = { mode: 'amt', val: dp };
-        if (direct || alt) { close(); pencilWarn(lk.d, lk.t, { name: lk.n, phone: g('ph') }, function(){ bookInquiry(o, { name: lk.n, date: lk.d, time: lk.t, beach: lk.b, pkg: lk.pk, amount: lk.total, dep: dp, phone: g('ph'), photographer: sh, split: sp }); }); return; }
+        if (direct || alt) { var phd = g('ph'); close(); pencilWarn(lk.d, lk.t, { name: lk.n, phone: phd }, function(){ bookedSheet(o, { name: lk.n, date: lk.d, time: lk.t, beach: lk.b, pkg: lk.pk, amount: lk.total, dep: dp, phone: phd, photographer: sh, split: sp }, done, true); }); return; }
         // Nov 1 2026: show Miranda the customer's page first; she sends from there or goes back to fix it
         var phv = g('ph'); // the form stays open underneath, so going back keeps everything she typed
         var pvUrl = location.origin + '/confirm?s=' + b64(JSON.stringify(lk)) + '&preview=1';
@@ -1640,17 +1651,89 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // ---------- Nov 1 2026: "What happened?" and Clean up ----------
   // One button per inquiry card. Booked → book it; Still talking → stays, marked "Waiting on them";
   // the other three take it off the list (hidden, not erased; the request stays in "Everything that came in").
-  var WHY = [['booked', '✅ Booked', 'They said yes'], ['waiting', '💬 Still talking', 'Keep it on the list'], ['No answer', '🤐 No answer', 'They never wrote back'],
+  // Nov 1 2026 (later): "Booked" split in two (deposit paid / no deposit yet); a date that's passed gets
+  // "It happened, paid in full" instead. The weather choices live on booked cards (an inquiry never paid a deposit).
+  var WHY = [['dep', '✅ Booked, deposit paid', 'They paid the deposit'], ['nodep', '📅 Booked, no deposit yet', 'They said yes, deposit still coming'],
+    ['full', '✅ It happened, paid in full', 'Adds it as a past session, marked paid'],
+    ['waiting', '💬 Still talking', 'Keep it on the list'], ['No answer', '🤐 No answer', 'They never wrote back'],
     ['Went elsewhere', '🚫 Went elsewhere', 'Not interested, or booked someone else'], ['Duplicate or test', '🔁 Duplicate or test', 'Already on here, or just a test']];
-  function whyBtns(){ return '<div class="choice">' + WHY.map(function(w){ return '<button class="btn ghost whyb" data-why="' + w[0] + '"><b>' + w[1] + '</b><small>' + w[2] + '</small></button>'; }).join('') + '</div>'; }
+  var isPastDay = function(d){ return !!d && d < TODAY; };
+  function whyBtns(o){
+    var past = isPastDay(inqDeal(o).date);
+    return '<div class="choice">' + WHY.filter(function(w){ return past ? w[0] !== 'dep' && w[0] !== 'nodep' && w[0] !== 'waiting' : w[0] !== 'full'; }).map(function(w){
+      return '<button class="btn ' + (w[0] === 'dep' || w[0] === 'full' ? '' : 'ghost ') + 'whyb" data-why="' + w[0] + '"><b>' + w[1] + '</b><small>' + w[2] + '</small></button>'; }).join('') + '</div>';
+  }
+  // What the booking would be, from the card: date, time, beach, package and price (a Confirm link's details if one went out)
+  function inqDeal(o){
+    var pk = PK[pkIndex(o)];
+    var t = o.time || (/sunrise/i.test(o.detail || '') ? 'Sunrise' : /wedding/i.test(o.detail || '') ? 'Wedding' : 'Sunset');
+    var amt = o.amount || ((pk[1] || 0) + travFee(o));
+    var d = { name: o.name, date: o.date, time: t, beach: o.beach || '', pkg: o.pkg || pk[0], amount: amt, dep: o.dep || 50, phone: o.phone, photographer: o.photographer || '' };
+    if (o._nd) { d.date = o._nd.date; d.time = o._nd.time; }   // picked with the tappable date
+    return d;
+  }
+  // Nov 1 2026: tap the date in the gray box → calendar + Sunset / Sunrise / Other
+  function datePick(d, cb){
+    var T = ['Sunset', 'Sunrise', 'Other'];
+    sheet('<h3>Change the date</h3><p class="muted">' + esc(d.name) + '</p><label class="l">New date</label><input data-d type="date" value="' + esc(d.date || '') + '">' +
+      '<label class="l">Time</label><div class="chips" data-tm>' + T.map(function(t){ return '<button class="chip' + (low(d.time) === low(t) ? ' on' : '') + '" type="button" data-t="' + t + '">' + t + '</button>'; }).join('') + '</div>' +
+      '<p class="err" data-e hidden>Pick a date.</p><div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Use this date</button></div>',
+      function(e, v, close){
+        var c = e.target.closest('[data-t]');
+        if (c) { Array.prototype.forEach.call(v.querySelectorAll('[data-t]'), function(x){ x.classList.toggle('on', x === c); }); return; }
+        if (!e.target.closest('[data-save]')) return;
+        var nd = v.querySelector('[data-d]').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(nd)) { v.querySelector('[data-e]').hidden = false; return; }
+        var on = v.querySelector('[data-t].on');
+        close(); cb(nd, on ? on.getAttribute('data-t') : d.time);
+      });
+  }
+  function dealBox(d, change){
+    var dt = '<b>' + esc(d.date ? nice(d.date) : 'No date yet') + '</b>' + (d.time ? ' · ' + esc(d.time) : '');
+    return '<div class="isum">' + (change ? '<button class="dtb" type="button" data-dt>' + dt + ' ✎</button>' : dt) + (d.beach ? '<br>' + esc(d.beach) : '') +
+      '<br>' + esc(d.pkg || 'Session') + ' · <b>' + money(d.amount || 0) + '</b>' + (d.photographer ? '<br>📷 ' + esc(d.photographer) + ' shooting' : '') + '</div>' +
+      (change ? '<div class="acts" style="margin-top:8px"><button class="btn ghost" type="button" data-dt>📅 Change date</button><button class="btn ghost" type="button" data-chg>Change something else</button></div>' : '');
+  }
   function inqLine(o){
-    return '<div class="nm" style="font-size:19px">' + esc(o.name) + '</div><div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' +
+    return '<div class="nm" style="font-size:19px">' + esc(o.name) + '</div>' +
       '<div class="sub">' + (o.waiting ? '💬 Still talking (since ' + esc(shortDay(o.waiting)) + ')' : o.sent ? '💬 Link texted ' + esc(ago(o.sent.at)) : '📩 Came in ' + esc(ago(o.asked))) + '</div>' +
-      (o.detail ? '<div class="sub" style="margin-top:4px">"' + esc(o.detail) + '"</div>' : '');
+      (o.detail ? '<div class="sub" style="margin-top:4px">"' + esc(o.detail) + '"</div>' : '') +
+      dealBox(inqDeal(o), true) + (isPastDay(inqDeal(o).date) ? '<div class="sub" style="font-weight:600;margin-top:6px">📆 This date has passed</div>' : '');
+  }
+  // How was it paid: amount + Venmo / Cash App / PayPal / Pixieset / Cash / Other (same as Deposit received)
+  function paySheet(title, sub, amt, btn, cb){
+    sheet('<h3>' + title + '</h3><p class="muted">' + sub + '</p><label class="l">Amount</label><div class="money"><b>$</b><input data-amt type="number" inputmode="decimal" value="' + amt + '"></div>' +
+      '<label class="l">Paid with</label>' + methodChips('Venmo') + '<div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>' + btn + '</button></div>',
+      function(e, v, close){
+        if (pickMethod(e, v)) return;
+        if (!e.target.closest('[data-save]')) return;
+        var n = parseFloat(v.querySelector('[data-amt]').value); if (!(n > 0)) return;
+        close(); cb(Math.round(n * 100) / 100, method(v));
+      });
+  }
+  // Booked from an inquiry: deposit paid / no deposit yet (future date), or It happened, paid in full (past date)
+  function bookAs(o, d, w, done){
+    var nm = esc(first(d.name));
+    if (w === 'nodep') return bookInquiry(o, Object.assign({}, d, { pay: 'none' }), done);
+    if (w === 'dep') return paySheet('How did ' + nm + ' pay the deposit?', esc(d.name) + ' · ' + esc(nice(d.date)), Math.min(d.dep || 50, d.amount || d.dep || 50), 'Book it', function(amt, m){
+      bookInquiry(o, Object.assign({}, d, { pay: 'deposit', deposit: amt, method: m }), done); });
+    if (w === 'full') return paySheet('How did ' + nm + ' pay?', esc(d.name) + ' · ' + esc(nice(d.date)) + ' · paid in full', d.amount || 0, 'Add as paid', function(amt, m){
+      bookInquiry(o, Object.assign({}, d, { amount: amt, pay: 'full', method: m }), done); });
+  }
+  function bookedSheet(o, d, done, fromForm){
+    var past = isPastDay(d.date);
+    sheet('<h3>' + (past ? 'Did ' + esc(first(d.name)) + '\'s session happen?' : 'Book ' + esc(first(d.name)) + '?') + '</h3>' + dealBox(d, !fromForm) +
+      '<div class="choice">' + (past ? '<button class="btn whyb" data-why="full"><b>✅ It happened, paid in full</b><small>Adds it as a past session, marked paid</small></button>'
+        : '<button class="btn whyb" data-why="dep"><b>✅ Booked, deposit paid</b><small>They paid the deposit</small></button><button class="btn ghost whyb" data-why="nodep"><b>📅 Booked, no deposit yet</b><small>They said yes, deposit still coming</small></button>') +
+      '</div><div class="acts"><button class="btn ghost" data-x>Never mind</button></div>',
+      function(e, v, close){
+        if (e.target.closest('[data-dt]')) { close(); datePick(d, function(nd, nt){ bookedSheet(o, Object.assign({}, d, { date: nd, time: nt }), done, fromForm); }); return; }
+        if (e.target.closest('[data-chg]')) { close(); buildSheet(o, true, done); return; }
+        var b = e.target.closest('[data-why]'); if (!b) return; close(); bookAs(o, d, b.getAttribute('data-why'), done);
+      });
   }
   // Does what the picked answer says. done() runs after it saves (Clean up uses it to show the next one).
   function applyWhy(o, w, done){
-    if (w === 'booked') { inqAction(o, 'iconfirm'); return; }
+    if (w === 'dep' || w === 'nodep' || w === 'full') { if (!inqDeal(o).date) return buildSheet(o, true, done); return bookAs(o, inqDeal(o), w, done); }
     var body = w === 'waiting' ? { kind: 'waiting', name: o.name, date: o.date, beach: o.beach, by: WHO, test: o.test }
       : { kind: 'dismiss', why: w, name: o.name, date: o.date, beach: o.beach, by: WHO, test: o.test };
     post(body).then(function(j){
@@ -1661,36 +1744,80 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     }).catch(function(){ alert("That didn't save. Please check your connection and try again."); });
   }
   function whatSheet(o){
-    sheet('<h3>What happened with ' + esc(first(o.name)) + '?</h3>' + inqLine(o) + whyBtns() + '<div class="acts"><button class="btn ghost" data-x>Never mind</button></div>',
-      function(e, v, close){ var b = e.target.closest('[data-why]'); if (!b) return; close(); applyWhy(o, b.getAttribute('data-why')); });
+    sheet('<h3>What happened with ' + esc(first(o.name)) + '?</h3>' + inqLine(o) + whyBtns(o) + '<div class="acts"><button class="btn ghost" data-x>Never mind</button></div>',
+      function(e, v, close){
+        if (e.target.closest('[data-dt]')) { close(); datePick(inqDeal(o), function(nd, nt){ o._nd = { date: nd, time: nt }; whatSheet(o); }); return; }
+        if (e.target.closest('[data-chg]')) { close(); buildSheet(o, true); return; }
+        var b = e.target.closest('[data-why]'); if (!b) return; close(); applyWhy(o, b.getAttribute('data-why'));
+      });
   }
+  // Past-date inquiries go through Clean up too (after the others)
+  var cleanable = function(o){ return (MORE.tests || !o.test) && (!o.old || isPastDay(o.date)); };
   function cleanBtn(inq){
-    var n = inq.length; if (!n) return '';
-    var st = inq.filter(function(o){ return o.stale; }).length;
+    var all = inquiries().filter(cleanable), n = all.length; if (!n) return '';
+    var st = all.filter(function(o){ return o.stale || isPastDay(o.date); }).length;
     return '<button class="cleanbar" id="cleanUp" type="button"><span>🧹 Clean up</span><small>Go through ' + (n === 1 ? 'it' : 'all ' + n) + ' one at a time' + (st ? ' · ' + st + ' need a look' : '') + '</small></button>';
   }
-  // Walks through every open inquiry one at a time: the ones nobody's touched in a week first, then oldest first.
+  // Walks through every open inquiry one at a time: the ones nobody's touched in a week first, then oldest first,
+  // then the ones whose date has passed.
   function cleanUp(){
-    var list = inquiries().filter(function(o){ return (MORE.tests || !o.test) && !o.old; });
-    list.sort(function(a, b){ return (b.stale ? 1 : 0) - (a.stale ? 1 : 0) || (a.asked || '').localeCompare(b.asked || ''); });
+    var list = inquiries().filter(cleanable);
+    var pd = function(o){ return isPastDay(o.date) ? 1 : 0; };
+    list.sort(function(a, b){ return pd(a) - pd(b) || (b.stale ? 1 : 0) - (a.stale ? 1 : 0) || (a.asked || '').localeCompare(b.asked || ''); });
     var keys = list.map(function(o){ return o.key; }), i = 0, total = keys.length;
     if (!total) { toast('No inquiries to clean up.'); return; }
-    (function next(){
-      var o = null;
-      while (i < keys.length && !(o = findI(keys[i]))) i++;
-      if (!o) { toast('All caught up!'); return; }
+    next();
+    function next(){ var o = null; while (i < keys.length && !(o = findI(keys[i]))) i++; if (!o) { toast('All caught up!'); return; } show(o); }
+    function show(o){
       sheet('<div class="muted" style="font-size:14px;margin-bottom:6px">🧹 ' + (i + 1) + ' of ' + total + '</div>' + inqLine(o) +
-        (o.stale ? '<div class="sub" style="font-weight:600;margin-top:4px">❓ Nothing has happened in over a week</div>' : '') +
-        '<p style="margin:14px 0 0;font-weight:bold">What happened?</p>' + whyBtns() +
+        (o.stale && !isPastDay(inqDeal(o).date) ? '<div class="sub" style="font-weight:600;margin-top:4px">❓ Nothing has happened in over a week</div>' : '') +
+        '<p class="whyh">What happened?</p>' + whyBtns(o) +
         '<div class="acts"><button class="btn ghost" data-x>Stop for now</button><button class="btn ghost" data-skip>Skip ›</button></div>',
         function(e, v, close){
           if (e.target.closest('[data-skip]')) { close(); i++; next(); return; }
+          if (e.target.closest('[data-dt]')) { close(); datePick(inqDeal(o), function(nd, nt){ o._nd = { date: nd, time: nt }; show(o); }); return; }
+          if (e.target.closest('[data-chg]')) { close(); i++; buildSheet(o, true, next); return; }
           var b = e.target.closest('[data-why]'); if (!b) return;
           var w = b.getAttribute('data-why'); close();
-          if (w === 'booked') { i++; inqAction(o, 'iconfirm'); return; }   // booking opens its own form; Clean up stops there
           i++; applyWhy(o, w, next);
         });
-    })();
+    }
+  }
+  // ---------- Nov 1 2026: booked card, date passed → "What happened with [name]'s session?" ----------
+  function passedSheet(b){
+    var owed = due(b), dep = (b.deposit && b.deposit.amount) || 0;
+    var opt = function(k, t, sm, main){ return '<button class="btn ' + (main ? '' : 'ghost ') + 'whyb" data-p="' + k + '"><b>' + t + '</b><small>' + sm + '</small></button>'; };
+    sheet('<h3>What happened with ' + esc(first(b.name)) + '\'s session?</h3>' +
+      '<div class="isum"><b>' + esc(b.date ? nice(b.date) : '') + '</b>' + (b.time ? ' · ' + esc(b.time) : '') + (b.beach ? '<br>' + esc(b.beach) : '') +
+      '<br>' + esc(b.pkg || 'Session') + ' · <b>' + money(tot(b)) + '</b><br>' + (dep ? money(dep) + ' deposit in · ' : 'No deposit marked · ') + 'owes ' + money(owed) + '</div>' +
+      '<div class="choice">' +
+      opt('paid', '📸 Shot it, paid in full', 'Marks the last ' + money(owed) + ' paid', true) +
+      (b.shot ? '<p class="muted" style="margin:0">Already marked shot, still owes ' + money(owed) + ' (<button class="lnk" data-p="undo-shot">undo</button>)</p>' : opt('owes', '💵 Shot it, still owes money', 'Stays in To do until it\'s paid')) +
+      opt('moved', '🌧️ Weather, moved to another day', 'Pick the new date') +
+      opt('weather', '🌧️ Weather, couldn\'t reschedule, deposit kept', 'Cancels it; the deposit counts as collected') +
+      opt('noshow', '🚫 They canceled or didn\'t show, deposit kept', 'Cancels it; the deposit counts as collected') +
+      '</div><div class="acts"><button class="btn ghost" data-x>Never mind</button></div>',
+      function(e, v, close){
+        var p = e.target.closest('[data-p]'); if (!p) return; close();
+        var k = p.getAttribute('data-p');
+        if (k === 'paid') return paidSheet(b);
+        if (k === 'owes') return act(b, 'shot').then(function(nb){ if (nb) toast(first(b.name) + ' stays in To do until paid'); });
+        if (k === 'undo-shot') return act(b, 'undo-shot');
+        if (k === 'moved') return moveSheet(b, 'Weather');
+        keptSheet(b, k === 'weather' ? 'Weather, couldn\'t reschedule' : 'Canceled or no-show');
+      });
+  }
+  function keptSheet(b, why){
+    var dep = (b.deposit && b.deposit.amount) || 0;
+    sheet('<h3>Cancel ' + esc(first(b.name)) + '\'s session?</h3><p class="muted">' + esc(why) + '. ' + (dep ? 'Miranda keeps the <b>' + money(dep) + '</b> deposit.' : 'No deposit was marked as received. How much did Miranda keep?') + '</p>' +
+      (dep ? '' : '<label class="l">Deposit kept</label><div class="money"><b>$</b><input data-amt type="number" inputmode="decimal" value="' + (b.dep || 50) + '"></div>') +
+      '<div class="note">It comes off the To do list and the session total, and the deposit counts as collected.</div>' +
+      '<div class="acts"><button class="btn ghost" data-x>Never mind</button><button class="btn" data-save>Yes, cancel it</button></div>',
+      function(e, v, close){
+        if (!e.target.closest('[data-save]')) return;
+        var amt = dep || parseFloat(v.querySelector('[data-amt]').value) || 0; if (!(amt > 0)) return;
+        close(); act(b, 'cancel', { deposit: 'keep', amount: amt, why: why }).then(function(nb){ if (nb) toast(first(b.name) + ' cancelled, ' + money(amt) + ' deposit kept'); });
+      });
   }
 
   function clearOld(){
