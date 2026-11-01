@@ -307,9 +307,19 @@ export default async (req) => {
     // original request stays in "Everything that came in".
     const items = Array.isArray(data.items) ? data.items.slice(0, 300) : [data];
     const log = await getList("log"), at = new Date().toISOString();
-    items.forEach((it) => log.push({ at, kind: "dismiss", name: clip(it.name, 60), date: day(it.date), beach: clip(it.beach, 40), by: clip(data.by, 40), test: !!it.test, ...(items.length > 1 ? { bulk: true } : {}) }));
+    // Nov 1 2026: "What happened?" button sends why (No answer / Went elsewhere / Duplicate or test)
+    const why = clip(data.why, 40);
+    items.forEach((it) => log.push({ at, kind: "dismiss", name: clip(it.name, 60), date: day(it.date), beach: clip(it.beach, 40), by: clip(data.by, 40), test: !!it.test, ...(why ? { detail: why } : {}), ...(items.length > 1 ? { bulk: true } : {}) }));
     await store.setJSON("log", log.slice(-1000));
     return json({ ok: true, cleared: items.length });
+  }
+  // Nov 1 2026: "What happened?" → "Still talking": the inquiry stays on the list, marked "Waiting on them"
+  if (data.kind === "waiting") {
+    if (!(await okPass(req, data))) return json({ error: "passcode" });
+    const log = await getList("log");
+    log.push({ at: new Date().toISOString(), kind: "waiting", name: clip(data.name, 60), date: day(data.date), beach: clip(data.beach, 40), by: clip(data.by, 40), test: !!data.test });
+    await store.setJSON("log", log.slice(-1000));
+    return json({ ok: true });
   }
   // New Booking page "Make this the usual" (Oct 15 2026): saves Miranda's usual percentage
   if (data.kind === "split-default") {
