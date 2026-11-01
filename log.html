@@ -142,6 +142,15 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .isum b{font-size:17px}
 button.flag{border:0;cursor:pointer;font-family:inherit;text-align:left}
 .whyh{margin:14px 0 0;font-weight:bold}
+/* Nov 1 2026: what shows when the app opens and nothing is new */
+.opn{font-size:16px;font-weight:bold;margin:0 0 4px}
+.lk{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding:10px 0;animation:lkin .35s ease}
+.lk:first-of-type{border-top:0}
+.lk .tx{flex:1;min-width:0;font-size:15px;line-height:1.35}
+.lk .tx b{font-size:16px}
+.lk .btn{min-height:40px;padding:6px 12px;font-size:14px;white-space:nowrap;flex:none}
+@keyframes lkin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.okpop{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);background:#fff;color:var(--ink);border:2px solid var(--line);border-radius:18px;padding:16px 26px;font-size:19px;font-weight:bold;z-index:60;box-shadow:0 10px 30px #0003;transition:opacity .4s}
 .dtb{border:0;background:none;padding:0;font:inherit;color:var(--teal);text-decoration:underline;cursor:pointer;text-align:left}
 .dtb b{font-size:17px}
 .tg.q{background:#fff3cd;color:#7a4f00}
@@ -413,13 +422,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 
   // ---------- Loading ----------
   function load(){
+    BUSY++; var un = function(){ BUSY = Math.max(0, BUSY - 1); };
     return fetch(API + '?log=1', { headers: { 'x-pass': PASS }, cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(j){
       if (j.error) { $('app').hidden = true; $('whoCard').hidden = true; $('lock').hidden = false; if (PASS) $('perr').hidden = false; return; }
       try { localStorage.setItem('mrp-log-pass', PASS); } catch (e) {}
       DATA = j; $('lock').hidden = true;
       if (!WHO) { $('whoCard').hidden = false; $('app').hidden = true; return; }
-      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw(); freshPop(); openAlert();
-    }).catch(function(){ $('asof').textContent = "Couldn't load. Pull down to refresh."; });
+      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw(); if (OPENING) { OPENING = false; markOpen(); if (!freshPop()) lookPop(); } else { freshPop(); lookAgain(); } openAlert();
+    }).then(un, function(){ un(); $('asof').textContent = "Couldn't load. Pull down to refresh."; });
   }
   var PH = { names: ['Kallie'], split: { pct: 20, min: 0 }, adPct: 20 };
   try { fetch(API).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ if (j && j.photographers && j.photographers.length) PH.names = j.photographers; if (j && j.split && isFinite(j.split.pct)) PH.split = j.split; if (j && isFinite(j.adPct)) PH.adPct = j.adPct; }).catch(function(){}); } catch (e) {}
@@ -976,7 +986,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (document.querySelector('.veil')) return;
     var cut = new Date(Date.now() - 86400000).toISOString();
     var list = inquiries().filter(function(o){ return o.request && !o.sent && !o.pen && !o.texting && !o.old && (o.asked || '') >= cut && (MORE.tests || !o.test) && !SEEN[o.key]; });
-    if (!list.length) return;
+    if (!list.length) return false;
     list.forEach(function(o){ SEEN[o.key] = 1; });
     list.sort(function(a, b){ return (b.asked || '') < (a.asked || '') ? -1 : 1; });
     var h = '<h3>🔔 ' + (list.length === 1 ? 'New request' : list.length + ' new requests') + ' in the last 24 hours</h3>';
@@ -995,7 +1005,65 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       var k = b.closest('[data-k]').getAttribute('data-k'), o = list.filter(function(x){ return x.key === k; })[0];
       close(); inqAction(o, b.getAttribute('data-p'));
     });
+    return true;
   }
+  // ---------- Nov 1 2026: when the app opens and nothing is new ----------
+  // "✓ Nothing new since you last checked" + up to 3 things to look at (most important first), each with one button.
+  // Finish one and the next slides up. "Later" closes it; it comes back the next time the app is opened.
+  // Nothing to do at all → "✓ All caught up" for a couple of seconds.
+  var OPENING = true, LASTOPEN = Date.now(), LOOKON = false, BUSY = 0, PREV = 0;
+  // when this phone last opened the app (for "since you last checked"), then remember this open
+  function markOpen(){ LASTOPEN = Date.now(); try { PREV = Number(localStorage.getItem('mrp-last-open') || 0); localStorage.setItem('mrp-last-open', String(Date.now())); } catch (e) {} }
+  function lookItems(){
+    var tst = function(x){ return MORE.tests || !x.test; }, out = [];
+    var bks = (DATA.bookings || []).filter(tst);
+    // 1) booked sessions whose date passed and still owe (the money ones)
+    bks.filter(function(b){ return flagged(b); }).sort(function(a, b){ return (a.shot ? 1 : 0) - (b.shot ? 1 : 0) || (a.date || '').localeCompare(b.date || ''); }).forEach(function(b){
+      out.push({ b: b, a: 'passed', ic: b.shot ? '📸' : '⚠️', why: b.shot ? 'shot, still owes ' + money(due(b)) : 'date passed, owes ' + money(due(b)), btn: 'What happened?' });
+    });
+    // 2) inquiries whose date passed, or nobody has touched in a week
+    inquiries().filter(function(o){ return tst(o) && !o.pen && (isPastDay(o.date) || (o.stale && !o.old)); }).sort(function(a, b){ return (a.asked || '').localeCompare(b.asked || ''); }).forEach(function(o){
+      var last = [o.asked, o.sent && o.sent.at, o.waiting].filter(Boolean).sort().pop() || '', days = Math.floor((Date.now() - new Date(last)) / 86400000);
+      out.push({ o: o, ic: isPastDay(o.date) ? '📆' : '❓', why: isPastDay(o.date) ? 'date passed, never booked' : 'no reply in ' + days + ' days', btn: 'What happened?' });
+    });
+    // 3) upcoming sessions with no deposit yet, soonest first
+    bks.filter(function(b){ return !b.cancelled && !b.past && (b.date || '') >= TODAY && !b.deposit && !b.paid && tot(b) > 0; }).sort(function(a, b){ return (a.date || '').localeCompare(b.date || ''); }).forEach(function(b){
+      out.push({ b: b, a: 'dep', ic: '💰', why: 'no deposit yet', btn: 'Deposit received' });
+    });
+    return out;
+  }
+  function sinceTxt(t){
+    if (!t) return '';
+    var d = new Date(t), tm = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }), dy = ymd(d);
+    return ' (' + (dy === TODAY ? 'today ' : dy === ymd(new Date(Date.now() - 86400000)) ? 'yesterday ' : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ', ') + tm + ')';
+  }
+  function caughtUp(){
+    var d = document.createElement('div'); d.className = 'okpop'; d.textContent = '✓ All caught up'; document.body.appendChild(d);
+    setTimeout(function(){ d.style.opacity = '0'; }, 1800); setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 2300);
+  }
+  function lookPop(){
+    var all = lookItems();
+    if (!all.length) { LOOKON = false; caughtUp(); return; }
+    LOOKON = true;
+    var top = all.slice(0, 3);
+    var h = '<p class="opn">✓ Nothing new since you last checked' + sinceTxt(PREV) + '</p><h3 style="margin:12px 0 4px">A few to look at</h3>' +
+      top.map(function(x, i){ var it = x.b || x.o;
+        return '<div class="lk"><div class="tx">' + x.ic + ' <b>' + esc(it.name) + '</b> · ' + esc(it.date ? nice(it.date).replace(/^\w+, /, '') : 'no date') + '<br><span class="muted">' + esc(x.why) + '</span></div><button class="btn ghost" data-li="' + i + '">' + x.btn + '</button></div>'; }).join('') +
+      (all.length > 3 ? '<p style="margin:8px 0 0"><button class="lnk" data-all>🧹 See all ' + all.length + '</button></p>' : '') +
+      '<div class="acts"><button class="btn ghost" data-later>Later</button></div>';
+    var sh = sheet(h, function(e, v, close){
+      if (e.target.closest('[data-later]')) { LOOKON = false; close(); return; }
+      if (e.target.closest('[data-all]')) { LOOKON = false; close(); VIEW = 'todo'; DAY = ''; OPEN = null; draw(); window.scrollTo({ top: 0 }); return; }
+      var li = e.target.closest('[data-li]'); if (!li) return;
+      var x = top[Number(li.getAttribute('data-li'))]; close();
+      if (x.o) whatSheet(x.o); else bookingAction(x.b, x.a);
+    });
+    // tapping the dark area outside closes it like Later
+    sh.el.addEventListener('click', function(e){ if (e.target === sh.el) LOOKON = false; });
+  }
+  // After she finishes one (or backs out of it), the list comes back with that one gone
+  function lookAgain(){ setTimeout(function(){ if (LOOKON && !BUSY && !document.querySelector('.veil')) lookPop(); }, 350); }
+  new MutationObserver(function(){ if (LOOKON && !document.querySelector('.veil')) lookAgain(); }).observe($('sheetHost'), { childList: true });
   function inqCard(o){
     var open = OPEN === 'i' + o.key, sent = !!o.sent && !o.pen;
     var h = '<div class="bk inq' + (o.pen ? ' pen' : '') + (open ? ' open' : '') + '" data-inq="' + esc(o.key) + '">' +
@@ -1216,7 +1284,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   function msgRemind(b){ return 'Hi ' + first(b.name) + '! Just a reminder about your ' + tWord(b) + 'session tomorrow (' + longDay(b.date) + ')' + at(b) + '. Text me if anything changes. See you then!'; }
 
   // ---------- Saving changes ----------
-  function post(body){ body.pass = PASS; return fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify(body) }).then(function(r){ return r.json(); }); }
+  function post(body){ body.pass = PASS; BUSY++; var done = function(x){ BUSY = Math.max(0, BUSY - 1); return x; }; return fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-pass': PASS }, body: JSON.stringify(body) }).then(function(r){ return r.json(); }).then(done, function(e){ done(); throw e; }); }
   function act(b, action, extra){
     var body = { kind: 'status', num: b.num, action: action, by: WHO }; for (var k in (extra || {})) body[k] = extra[k];
     return post(body).then(function(j){
@@ -1847,7 +1915,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   $('unlock').addEventListener('click', function(){ PASS = $('pass').value.trim(); $('perr').hidden = true; load(); });
   $('pass').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('unlock').click(); });
   $('forget').addEventListener('click', function(e){ e.preventDefault(); try { localStorage.removeItem('mrp-log-pass'); } catch (x) {} PASS = ''; $('app').hidden = true; $('lock').hidden = false; });
-  document.addEventListener('visibilitychange', function(){ if (!document.hidden && DATA && !document.querySelector('.veil')) { refreshDay(); load(); } });
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden && DATA && !document.querySelector('.veil')) { if (Date.now() - LASTOPEN > 30 * 60000) OPENING = true; refreshDay(); load(); } });
   if (PASS) load(); else $('lock').hidden = false;
 })();
 </script>
