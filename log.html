@@ -1102,7 +1102,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var R = '<button class="btn b-paid" data-a="build">' + (sent ? 'New link' : (avail(o) || {}).open === false ? 'Link for a new date' : 'Set up Confirm link') + '</button>';
     if (sent && o.link) R += '<button class="btn ghost" data-a="resend">Text link again</button>';
     // Nov 1 2026: "Mark as booked" folded into What happened? (Booked, deposit paid / no deposit yet)
-    R += '<button class="btn b-con" data-a="what">What happened?<br><small style="font-weight:500;font-size:13px;opacity:.85">booked, still talking, no answer…</small></button>';
+    R += '<button class="btn b-con" data-a="what">What happened?</button>';
     R += '<button class="btn ghost" data-a="itext">Text</button>';
     return h + '<div class="det"><div class="lt">' + L + '</div><div class="acol">' + R + '</div></div></div>';
   }
