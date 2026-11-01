@@ -428,7 +428,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       try { localStorage.setItem('mrp-log-pass', PASS); } catch (e) {}
       DATA = j; $('lock').hidden = true;
       if (!WHO) { $('whoCard').hidden = false; $('app').hidden = true; return; }
-      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw(); if (OPENING) { OPENING = false; markOpen(); if (!freshPop()) lookPop(); } else { freshPop(); lookAgain(); } openAlert();
+      $('whoCard').hidden = true; $('app').hidden = false; refreshDay(); draw(); if (OPENING) { OPENING = false; markOpen(); if (!freshPop()) openNote(); } else { freshPop(); lookAgain(); } openAlert();
     }).then(un, function(){ un(); $('asof').textContent = "Couldn't load. Pull down to refresh."; });
   }
   var PH = { names: ['Kallie'], split: { pct: 20, min: 0 }, adPct: 20 };
@@ -1037,8 +1037,17 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var d = new Date(t), tm = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }), dy = ymd(d);
     return ' ' + (dy === TODAY ? 'today at ' : dy === ymd(new Date(Date.now() - 86400000)) ? 'yesterday at ' : 'on ' + d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' at ') + tm;
   }
-  function caughtUp(){
-    var d = document.createElement('div'); d.className = 'okpop'; d.textContent = '✓ All caught up'; document.body.appendChild(d);
+  // Nov 1 2026 (Randy): the "few to look at" list shows once a week: the first time the app is opened on a
+  // Sunday, or the next day she opens it if she skipped Sunday. Other days, nothing new just shows
+  // "✓ No new requests" for a couple of seconds and goes away by itself.
+  function weekOf(d){ var t = dt(d); t.setDate(t.getDate() - t.getDay()); return ymd(t); }   // that week's Sunday
+  function openNote(){
+    var wk = weekOf(TODAY), done = ''; try { done = localStorage.getItem('mrp-look-week') || ''; } catch (e) {}
+    if (done < wk && lookItems().length) { try { localStorage.setItem('mrp-look-week', wk); } catch (e) {} lookPop(); return; }
+    caughtUp('✓ No new requests');
+  }
+  function caughtUp(t){
+    var d = document.createElement('div'); d.className = 'okpop'; d.textContent = t || '✓ All caught up'; document.body.appendChild(d);
     setTimeout(function(){ d.style.opacity = '0'; }, 1800); setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 2300);
   }
   function lookPop(){
@@ -1046,7 +1055,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (!all.length) { LOOKON = false; caughtUp(); return; }
     LOOKON = true;
     var top = all.slice(0, 3);
-    var h = '<p class="opn" style="margin:0">✓ No new requests</p>' + (PREV ? '<p class="muted" style="margin:2px 0 0;font-size:14px">Since you last opened the app' + sinceTxt(PREV) + '</p>' : '') + '<h3 style="margin:12px 0 4px">A few to look at</h3>' +
+    var h = '<p class="opn" style="margin:0">✓ No new requests</p>' + (PREV ? '<p class="muted" style="margin:2px 0 0;font-size:14px">Since you last opened the app' + sinceTxt(PREV) + '</p>' : '') + '<h3 style="margin:12px 0 4px">This week, a few to look at</h3>' +
       top.map(function(x, i){ var it = x.b || x.o;
         return '<div class="lk"><div class="tx">' + x.ic + ' <b>' + esc(it.name) + '</b> · ' + esc(it.date ? nice(it.date).replace(/^\w+, /, '') : 'no date') + '<br><span class="muted">' + esc(x.why) + '</span></div><button class="btn ghost" data-li="' + i + '">' + x.btn + '</button></div>'; }).join('') +
       (all.length > 3 ? '<p style="margin:8px 0 0"><button class="lnk" data-all>🧹 See all ' + all.length + '</button></p>' : '') +
