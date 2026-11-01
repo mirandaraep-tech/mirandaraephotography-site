@@ -350,7 +350,6 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     <div id="inqBox"></div>
     <div id="list"></div>
     <div id="inqAfter"></div>
-    <p style="text-align:center;margin:4px 0 18px"><button class="lnk" id="tblTog">Spreadsheet view</button> &nbsp;·&nbsp; <button class="lnk" id="testTog">Show tests</button></p>
 
     <!-- Oct 30 2026: Miranda's totals card removed (the money boxes at the top cover it); the history list is folded up -->
     <div class="card">
@@ -358,9 +357,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       <p class="muted" style="margin:6px 0 0;font-size:13px">Everything that came in: requests, links, confirmations, deposits and changes.</p>
       <div id="feed" hidden style="margin-top:10px"></div>
     </div>
-    <p style="text-align:center" class="muted"><span id="whoLine"></span> · <button class="lnk" id="whoChg">Change</button></p>
-    <p style="text-align:center"><button class="lnk" id="clearTests" style="color:var(--bad)">Clear all tests</button></p>
-    <p style="text-align:center"><a href="#" id="forget" class="muted">Lock this phone</a></p>
+    <!-- Nov 1 2026: the setup links (mostly for Randy) are tucked behind one "More" link -->
+    <p style="text-align:center;margin:14px 0 4px"><button class="lnk" id="moreTog" type="button">More ▾</button></p>
+    <div id="moreBox" hidden>
+      <p style="text-align:center;margin:4px 0 12px"><button class="lnk" id="tblTog">Spreadsheet view</button> &nbsp;·&nbsp; <button class="lnk" id="testTog">Show tests</button></p>
+      <p style="text-align:center" class="muted"><span id="whoLine"></span> · <button class="lnk" id="whoChg">Change</button></p>
+      <p style="text-align:center"><button class="lnk" id="clearTests" style="color:var(--bad)">Clear all tests</button></p>
+      <p style="text-align:center"><a href="#" id="forget" class="muted">Lock this phone</a></p>
+    </div>
   </div>
 </main>
 <div id="sheetHost"></div>
@@ -663,7 +667,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     } else if (inq.length) {
       var npen = inq.filter(function(o){ return o.pen; }).length;
       ih = '<button class="inqbar" id="inqTog" type="button"><span>📩 ' + inq.length + ' inquir' + (inq.length === 1 ? 'y' : 'ies') + (npen ? ' · ✏️ ' + npen + ' penciled in' : '') + '</span><span>' + (INQOPEN ? 'Hide ▴' : 'Show ▾') + '</span></button>' +
-        (INQOPEN ? '<div class="inqwrap">' + cleanBtn(inq) + inq.map(function(o){ return inqCard(o); }).join('') + '</div>' : '');
+        (INQOPEN ? '<div class="inqwrap">' + inq.map(function(o){ return inqCard(o); }).join('') + '</div>' : '');
     }
     $('inqBox').innerHTML = ih;
     $('inqAfter').innerHTML = after;
@@ -1948,6 +1952,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   });
   $('whoOk').addEventListener('click', function(){ if ($('whoOther').value.trim()) { setWho($('whoOther').value); load(); } });
   $('whoOther').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('whoOk').click(); });
+  $('moreTog').addEventListener('click', function(){ var b = $('moreBox'); b.hidden = !b.hidden; this.textContent = b.hidden ? 'More ▾' : 'Less ▴'; });
   $('whoChg').addEventListener('click', function(){ setWho(''); $('whoOther').value = ''; $('whoOther').hidden = true; $('whoOk').hidden = true; load(); });
 
   $('clearTests').addEventListener('click', function(){
