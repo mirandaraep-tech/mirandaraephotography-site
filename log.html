@@ -938,7 +938,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       h += '<div class="card" style="padding:12px;margin:10px 0" data-k="' + esc(o.key) + '"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><div class="nm" style="font-size:18px">' + esc(o.name) + '</div>' +
         '<div class="sub" style="margin:0;text-align:right;white-space:nowrap;line-height:1.2"><b>' + esc(new Date(o.asked).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })) + '</b><br>' + esc(ago(o.asked)) + '</div></div>' +
         '<div class="sub">' + esc([o.date ? nice(o.date) : 'No date yet', o.beach].filter(Boolean).join(' · ')) + '</div>' +
-        '<div class="sub">📷 ' + esc(PK[pkIndex(o)][0]) + ' · ' + money(o.amount || PK[pkIndex(o)][1]) + '</div>' + availTag(o) + askedTag(o) +
+        '<div class="sub">📷 ' + esc(PK[pkIndex(o)][0]) + ' · ' + (travFee(o) ? money(PK[pkIndex(o)][1]) + ' + ' + money(travFee(o)) + ' travel fee = <b>' + money(PK[pkIndex(o)][1] + travFee(o)) + '</b>' : money(o.amount || PK[pkIndex(o)][1])) + '</div>' + availTag(o) + askedTag(o) +
         (taken || asked(o) ? '<div class="acts" style="margin-top:18px"><button class="btn ghost" data-p="build">' + (taken ? 'Link for a new date' : 'Send Confirm link') + '</button><button class="btn" data-p="itext">Text</button></div></div>'
                : '<div class="acts" style="margin-top:18px"><button class="btn ghost" data-p="itext">Text</button><button class="btn" data-p="build">Send Confirm link</button></div></div>');
     });
@@ -1477,6 +1477,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     if (o.pkg) PK.forEach(function(p, i){ if (low(p[0]) === low(o.pkg) || low(p[0]) === wantPk) pi = i; });
     return pi;
   }
+  // Nov 1 2026: $30 travel fee for Destin, 30A and St. George Island (the pages for those beaches say "plus a $30 travel fee").
+  // Only on a fresh request; once a link went out its price already has the fee folded in.
+  function farBeach(b){ return /Destin|30A|St\. George/i.test(b || ''); }
+  function travFee(o){ return !o.sent && !o.amount && farBeach(o.beach) ? 30 : 0; }
   function buildSheet(o, direct){
     var pi = pkIndex(o);
     var guessT = o.time || (/sunrise/i.test(o.detail || '') ? 'Sunrise' : /wedding/i.test(o.detail || '') ? 'Wedding' : 'Sunset');
@@ -1491,6 +1495,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       '<label class="l">Beach</label><select data-f="b">' + opts(BEACHES, o.beach || 'Mexico Beach') + '</select>' +
       '<div class="row"><div><label class="l">Package</label><select data-f="pk">' + PK.map(function(p, i){ return '<option value="' + i + '"' + (i === pi ? ' selected' : '') + '>' + esc(p[0]) + '</option>'; }).join('') + '</select></div>' +
       '<div><label class="l">Price</label><div class="money"><b>$</b><input data-f="base" type="number" inputmode="decimal" value="' + (o.amount || PK[pi][1]) + '"></div></div></div>' +
+      '<label style="display:flex;gap:10px;align-items:center;margin:12px 0 0"><input type="checkbox" data-trav style="width:22px;height:22px"' + (travFee(o) ? ' checked' : '') + '><span><b>Travel fee</b> <span class="muted">(Destin, 30A, St. George Island)</span></span>' +
+      '<span class="money" style="margin-left:auto;max-width:110px"><b>$</b><input data-f="trav" type="number" inputmode="decimal" value="30"></span></label>' +
+      '<div class="muted" data-tot style="margin-top:6px;font-weight:600"></div>' +
       '<label class="l">Deposit</label><div class="money"><b>$</b><input data-f="dep" type="number" inputmode="decimal" value="50"></div><div class="muted" data-dn style="font-size:13px;margin-top:4px"></div>' +
       '<label class="l">Who\'s shooting</label><div class="chips" data-who><button class="chip on" type="button" data-n="">Miranda</button>' + PH.names.filter(function(n){ return low(n) !== 'miranda'; }).map(function(n){ return '<button class="chip" type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>' +
       '<p class="err" data-e hidden>Fill in the name and date first.</p>' +
@@ -1504,13 +1511,14 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         var g = function(k){ return v.querySelector('[data-f="' + k + '"]').value.trim(); };
         if (!g('n') || !/^\d{4}-\d{2}-\d{2}$/.test(g('d'))) { v.querySelector('[data-e]').hidden = false; return; }
         var p = PK[Number(g('pk'))], base = Math.round((parseFloat(g('base')) || 0) * 100) / 100, sh = (v.querySelector('[data-n].on') || {}).getAttribute ? v.querySelector('[data-n].on').getAttribute('data-n') : '';
-        var lk = { v: 1, n: g('n'), d: g('d'), t: g('t'), b: g('b'), pk: p[0], base: base, len: p[2], ppl: p[3], ph: p[4], x: [], dc: 0, dr: '', note: '', by: WHO, total: base };
+        var trav = v.querySelector('[data-trav]').checked ? Math.round((parseFloat(g('trav')) || 0) * 100) / 100 : 0;
+        var lk = { v: 1, n: g('n'), d: g('d'), t: g('t'), b: g('b'), pk: p[0], base: base, len: p[2], ppl: p[3], ph: p[4], x: trav ? [['Travel fee' + (g('b') && g('b') !== 'Other' ? ' (' + g('b') + ')' : ''), trav]] : [], dc: 0, dr: '', note: '', by: WHO, total: base + trav };
         var dp = Math.round((parseFloat(g('dep')) || 50) * 100) / 100; if (dp !== 50) lk.dep = dp;
         if (sh) lk.sh = sh;
         var sp = sh ? usualSplit({ time: lk.t, pkg: lk.pk }) : null;
         // Usual wedding split rounds to the dollar so Miranda's share matches the deposit paid up front
         if (sh && isWed({ time: lk.t, pkg: lk.pk }) && !DEPMAN && base) sp = { mode: 'amt', val: dp };
-        if (direct || alt) { close(); pencilWarn(lk.d, lk.t, { name: lk.n, phone: g('ph') }, function(){ bookInquiry(o, { name: lk.n, date: lk.d, time: lk.t, beach: lk.b, pkg: lk.pk, amount: base, dep: dp, phone: g('ph'), photographer: sh, split: sp }); }); return; }
+        if (direct || alt) { close(); pencilWarn(lk.d, lk.t, { name: lk.n, phone: g('ph') }, function(){ bookInquiry(o, { name: lk.n, date: lk.d, time: lk.t, beach: lk.b, pkg: lk.pk, amount: lk.total, dep: dp, phone: g('ph'), photographer: sh, split: sp }); }); return; }
         // Nov 1 2026: show Miranda the customer's page first; she sends from there or goes back to fix it
         var phv = g('ph'); // the form stays open underneath, so going back keeps everything she typed
         var pvUrl = location.origin + '/confirm?s=' + b64(JSON.stringify(lk)) + '&preview=1';
@@ -1525,7 +1533,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
           });
       });
     function sendLink(lk, dp, sh, sp, ph){
-        var base = lk.base;
+        var base = lk.total; // what the customer pays, travel fee included
         var url = location.origin + '/confirm?s=' + b64(JSON.stringify(lk));
         // Same as New Booking: tell the site first (so the card shows "Link texted"), then open Messages
         var body = JSON.stringify({ kind: 'pending', by: WHO, name: lk.n, date: lk.d, beach: lk.b, phone: ph, time: lk.t, pkg: lk.pk, amount: base, dep: dp, link: url, photographer: sh, split: sp });
@@ -1542,9 +1550,19 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (t && d > t) d = t;
       V.querySelector('[data-f="dep"]').value = d; V.querySelector('[data-dn]').textContent = why;
     }
-    V.addEventListener('change', function(e){ if (e.target.getAttribute('data-f') === 'pk') V.querySelector('[data-f="base"]').value = PK[Number(e.target.value)][1]; autoDep(); });
+    // Nov 1 2026: running total under the travel fee, e.g. "Total: $199 + $30 travel fee = $229"
+    function showTot(){
+      var b = parseFloat(V.querySelector('[data-f="base"]').value) || 0, tv = V.querySelector('[data-trav]').checked ? (parseFloat(V.querySelector('[data-f="trav"]').value) || 0) : 0;
+      V.querySelector('[data-tot]').textContent = tv ? 'Total: ' + money(b) + ' + ' + money(tv) + ' travel fee = ' + money(b + tv) : 'Total: ' + money(b);
+    }
+    V.addEventListener('change', function(e){
+      var f = e.target.getAttribute('data-f');
+      if (f === 'pk') V.querySelector('[data-f="base"]').value = PK[Number(e.target.value)][1];
+      if (f === 'b') V.querySelector('[data-trav]').checked = farBeach(e.target.value);
+      autoDep(); showTot(); });
+    V.addEventListener('input', showTot);
     V.addEventListener('input', function(e){ var f = e.target.getAttribute('data-f'); if (f === 'dep') { DEPMAN = true; V.querySelector('[data-dn]').textContent = ''; } else if (f === 'base') autoDep(); });
-    autoDep();
+    autoDep(); showTot();
   }
   function clearOld(){
     var old = inquiries().filter(function(o){ return o.old && (MORE.tests || !o.test); });
