@@ -1752,17 +1752,20 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // Nov 1 2026: tap the date in the gray box → calendar + Sunset / Sunrise / Other
   function datePick(d, cb){
     var T = ['Sunset', 'Sunrise', 'Other'];
-    sheet('<h3>Change the date</h3><p class="muted">' + esc(d.name) + '</p><label class="l">New date</label><input data-d type="date" value="' + esc(d.date || '') + '">' +
+    var dp = sheet('<h3>Change the date</h3><p class="muted">' + esc(d.name) + '</p><label class="l">New date</label><input data-d type="date" value="' + esc(d.date || '') + '">' +
       '<label class="l">Time</label><div class="chips" data-tm>' + T.map(function(t){ return '<button class="chip' + (low(d.time) === low(t) ? ' on' : '') + '" type="button" data-t="' + t + '">' + t + '</button>'; }).join('') + '</div>' +
+      '<p class="flag" data-warn hidden style="display:block;margin-top:10px"></p>' +
       '<p class="err" data-e hidden>Pick a date.</p><div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Use this date</button></div>',
       function(e, v, close){
         var c = e.target.closest('[data-t]');
-        if (c) { Array.prototype.forEach.call(v.querySelectorAll('[data-t]'), function(x){ x.classList.toggle('on', x === c); }); return; }
+        if (c) { Array.prototype.forEach.call(v.querySelectorAll('[data-t]'), function(x){ x.classList.toggle('on', x === c); }); warnLine(v); return; }
         if (!e.target.closest('[data-save]')) return;
         var nd = v.querySelector('[data-d]').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(nd)) { v.querySelector('[data-e]').hidden = false; return; }
         var on = v.querySelector('[data-t].on');
         close(); cb(nd, on ? on.getAttribute('data-t') : d.time);
       });
+    dp.el.querySelector('[data-d]').addEventListener('input', function(){ warnLine(dp.el); });
+    warnLine(dp.el);
   }
   function dealBox(d, change){
     var dt = '<b>' + esc(d.date ? nice(d.date) : 'No date yet') + '</b>' + (d.time ? ' · ' + esc(d.time) : '');
@@ -1886,20 +1889,36 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
         keptSheet(b, k === 'weather' ? 'Weather, couldn\'t reschedule' : 'Canceled or no-show');
       });
   }
+  // Nov 1 2026: someone already booked for that date and time (warning only; she can still go ahead)
+  function takenBy(d, t, skip){
+    if (!d || !t || low(t) === 'other') return null;
+    return (DATA.bookings || []).filter(function(x){ return x !== skip && !x.cancelled && !x.past && x.date === d && low(x.time) === low(t) && (MORE.tests || !x.test); })[0] || null;
+  }
+  function warnLine(v, skip){
+    var d = v.querySelector('[data-d]').value, on = v.querySelector('[data-t].on'), t = on ? on.getAttribute('data-t') : '', w = v.querySelector('[data-warn]');
+    var x = takenBy(d, t, skip);
+    w.hidden = !x; if (x) w.textContent = '⚠️ ' + x.name + ' already has ' + nice(d).replace(/^\w+, /, '') + ' ' + low(t) + (x.photographer ? ' (' + x.photographer + ' shooting)' : '');
+  }
   // Change date from the Date passed box: new date plus why it moved (weather moves get counted)
   function moveWhySheet(b){
-    var W = ['Weather', 'They asked', 'Other'];
-    sheet('<h3>Change the date</h3><p class="muted">' + esc(b.name) + (b.time ? ' · ' + esc(b.time) : '') + '</p><label class="l">New date</label><input data-d type="date" value="">' +
+    var W = ['Weather', 'They asked', 'Other'], T = ['Sunset', 'Sunrise', 'Other'];
+    var s2 = sheet('<h3>Change the date</h3><p class="muted">' + esc(b.name) + '</p><label class="l">New date</label><input data-d type="date" value="">' +
+      '<label class="l">Time</label><div class="chips">' + T.map(function(t){ return '<button class="chip' + (low(b.time) === low(t) ? ' on' : '') + '" type="button" data-t="' + t + '">' + t + '</button>'; }).join('') + '</div>' +
+      '<p class="flag" data-warn hidden style="display:block;margin-top:10px"></p>' +
       '<label class="l">Why?</label><div class="chips">' + W.map(function(w){ return '<button class="chip" type="button" data-w="' + w + '">' + w + '</button>'; }).join('') + '</div>' +
       '<p class="err" data-e hidden>Pick the new date.</p><div class="acts"><button class="btn ghost" data-x>Cancel</button><button class="btn" data-save>Save new date</button></div>',
       function(e, v, close){
         var c = e.target.closest('[data-w]');
         if (c) { Array.prototype.forEach.call(v.querySelectorAll('[data-w]'), function(x){ x.classList.toggle('on', x === c); }); return; }
+        var tc = e.target.closest('[data-t]');
+        if (tc) { Array.prototype.forEach.call(v.querySelectorAll('[data-t]'), function(x){ x.classList.toggle('on', x === tc); }); warnLine(v, b); return; }
         if (!e.target.closest('[data-save]')) return;
         var nd = v.querySelector('[data-d]').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(nd) || nd === b.date) { v.querySelector('[data-e]').hidden = false; return; }
-        var w = v.querySelector('[data-w].on'), why = w ? w.getAttribute('data-w') : '';
-        close(); act(b, 'move', why ? { date: nd, why: why } : { date: nd }).then(function(nb){ if (nb) ask('Text the new date to customer?', '', 'Yes', 'No', function(){ compose(nb, 'Date change', msgMoved(nb)); }); });
+        var w = v.querySelector('[data-w].on'), why = w ? w.getAttribute('data-w') : '', ton = v.querySelector('[data-t].on'), nt = ton ? ton.getAttribute('data-t') : '';
+        var body = { date: nd }; if (why) body.why = why; if (nt && low(nt) !== low(b.time)) body.time = nt;
+        close(); act(b, 'move', body).then(function(nb){ if (nb) ask('Text the new date to customer?', '', 'Yes', 'No', function(){ compose(nb, 'Date change', msgMoved(nb)); }); });
       });
+    s2.el.querySelector('[data-d]').addEventListener('input', function(){ warnLine(s2.el, b); });
   }
   function keptSheet(b, why){
     var dep = (b.deposit && b.deposit.amount) || 0;
