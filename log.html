@@ -278,6 +278,8 @@ a.tel{color:var(--teal);font-weight:bold;text-decoration:none}
 .veil{position:fixed;inset:0;background:#0f1d2466;z-index:50;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:#fff;width:min(600px,100%);max-height:88vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
 .sheet h3{font:bold 20px Georgia,serif;margin:0 0 4px}
+.sheet.full{max-height:none;height:100vh;height:100dvh;border-radius:0}
+.shd{position:sticky;top:-18px;z-index:3;background:#fff;margin:-18px -16px 0;padding:18px 16px 10px;border-bottom:1px solid var(--line)}
 .sheet .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .sheet .acts{display:flex;gap:10px;margin-top:14px}
 .sheet .acts .btn{flex:1;min-height:50px}
@@ -1283,7 +1285,12 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   // ---------- Sheets (small forms that slide up) ----------
   function sheet(html, onClick){
     var v = document.createElement('div'); v.className = 'veil';
-    v.innerHTML = '<div class="sheet" role="dialog">' + html + '</div>';
+    // Nov 2026: a pop-up with a summary box (What happened?, Clean up, date passed) fills the whole screen,
+    // covering the page title; the top part, from the heading down through the summary box (date, beach,
+    // package and price), stays pinned and everything below it scrolls up under it
+    var full = false, si = html.indexOf('<div class="isum"');
+    if (si >= 0) { var se = html.indexOf('</div>', si) + 6; html = '<div class="shd">' + html.slice(0, se) + '</div>' + html.slice(se); full = true; }
+    v.innerHTML = '<div class="sheet' + (full ? ' full' : '') + '" role="dialog">' + html + '</div>';
     $('sheetHost').appendChild(v);
     var close = function(){ if (v.parentNode) v.parentNode.removeChild(v); };
     v.addEventListener('click', function(e){
