@@ -68,7 +68,11 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .dayhd{font:bold 18px Georgia,serif;margin:4px 4px 2px}.daysun{margin:0 4px 10px}
 .mpop{position:fixed;inset:0;z-index:60;background:#1d2b3366;display:flex;align-items:center;justify-content:center;padding:16px}
 .mpop[hidden]{display:none}
-.moneycard{margin:8px 0 14px;padding:14px;box-shadow:none;border:1px solid var(--line)}
+.mrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 2px}
+.mt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:5px 2px;min-height:46px;font:inherit;color:var(--ink);white-space:nowrap}
+.mt b{font:bold 16px/1.15 Georgia,serif}.mt small{font-size:12px;color:var(--muted)}
+.mt.grn b{color:var(--ok)}
+.mt.per{cursor:pointer;border-color:var(--teal)}.mt.per b{font:bold 13px/1.15 Arial,sans-serif;color:var(--teal)}.mt.per small{color:var(--teal)}
 .mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.mhd b{font:bold 20px Georgia,serif}
 .mx{border:0;background:#f3f6f7;color:var(--teal);font-size:18px;width:40px;height:36px;border-radius:10px;cursor:pointer}
 .fb{border:2px solid var(--line);background:#fff;color:var(--teal);border-radius:14px;min-height:46px;padding:4px 6px;font-size:15px;cursor:pointer;line-height:1.15}
@@ -331,6 +335,15 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   <div id="app" hidden>
     <!-- Nov 2026: four big tabs on top, nothing above them. Money boxes moved into "More" at the bottom;
          Search is a small 🔍 by the heading; the Tomorrow button is gone (tomorrow shows at the top of Needs you) -->
+    <!-- Nov 2026: small money row at the very top, four boxes the same width as the four tabs.
+         The first one switches the time period (Current, Today, Tomorrow, This week...) -->
+    <div class="mrow" id="moneyBox">
+      <button class="mt per" id="tBookedTile" type="button"><b id="tPer">Current</b><small>↻ change</small></button>
+      <div class="mt"><b id="tBooked">–</b><small>Booked</small></div>
+      <div class="mt grn"><b id="tCollected">–</b><small>Collected</small></div>
+      <div class="mt"><b id="tDue">–</b><small>To collect</small></div>
+      <span id="tBookedN" hidden></span><span id="tNext" hidden></span><button id="tUpTile" type="button" hidden><b id="tUp"></b></button>
+    </div>
     <div class="head" id="head">
       <div class="frow">
         <button class="fb" id="vTodo" type="button" data-v="todo">Needs you</button>
@@ -357,26 +370,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       <div id="feed" hidden style="margin-top:10px"></div>
     </div>
     <!-- Nov 1 2026: the setup links (mostly for Randy) are tucked behind one "More" link -->
-    <p style="text-align:center;margin:14px 0 4px"><button class="lnk" id="moneyTog" type="button">💵 Money ▾</button> &nbsp;·&nbsp; <button class="lnk" id="moreTog" type="button">More ▾</button></p>
-    <!-- Nov 2026: the money boxes open right here at the very bottom of the page (they don't float over anything) -->
-    <div class="card moneycard" id="moneyBox" hidden>
-        <div class="mhd"><b>💵 Money</b><button class="mx" id="moneyX" type="button" aria-label="Close">✕</button></div>
-        <div class="asof" id="asof"></div>
-        <div class="tiles">
-          <button class="tile bk1" id="tBookedTile" type="button">
-            <span class="hd" id="tPer">Current bookings ↻</span>
-            <b id="tBooked">–</b>
-            <span class="lb" id="tBookedN">Booked</span>
-            <div class="nx" id="tNext"></div>
-          </button>
-          <div class="tile grn"><span class="hd">&nbsp;</span><b id="tCollected">–</b><span class="lb">Collected</span></div>
-          <div class="tile dueT"><span class="hd">&nbsp;</span><b id="tDue">–</b><span class="lb">Still to collect</span></div>
-          <!-- Oct 30 2026: Upcoming sessions box removed (the Booked tab shows the count) -->
-          <button class="tile blu" id="tUpTile" type="button" hidden><b id="tUp">–</b><span class="lb">Upcoming sessions</span></button>
-        </div>
-      </div>
-
+    <p style="text-align:center;margin:14px 0 4px"><button class="lnk" id="moreTog" type="button">More ▾</button></p>
     <div id="moreBox" hidden>
+      <p class="asof" id="asof" style="text-align:center"></p>
       <p style="text-align:center;margin:4px 0 12px"><button class="lnk" id="tblTog">Spreadsheet view</button> &nbsp;·&nbsp; <button class="lnk" id="testTog">Show tests</button></p>
       <p style="text-align:center" class="muted"><span id="whoLine"></span> · <button class="lnk" id="whoChg">Change</button></p>
       <p style="text-align:center"><button class="lnk" id="clearTests" style="color:var(--bad)">Clear all tests</button></p>
@@ -600,11 +596,12 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       if (b.photographer) { booked += mineOf(b); owe += Math.max(0, mineOf(b) - keepOf(b)); } else { booked += tot(b); owe += due(b); } });
     var up = all.filter(function(b){ return real(b) && !b.cancelled && (b.date || '') >= TODAY; }).length;
     var SHORT = { current: 'Current', today: 'Today', tomorrow: 'Tomorrow', week: 'This week', month: 'This month', year: 'This year', lastyear: 'Last year', all: 'All' };
-    $('tPer').textContent = SHORT[PERIODS[PI][0]] + ' ↻';
-    $('tBooked').textContent = money(booked);
+    $('tPer').textContent = SHORT[PERIODS[PI][0]];
+    // short money so four boxes fit side by side on a phone ($1,168 → $1.2k past $9,999)
+    var sm = function(n){ return n >= 10000 ? '$' + (Math.round(n / 100) / 10) + 'k' : money(Math.round(n)); };
     $('tBookedN').textContent = 'Booked';
     $('tNext').textContent = 'Tap for ' + PERIODS[(PI + 1) % PERIODS.length][1] + ' →';
-    $('tCollected').textContent = money(keep); $('tDue').textContent = money(owe); $('tUp').textContent = up;
+    $('tBooked').textContent = sm(booked); $('tCollected').textContent = sm(keep); $('tDue').textContent = sm(owe); $('tUp').textContent = up;
 
     // Updated line: the last change anyone made, and who made it
     var log = DATA.log || [], last = log[log.length - 1];
@@ -1952,9 +1949,6 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   $('whoOk').addEventListener('click', function(){ if ($('whoOther').value.trim()) { setWho($('whoOther').value); load(); } });
   $('whoOther').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('whoOk').click(); });
   // Nov 2026: 💵 Money pop-up; ✕ or a tap outside closes it
-  function moneyShow(on){ $('moneyBox').hidden = !on; $('moneyTog').textContent = on ? '💵 Money ▴' : '💵 Money ▾'; if (on) $('moneyBox').scrollIntoView({ behavior: 'smooth', block: 'end' }); }
-  $('moneyTog').addEventListener('click', function(){ moneyShow($('moneyBox').hidden); });
-  $('moneyX').addEventListener('click', function(){ moneyShow(false); });
   $('moreTog').addEventListener('click', function(){ var b = $('moreBox'); b.hidden = !b.hidden; this.textContent = b.hidden ? 'More ▾' : 'Less ▴'; });
   $('whoChg').addEventListener('click', function(){ setWho(''); $('whoOther').value = ''; $('whoOther').hidden = true; $('whoOk').hidden = true; load(); });
 
