@@ -68,7 +68,8 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .dayhd{font:bold 18px Georgia,serif;margin:4px 4px 2px}.daysun{margin:0 4px 10px}
 .mpop{position:fixed;inset:0;z-index:60;background:#1d2b3366;display:flex;align-items:center;justify-content:center;padding:16px}
 .mpop[hidden]{display:none}
-.mrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 2px}
+.mrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 2px;max-height:80px;overflow:hidden;transition:max-height .3s ease,opacity .2s ease,margin .3s ease}
+.mrow.tuck{max-height:0;opacity:0;margin:0}
 .mt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:5px 2px;min-height:46px;font:inherit;color:var(--ink);white-space:nowrap}
 .mt b{font:bold 16px/1.15 Georgia,serif}.mt small{font-size:12px;color:var(--muted)}
 .mt.grn b{color:var(--ok)}
@@ -705,6 +706,8 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     var nT = (DATA.bookings || []).filter(function(b){ return b.test && !b.cancelled; }).length + inquiries().filter(function(o){ return o.test && !o.old; }).length;
     $('testTog').textContent = MORE.tests ? 'Hide tests' : 'Show tests' + (nT ? ' (' + nT + ')' : '');
     $('head').classList.toggle('compact', !!document.querySelector('#app .bk.open'));
+    // Nov 2026: while a card is open, the money row slides up out of the way; it comes back when the card closes
+    $('moneyBox').classList.toggle('tuck', !!document.querySelector('#app .bk.open'));
     feed(tests);
     $('whoLine').textContent = 'Using this phone: ' + WHO;
   }
