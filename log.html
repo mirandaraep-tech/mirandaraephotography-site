@@ -663,7 +663,7 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
     });
 
     $('listTtl').textContent = q ? 'Search' : { todo: 'Needs you', cal: 'Calendar', booked: 'Booked', inq: 'Inquiries' }[VIEW];
-    $('listLbl').textContent = q ? '' : VIEW === 'booked' ? PERIODS[PI][1] : '';
+    $('listLbl').textContent = q ? '' : VIEW === 'booked' && PI ? PERIODS[PI][1] : ''; // only when the More box switched it off "Current"
     $('srchBtn').classList.toggle('on', !$('srow').hidden);
     // Calendar tab: the calendar sits right on the page; the picked day's sessions show under it
     $('calBox').innerHTML = VIEW === 'cal' && !q ? '<div class="card calcard">' + calendar() + '</div>' : '';
