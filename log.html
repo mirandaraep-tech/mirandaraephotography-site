@@ -333,6 +333,13 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 .acol .b-inq{background:#fff;color:var(--teal);border:1.5px solid var(--teal)}
 .acol .b-rem{color:var(--teal);border-color:var(--teal)}
 .flag{background:#fbf3e2;color:#6b4c12}
+/* Nov 2026: booked vs inquiry at a glance (shape, not just color): booked cards are solid white with a thick
+   teal bar down the left side; inquiries have no bar, a dashed edge and a soft cream inside */
+.bk:not(.inq){border-left:6px solid var(--teal)}
+.bk.fl{border-left:6px solid var(--teal)}
+.bk.inq{background:#fbf8f2}
+.bk.inq .sum{background:transparent}
+.bk.inq.open .sum{background:#f0f7f9}
 </style>
 </head>
 <body>
