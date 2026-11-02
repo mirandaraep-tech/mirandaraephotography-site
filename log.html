@@ -352,6 +352,10 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
 .sheet .btn.ghost{border-width:1.5px;border-color:#c9d8dc}
 .sheet .acts .btn.ghost[data-x]{border-color:transparent;background:#f3f6f7;color:var(--muted);font-weight:normal}
 .sheet .isum{background:#f7f9fa}
+/* Nov 2026: inquiries from the last 24 hours get a thick dotted bar down the left side (booked cards have a solid one) */
+.bk.inq.new24{position:relative;padding-left:0}
+.bk.inq.new24 > .sum,.bk.inq.new24 > .det{margin-left:10px}
+.bk.inq.new24::before{content:'';position:absolute;left:3px;top:14px;bottom:14px;width:8px;background:radial-gradient(circle,var(--teal) 3px,transparent 3.5px) center top/8px 13px repeat-y;pointer-events:none}
 </style>
 </head>
 <body>
@@ -1150,7 +1154,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   new MutationObserver(function(){ if (LOOKON && !document.querySelector('.veil')) lookAgain(); }).observe($('sheetHost'), { childList: true });
   function inqCard(o){
     var open = OPEN === 'i' + o.key, sent = !!o.sent && !o.pen;
-    var h = '<div class="bk inq' + (o.pen ? ' pen' : '') + (open ? ' open' : '') + '" data-inq="' + esc(o.key) + '">' +
+    // Nov 2026: came in during the last 24 hours → dotted bar down the left side (drops off by itself after a day)
+    var fresh = (o.request ? o.request.at : o.asked) || '', isNew = !sent && fresh && fresh > new Date(Date.now() - 86400000).toISOString();
+    var h = '<div class="bk inq' + (isNew ? ' new24' : '') + (o.pen ? ' pen' : '') + (open ? ' open' : '') + '" data-inq="' + esc(o.key) + '">' +
       '<div class="sum" data-tog role="button" tabindex="0" aria-expanded="' + open + '"><div class="lt">' +
       '<span class="pm">' + (open ? '−' : '+') + '</span>' + (o.test ? '<span class="tg t">TEST</span>' : '') +
       // Nov 1 2026: one tag per card, whichever matters most
