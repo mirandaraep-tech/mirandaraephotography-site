@@ -68,7 +68,7 @@ label.l{display:block;font-size:13px;font-weight:bold;color:var(--muted);margin:
 .dayhd{font:bold 18px Georgia,serif;margin:4px 4px 2px}.daysun{margin:0 4px 10px}
 .mpop{position:fixed;inset:0;z-index:60;background:#1d2b3366;display:flex;align-items:center;justify-content:center;padding:16px}
 .mpop[hidden]{display:none}
-.moneycard{width:min(520px,100%);margin:0;padding:14px}
+.moneycard{margin:8px 0 14px;padding:14px;box-shadow:none;border:1px solid var(--line)}
 .mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.mhd b{font:bold 20px Georgia,serif}
 .mx{border:0;background:#f3f6f7;color:var(--teal);font-size:18px;width:40px;height:36px;border-radius:10px;cursor:pointer}
 .fb{border:2px solid var(--line);background:#fff;color:var(--teal);border-radius:14px;min-height:46px;padding:4px 6px;font-size:15px;cursor:pointer;line-height:1.15}
@@ -357,19 +357,11 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
       <div id="feed" hidden style="margin-top:10px"></div>
     </div>
     <!-- Nov 1 2026: the setup links (mostly for Randy) are tucked behind one "More" link -->
-    <p style="text-align:center;margin:14px 0 4px"><button class="lnk" id="moneyTog" type="button">💵 Money</button> &nbsp;·&nbsp; <button class="lnk" id="moreTog" type="button">More ▾</button></p>
-    <div id="moreBox" hidden>
-      <p style="text-align:center;margin:4px 0 12px"><button class="lnk" id="tblTog">Spreadsheet view</button> &nbsp;·&nbsp; <button class="lnk" id="testTog">Show tests</button></p>
-      <p style="text-align:center" class="muted"><span id="whoLine"></span> · <button class="lnk" id="whoChg">Change</button></p>
-      <p style="text-align:center"><button class="lnk" id="clearTests" style="color:var(--bad)">Clear all tests</button></p>
-      <p style="text-align:center"><a href="#" id="forget" class="muted">Lock this phone</a></p>
-    </div>
-    <!-- Nov 2026: the money boxes live on their own, in a pop-up opened from the 💵 Money link at the bottom -->
-    <div class="mpop" id="moneyPop" hidden>
-    <div class="card moneycard" role="dialog" aria-label="Money">
+    <p style="text-align:center;margin:14px 0 4px"><button class="lnk" id="moneyTog" type="button">💵 Money ▾</button> &nbsp;·&nbsp; <button class="lnk" id="moreTog" type="button">More ▾</button></p>
+    <!-- Nov 2026: the money boxes open right here at the very bottom of the page (they don't float over anything) -->
+    <div class="card moneycard" id="moneyBox" hidden>
         <div class="mhd"><b>💵 Money</b><button class="mx" id="moneyX" type="button" aria-label="Close">✕</button></div>
         <div class="asof" id="asof"></div>
-        
         <div class="tiles">
           <button class="tile bk1" id="tBookedTile" type="button">
             <span class="hd" id="tPer">Current bookings ↻</span>
@@ -383,6 +375,12 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
           <button class="tile blu" id="tUpTile" type="button" hidden><b id="tUp">–</b><span class="lb">Upcoming sessions</span></button>
         </div>
       </div>
+
+    <div id="moreBox" hidden>
+      <p style="text-align:center;margin:4px 0 12px"><button class="lnk" id="tblTog">Spreadsheet view</button> &nbsp;·&nbsp; <button class="lnk" id="testTog">Show tests</button></p>
+      <p style="text-align:center" class="muted"><span id="whoLine"></span> · <button class="lnk" id="whoChg">Change</button></p>
+      <p style="text-align:center"><button class="lnk" id="clearTests" style="color:var(--bad)">Clear all tests</button></p>
+      <p style="text-align:center"><a href="#" id="forget" class="muted">Lock this phone</a></p>
     </div>
   </div>
 </main>
@@ -1954,9 +1952,9 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 0 30px}
   $('whoOk').addEventListener('click', function(){ if ($('whoOther').value.trim()) { setWho($('whoOther').value); load(); } });
   $('whoOther').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('whoOk').click(); });
   // Nov 2026: 💵 Money pop-up; ✕ or a tap outside closes it
-  $('moneyTog').addEventListener('click', function(){ $('moneyPop').hidden = false; });
-  $('moneyX').addEventListener('click', function(){ $('moneyPop').hidden = true; });
-  $('moneyPop').addEventListener('click', function(e){ if (e.target === this) this.hidden = true; });
+  function moneyShow(on){ $('moneyBox').hidden = !on; $('moneyTog').textContent = on ? '💵 Money ▴' : '💵 Money ▾'; if (on) $('moneyBox').scrollIntoView({ behavior: 'smooth', block: 'end' }); }
+  $('moneyTog').addEventListener('click', function(){ moneyShow($('moneyBox').hidden); });
+  $('moneyX').addEventListener('click', function(){ moneyShow(false); });
   $('moreTog').addEventListener('click', function(){ var b = $('moreBox'); b.hidden = !b.hidden; this.textContent = b.hidden ? 'More ▾' : 'Less ▴'; });
   $('whoChg').addEventListener('click', function(){ setWho(''); $('whoOther').value = ''; $('whoOther').hidden = true; $('whoOk').hidden = true; load(); });
 
